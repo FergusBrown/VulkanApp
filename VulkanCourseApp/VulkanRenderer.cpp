@@ -10,6 +10,7 @@ int VulkanRenderer::init(GLFWwindow* newWindow)
 
 	try {
 		createInstance();
+		setupDebugMessenger();
 		getPhysicalDevice();
 		createLogicalDevice();
 	}
@@ -25,6 +26,11 @@ int VulkanRenderer::init(GLFWwindow* newWindow)
 void VulkanRenderer::cleanup()
 {
 	vkDestroyDevice(mainDevice.logicalDevice, nullptr);
+
+	if (enableValidationLayers) {
+		DestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
+	}
+
 	vkDestroyInstance(instance, nullptr);
 }
 
@@ -34,6 +40,11 @@ VulkanRenderer::~VulkanRenderer()
 
 void VulkanRenderer::createInstance()
 {
+	// 
+	if (enableValidationLayers && !checkValidationLayerSupport()) {
+		throw std::runtime_error("validation layers requested, but not available!");
+	}
+
 	// Information about the application itself
 	// Most data here does not affect the program and is for developer convenience
 	VkApplicationInfo appInfo = {};
@@ -48,6 +59,8 @@ void VulkanRenderer::createInstance()
 	VkInstanceCreateInfo createInfo = {};
 	createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
 	createInfo.pApplicationInfo = &appInfo;
+
+
 
 	// Create list to hold instance extensions - we must query vulkan for these values
 	std::vector<const char*> instanceExtensions = std::vector<const char*>();
@@ -64,7 +77,11 @@ void VulkanRenderer::createInstance()
 		instanceExtensions.push_back(glfwExtensions[i]);
 	}
 
-	// Ceck instance extensions are supported
+	if (enableValidationLayers) {
+		instanceExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+	}
+
+	// Check instance extensions are supported
 	if (!checkInstanceExtensionSupport(&instanceExtensions))
 	{
 		throw std::runtime_error("VkInstance does not support required extrensions!");
@@ -73,9 +90,19 @@ void VulkanRenderer::createInstance()
 	createInfo.enabledExtensionCount = static_cast<uint32_t>(instanceExtensions.size());			// Cast to uint32_t as size returns a type t
 	createInfo.ppEnabledExtensionNames = instanceExtensions.data();
 
-	// TODO: Setup validation layers that the instance will use
-	createInfo.enabledLayerCount = 0;
-	createInfo.ppEnabledLayerNames = nullptr;
+	// Setup validation layers that the instance will use
+	VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo;
+	if (enableValidationLayers) {
+		createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
+		createInfo.ppEnabledLayerNames = validationLayers.data();
+
+		populateDebugMessengerCreateInfo(debugCreateInfo);
+		createInfo.pNext = (VkDebugUtilsMessengerCreateInfoEXT*)&debugCreateInfo;
+	}
+	else {
+		createInfo.enabledLayerCount = 0;
+		createInfo.ppEnabledLayerNames = nullptr;
+	}
 
 	// Create instance - must remember to destroy this object in memory later
 	VkResult result = vkCreateInstance(&createInfo, nullptr, &instance);
@@ -245,3 +272,59 @@ QueueFamilyIndices VulkanRenderer::getQueueFamilies(VkPhysicalDevice device)
 
 	return indices;
 }
+
+// Checks that all of the requested layers are available
+bool VulkanRenderer::checkValidationLayerSupport() {
+	uint32_t layerCount;
+	vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
+
+	std::vector<VkLayerProperties> availableLayers(layerCount);
+	vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
+
+	for (const char* layerName : validationLayers) {
+		bool layerFound = false;
+
+		for (const auto& layerProperties : availableLayers) {
+			if (strcmp(layerName, layerProperties.layerName) == 0) {
+				layerFound = true;
+				break;
+			}
+		}
+
+		if (!layerFound) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
+void VulkanRenderer::setupDebugMessenger()
+{
+	if (!enableValidationLayers) return;
+
+	VkDebugUtilsMessengerCreateInfoEXT createInfo;
+	populateDebugMessengerCreateInfo(createInfo);
+
+
+	if (CreateDebugUtilsMessengerEXT(instance, &createInfo, nullptr, &debugMessenger) != VK_SUCCESS) {
+		throw std::runtime_error("failed to set up debug messenger!");
+	}
+}
+
+void VulkanRenderer::populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo)
+{
+	createInfo = {};
+	createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+	createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+	createInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+	createInfo.pfnUserCallback = debugCallback;
+}
+
+VKAPI_ATTR VkBool32 VKAPI_CALL VulkanRenderer::debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, VkDebugUtilsMessageTypeFlagsEXT messageType, const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* pUserData)
+{
+		std::cerr << "validation layer: " << pCallbackData->pMessage << std::endl;
+
+		return VK_FALSE;
+}
+

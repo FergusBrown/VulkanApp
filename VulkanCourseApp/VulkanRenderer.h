@@ -6,8 +6,11 @@
 #include <stdexcept>
 #include <vector>
 #include <iostream>
+#include <cstring>
 
 #include "Utilities.h"
+#include "VulkanValidation.h"
+
 
 class VulkanRenderer
 {
@@ -24,6 +27,7 @@ private:
 
 	// Vulkan Components
 	VkInstance instance;
+	VkDebugUtilsMessengerEXT debugMessenger;
 	struct
 	{
 		VkPhysicalDevice physicalDevice;
@@ -47,5 +51,11 @@ private:
 
 	// -- Getter Functions
 	QueueFamilyIndices getQueueFamilies(VkPhysicalDevice device);
+
+	// - Validation Layer Functions
+	bool checkValidationLayerSupport();
+	static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, VkDebugUtilsMessageTypeFlagsEXT messageType, const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* pUserData);
+	void setupDebugMessenger();
+	void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
 };
 
