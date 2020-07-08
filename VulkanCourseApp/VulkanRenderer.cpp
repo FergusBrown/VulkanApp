@@ -25,13 +25,15 @@ int VulkanRenderer::init(GLFWwindow* newWindow)
 
 void VulkanRenderer::cleanup()
 {
-	vkDestroyDevice(mainDevice.logicalDevice, nullptr);
+	
 
 	if (enableValidationLayers) {
-		DestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
+		//DestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
 	}
 
 	vkDestroyInstance(instance, nullptr);
+	vkDestroyDevice(mainDevice.logicalDevice, nullptr);
+	
 }
 
 VulkanRenderer::~VulkanRenderer()
@@ -321,10 +323,5 @@ void VulkanRenderer::populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreat
 	createInfo.pfnUserCallback = debugCallback;
 }
 
-VKAPI_ATTR VkBool32 VKAPI_CALL VulkanRenderer::debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, VkDebugUtilsMessageTypeFlagsEXT messageType, const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* pUserData)
-{
-		std::cerr << "validation layer: " << pCallbackData->pMessage << std::endl;
 
-		return VK_FALSE;
-}
 

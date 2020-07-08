@@ -4,7 +4,8 @@
 
 // Validation layer variables
 const std::vector<const char*> validationLayers = {
-	"VK_LAYER_KHRONOS_validation"
+	//"VK_LAYER_KHRONOS_validation"
+	"VK_LAYER_LUNARG_standard_validation"
 };
 
 #ifdef NDEBUG
@@ -14,7 +15,11 @@ const std::vector<const char*> validationLayers = {
 #endif
 
 
-static VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger)
+static VkResult CreateDebugUtilsMessengerEXT(
+	VkInstance instance, 
+	const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, 
+	const VkAllocationCallbacks* pAllocator, 
+	VkDebugUtilsMessengerEXT* pDebugMessenger)
 {
 	auto func = (PFN_vkCreateDebugUtilsMessengerEXT) vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
 	if (func != nullptr) {
@@ -25,12 +30,26 @@ static VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugU
 	}
 }
 
-static void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger, const VkAllocationCallbacks* pAllocator)
+static void DestroyDebugUtilsMessengerEXT(
+	VkInstance instance, 
+	VkDebugUtilsMessengerEXT debugMessenger,
+	const VkAllocationCallbacks* pAllocator)
 {
 	auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
 	if (func != nullptr) {
 		func(instance, debugMessenger, pAllocator);
 	}
+}
+
+static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
+	VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+	VkDebugUtilsMessageTypeFlagsEXT messageType,
+	const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
+	void* pUserData)
+{
+	std::cerr << "validation layer: " << pCallbackData->pMessage << std::endl;
+
+	return VK_FALSE;
 }
 
 

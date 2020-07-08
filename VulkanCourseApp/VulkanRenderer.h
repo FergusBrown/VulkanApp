@@ -40,6 +40,7 @@ private:
 	// - Create Functions
 	void createInstance();
 	void createLogicalDevice();
+	void setupDebugMessenger();
 
 	// - Get Functions
 	void getPhysicalDevice();
@@ -48,14 +49,14 @@ private:
 	// -- Checker Functions
 	bool checkInstanceExtensionSupport(std::vector<const char*>* checkExtensions);
 	bool checkDeviceSuitable(VkPhysicalDevice device);
+	bool checkValidationLayerSupport();
+
+	// --- Validation Helper Functions
+	void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
 
 	// -- Getter Functions
 	QueueFamilyIndices getQueueFamilies(VkPhysicalDevice device);
 
-	// - Validation Layer Functions
-	bool checkValidationLayerSupport();
-	static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, VkDebugUtilsMessageTypeFlagsEXT messageType, const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* pUserData);
-	void setupDebugMessenger();
-	void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
+	
 };
 
