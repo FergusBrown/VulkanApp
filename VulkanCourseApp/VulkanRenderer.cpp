@@ -25,15 +25,12 @@ int VulkanRenderer::init(GLFWwindow* newWindow)
 
 void VulkanRenderer::cleanup()
 {
-	
-
 	if (enableValidationLayers) {
-		//DestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
+		DestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
 	}
 
 	vkDestroyInstance(instance, nullptr);
 	vkDestroyDevice(mainDevice.logicalDevice, nullptr);
-	
 }
 
 VulkanRenderer::~VulkanRenderer()
