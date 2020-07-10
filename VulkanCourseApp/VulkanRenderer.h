@@ -54,6 +54,7 @@ private:
 	void createLogicalDevice();
 	void createSurface();
 	void createSwapChain();
+	void createGraphicsPipeline();
 
 	// -- Create Helper Functions
 	void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
@@ -79,5 +80,6 @@ private:
 
 	// -- Create Functions
 	VkImageView createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags);
+	VkShaderModule createShaderModule(const std::vector<char>& code);
 };
 
