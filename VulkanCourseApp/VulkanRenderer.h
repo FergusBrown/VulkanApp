@@ -12,6 +12,7 @@
 #include <iostream>
 #include <cstring>
 
+#include "Mesh.h"
 #include "Utilities.h"
 #include "VulkanValidation.h"
 
@@ -31,6 +32,9 @@ private:
 	GLFWwindow* window;
 
 	int currentFrame = 0;
+
+	// Scene objects
+	Mesh firstMesh;
 
 	// Vulkan Components
 	// - Main
