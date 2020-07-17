@@ -8,15 +8,20 @@ layout(binding = 0) uniform UboViewProjection {
 	mat4 view;
 } uboViewProjection;
 
+// BELOW uboModel NOT IN USE AND REPLACED BY PUSH MODEL. LEFT FOR REFERENCE.
 layout(binding = 1) uniform UboModel {
 	mat4 model;
 } uboModel;
+
+layout(push_constant) uniform PushModel {
+	mat4 model;
+} pushModel;
 
 layout(location = 0) out vec3 fragCol;
 
 
 void main() {
-	gl_Position = uboViewProjection.projection * uboViewProjection.view * uboModel.model * vec4(pos, 1.0);  // Projected to model location, camera view then projection
+	gl_Position = uboViewProjection.projection * uboViewProjection.view * pushModel.model * vec4(pos, 1.0);  // Projected to model location, camera view then projection
 	
 	fragCol = col;
 }
