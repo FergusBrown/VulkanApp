@@ -2,14 +2,15 @@
 
 layout(location = 0) in vec3 pos;		// Locations represent locations in some bound data. ALSO note that binding = 0 is implied when not stated
 layout(location = 1) in vec3 col;		// binding = 0 has no relation between inputs, outputs and uniforms
+layout(location = 2) in vec2 tex;
 	
-layout(binding = 0) uniform UboViewProjection {
+layout(set = 0, binding = 0) uniform UboViewProjection {
 	mat4 projection;
 	mat4 view;
 } uboViewProjection;
 
 // BELOW uboModel NOT IN USE AND REPLACED BY PUSH MODEL. LEFT FOR REFERENCE.
-layout(binding = 1) uniform UboModel {
+layout(set = 0, binding = 1) uniform UboModel {
 	mat4 model;
 } uboModel;
 
@@ -18,10 +19,12 @@ layout(push_constant) uniform PushModel {
 } pushModel;
 
 layout(location = 0) out vec3 fragCol;
+layout(location = 1) out vec2 fragTex;
 
 
 void main() {
 	gl_Position = uboViewProjection.projection * uboViewProjection.view * pushModel.model * vec4(pos, 1.0);  // Projected to model location, camera view then projection
 	
 	fragCol = col;
+	fragTex = tex;
 }

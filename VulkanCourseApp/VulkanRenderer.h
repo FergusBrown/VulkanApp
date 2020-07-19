@@ -76,10 +76,13 @@ private:
 
 	// - Descriptors
 	VkDescriptorSetLayout descriptorSetLayout; // describes the layout of the descriptor sets
+	VkDescriptorSetLayout samplerSetLayout; 
 	VkPushConstantRange pushConstantRange;
 
 	VkDescriptorPool descriptorPool;
+	VkDescriptorPool samplerDescriptorPool;
 	std::vector<VkDescriptorSet> descriptorSets;
+	std::vector<VkDescriptorSet> samplerDescriptorSets;
 
 	std::vector<VkBuffer> vpUniformBuffer;		// We want one of these for every command buffer so that nothing funky happens
 	std::vector<VkDeviceMemory> vpUniformBufferMemory;
@@ -94,9 +97,10 @@ private:
 	//UboModel* modelTransferSpace;
 
 	// - Assets
+	VkSampler textureSampler;
 	std::vector<VkImage> textureImages;
 	std::vector<VkDeviceMemory> textureImageMemory;
-
+	std::vector<VkImageView> textureImageViews;
 
 	// - Pipeline
 	VkPipeline graphicsPipeline;
@@ -133,6 +137,7 @@ private:
 	void createCommandPool();
 	void createCommandBuffers();
 	void createSynchronation();
+	void createTextureSampler();
 
 	void createUniformBuffers();
 	void createDescriptorPool();
@@ -175,7 +180,9 @@ private:
 	VkImageView createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags);
 	VkShaderModule createShaderModule(const std::vector<char>& code);
 
+	int createTextureImage(std::string fileName);
 	int createTexture(std::string fileName);
+	int createTextureDescriptor(VkImageView textureImage);
 
 	// -- Loader Functions
 	stbi_uc* loadTextureFile(std::string fileName, int* width, int* height, VkDeviceSize* imageSize);
