@@ -47,9 +47,10 @@ int main()
 	float lastTime = 0.0f;
 
 	Pawn player = Pawn();
-	//vulkanRenderer.createCamera(90.0f);
 	vulkanRenderer.updateCameraView(player.generateView());
 	int frog = vulkanRenderer.createMeshModel("Models/12268_banjofrog_v1_L3.obj");
+	//glm::mat4 testMat = glm::rotate(glm::mat4(1.0f), glm::radians(angle), glm::vec3(1.0f, 1.0f, 0.0f));
+	//vulkanRenderer.updateModel(frog, testMat);
 
 	InputHandler inputHandler = InputHandler(window);
 	

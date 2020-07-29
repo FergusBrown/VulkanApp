@@ -9,46 +9,40 @@
 
 
 Pawn::Pawn()  :
-	mXRotation(0.0f), mYRotation(M_PI), mZRotation(0.0f), mPosition(vec3(0.0f, 0.0f, 10.0f))
+	mXRotation(0.0f), mYRotation(M_PI), mZRotation(0.0f),
+	mPosition(vec3(0.0f, 0.0f, 10.0f)), 
+	mDirection(vec3(0.0f, 0.0f, -1.0f)), mRight(vec3(1.0f, 0.0f, 0.0f)), mUp(vec3(0.0f, 1.0f, 0.0f))
 {
-	//mView = glm::lookAt(glm::vec3(0.0f, 0.0f, 5.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 }
 
 const mat4& Pawn::generateView() const
 {
-
-	// Direction : Spherical coordinates to Cartesian coordinates conversion
-	glm::vec3 direction(
-		cos(mXRotation) * sin(mYRotation),
-		sin(mXRotation),
-		cos(mXRotation) * cos(mYRotation)
-	);
-
-	// Right vector
-	glm::vec3 right = glm::vec3(
-		sin(mYRotation - M_PI / 2.0f),
-		0,
-		cos(mYRotation - M_PI / 2.0f)
-	);
-
-	// Up vector
-	glm::vec3 up = glm::cross(right, direction);
-
+	
 	return glm::lookAt(
 		mPosition,           // Camera is here
-		mPosition + direction, // and looks here : at the same position, plus "direction"
-		up                  // Head is up (set to 0,-1,0 to look upside-down)
+		mPosition + mDirection, // and looks here : at the same position, plus "direction"
+		mUp                  // Head is up (set to 0,-1,0 to look upside-down)
 	);
 }
 
-//const mat4& Pawn::getView() const
-//{
-//	return mView;
-//}
-
-void Pawn::translate(vec3 position)
+void Pawn::movePositionBy(vec3 position)
 {
 	mPosition +=  position;
+}
+
+void Pawn::moveForwardBy(float distance)
+{
+	mPosition += mDirection * distance;
+}
+
+void Pawn::moveRightBy(float distance)
+{
+	mPosition += mRight * distance;
+}
+
+void Pawn::moveUpBy(float distance)
+{
+	mPosition += mUp * distance;
 }
 
 // Recreate view matrix on each rotation to avoid rounding errors
@@ -64,13 +58,7 @@ void Pawn::rotate(vec3 eulerAngles)
 	fixExcessRotation(mYRotation);
 	fixExcessRotation(mZRotation);
 
-	//glm::quat bearingQuat(eulerAngles);
-
-	// TODO: feels like there's a simpler way to do this rather than converting to quaternion
-	// Is this faster than just calculating cartesian coords from euler angles?
-	//mat4 rotationMatrix = glm::toMat4(bearingQuat);
-
-	//mView = mView;
+	updateLookValues();
 }
 
 void Pawn::fixExcessRotation(float& angle)
@@ -82,4 +70,28 @@ void Pawn::fixExcessRotation(float& angle)
 		angle += 2 * M_PI;
 	}
 		
+}
+
+void Pawn::updateLookValues()
+{
+
+	// Direction : Spherical coordinates to Cartesian coordinates conversion
+	mDirection = glm::normalize(vec3(
+		cos(mZRotation) * sin(mYRotation) * cos(mXRotation) + sin(mZRotation) * sin(mXRotation),
+		-sin(mZRotation) * sin(mYRotation) * cos(mXRotation) + cos(mZRotation) * sin(mXRotation),
+		cos(mYRotation) * cos(mXRotation)
+	));
+
+
+
+	// Right vector - can only be rotated around Z and Y axis
+	mRight = glm::normalize(vec3(
+		sin(mYRotation - M_PI / 2.0f) * cos(mZRotation),
+		sin(mYRotation - M_PI / 2.0f) * sin(mZRotation),
+		cos(mYRotation - M_PI / 2.0f)
+	));
+
+
+	// Up vector
+	mUp = glm::cross(mRight, mDirection);
 }

@@ -11,11 +11,21 @@ public:
 
 	const mat4& generateView() const;
 
-	void translate(vec3 position);
+	void movePositionBy(vec3 position);
+	void moveForwardBy(float distance);
+	void moveRightBy(float distance);
+	void moveUpBy(float distance);
 	void rotate(vec3 eulerAngles);
 
 private:
+
+	// Position of camera
 	vec3 mPosition;
+
+	// look at direction and associated vectors
+	vec3 mDirection;
+	vec3 mRight;
+	vec3 mUp;
 
 	float mXRotation;
 	float mYRotation;
@@ -23,6 +33,6 @@ private:
 	
 	// Helper
 	void fixExcessRotation(float& angle);
-
+	void updateLookValues();
 };
 

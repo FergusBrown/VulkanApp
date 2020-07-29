@@ -20,7 +20,7 @@ public:
 
 	virtual void execute(Pawn& pawn)
 	{
-		pawn.translate(vec3(0.0f, 1.0 * mSpeedModifier, 0.0f));
+		pawn.moveUpBy(1.0 * mSpeedModifier);
 	}
 
 private:
@@ -36,7 +36,7 @@ public:
 
 	virtual void execute(Pawn& pawn)
 	{
-		pawn.translate(vec3(0.0f, -1.0 * mSpeedModifier, 0.0f));
+		pawn.moveUpBy(-1.0 * mSpeedModifier);
 	}
 
 private:
@@ -52,7 +52,7 @@ public:
 
 	virtual void execute(Pawn& pawn)
 	{
-		pawn.translate(vec3(0.0f, 0.0f, -1.0 * mSpeedModifier));
+		pawn.moveForwardBy(1.0 * mSpeedModifier);
 	}
 
 private:
@@ -68,7 +68,7 @@ public:
 
 	virtual void execute(Pawn& pawn)
 	{
-		pawn.translate(vec3(0.0f, 0.0f, 1.0 * mSpeedModifier));
+		pawn.moveForwardBy(-1.0 * mSpeedModifier);
 	}
 
 private:
@@ -84,7 +84,7 @@ public:
 
 	virtual void execute(Pawn& pawn)
 	{
-		pawn.translate(vec3(-1.0 * mSpeedModifier, 0.0f, 0.0f));
+		pawn.moveRightBy(-1.0 * mSpeedModifier);
 	}
 
 private:
@@ -100,7 +100,7 @@ public:
 
 	virtual void execute(Pawn& pawn)
 	{
-		pawn.translate(vec3(1.0 * mSpeedModifier, 0.0f, 0.0f));
+		pawn.moveRightBy(1.0 * mSpeedModifier);
 	}
 
 private:
