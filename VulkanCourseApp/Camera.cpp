@@ -130,12 +130,12 @@ void Camera::setFoV(float FoVinDegrees)
 
 void Camera::translate(vec3 position)
 {
-	glm::translate(mProjectionMatrix, position);
+	glm::translate(mViewMatrix, position);
 }
 
 void Camera::rotate(float angleInDegrees, vec3 axis)
 {
-	glm::rotate(mProjectionMatrix, glm::radians(angleInDegrees), axis);
+	glm::rotate(mViewMatrix, glm::radians(angleInDegrees), axis);
 }
 
 void Camera::generatePerspective()

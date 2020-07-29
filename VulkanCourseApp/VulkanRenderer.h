@@ -22,9 +22,11 @@
 #include "stb_image.h"
 #include "Mesh.h"
 #include "MeshModel.h"
+//#include "Camera.h"
 #include "Utilities.h"
 #include "VulkanValidation.h"
 
+using namespace glm;
 
 class VulkanRenderer
 {
@@ -33,8 +35,14 @@ public:
 
 	int init(GLFWwindow* newWindow);
 
+	// Model control
 	int createMeshModel(std::string modelFile);
-	void updateModel(int modelId, glm::mat4 newModel);
+	void updateModel(int modelId, mat4 newModel);
+
+	// Camera Control
+	void createCamera(float FoVinDegrees);
+	void updateCameraView(mat4 newView);
+
 
 	void draw();
 	void cleanup();
@@ -54,6 +62,8 @@ private:
 		glm::mat4 projection;
 		glm::mat4 view;
 	} uboViewProjection;
+
+	//std::vector<UboViewProjection> cameraList;
 
 
 	// Vulkan Components

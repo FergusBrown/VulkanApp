@@ -9,6 +9,8 @@
 #include <iostream>
 
 #include "VulkanRenderer.h"
+#include "Pawn.h"
+#include "InputHandler.h"
 
 GLFWwindow* window;
 VulkanRenderer vulkanRenderer;
@@ -44,12 +46,19 @@ int main()
 	float deltaTime = 0.0f;
 	float lastTime = 0.0f;
 
+	Pawn player = Pawn();
+	//vulkanRenderer.createCamera(90.0f);
+	vulkanRenderer.updateCameraView(player.generateView());
 	int frog = vulkanRenderer.createMeshModel("Models/12268_banjofrog_v1_L3.obj");
 
+	InputHandler inputHandler = InputHandler(window);
+	
 	// Loop until closed
-	while (!glfwWindowShouldClose(window))
+	while (glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS 
+		&& !glfwWindowShouldClose(window))
 	{
 		glfwPollEvents();
+
 		float now = glfwGetTime();
 		deltaTime = now - lastTime;
 		lastTime = now;
@@ -61,10 +70,20 @@ int main()
 		}
 
 		
-		glm::mat4 testMat = glm::rotate(glm::mat4(1.0f), glm::radians(angle), glm::vec3(1.0f, 1.0f, 0.0f));
-		testMat = glm::rotate(testMat, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-		vulkanRenderer.updateModel(frog, testMat);
+		//glm::mat4 testMat = glm::rotate(glm::mat4(1.0f), glm::radians(angle), glm::vec3(1.0f, 1.0f, 0.0f));
+		//testMat = glm::rotate(testMat, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+		//vulkanRenderer.updateModel(frog, testMat);
 
+		std::vector<CommandPtr> commandList;
+
+		if (inputHandler.handleInput(commandList))
+		{
+			for (auto& command : commandList)
+			{
+				command->execute(player);
+			}
+		}
+		vulkanRenderer.updateCameraView(player.generateView());
 		vulkanRenderer.draw();
 	}
 

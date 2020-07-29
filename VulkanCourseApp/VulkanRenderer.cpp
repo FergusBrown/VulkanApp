@@ -34,10 +34,12 @@ int VulkanRenderer::init(GLFWwindow* newWindow)
 		//recordCommands();
 		createSynchronation();
 
-		uboViewProjection.projection = glm::perspective(glm::radians(45.0f), (float)swapChainExtent.width / (float)swapChainExtent.height, 0.1f, 100.0f);
-		uboViewProjection.view = glm::lookAt(glm::vec3(10.0f, 0.0f, 20.0f), glm::vec3(0.0f, 0.0f, -2.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		createCamera(90.0f);
 
-		uboViewProjection.projection[1][1] *= -1;
+		//uboViewProjection.projection = glm::perspective(glm::radians(45.0f), (float)swapChainExtent.width / (float)swapChainExtent.height, 0.1f, 100.0f);
+		//uboViewProjection.view = glm::lookAt(glm::vec3(10.0f, 0.0f, 20.0f), glm::vec3(0.0f, 0.0f, -2.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+
+		//uboViewProjection.projection[1][1] *= -1;
 
 		// create default "no texture" texture
 		createTexture("plain.png");
@@ -58,6 +60,19 @@ void VulkanRenderer::updateModel(int modelId, glm::mat4 newModel)
 	if (modelId >= modelList.size()) return;
 
 	modelList[modelId].setModel(newModel);
+}
+
+void VulkanRenderer::createCamera(float FoVinDegrees)
+{
+	uboViewProjection.projection = glm::perspective(glm::radians(FoVinDegrees), (float)swapChainExtent.width / (float)swapChainExtent.height, 0.1f, 100.0f);
+	uboViewProjection.view = glm::lookAt(glm::vec3(0.0f, 0.0f, 20.0f), glm::vec3(0.0f, 0.0f, -2.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+
+	uboViewProjection.projection[1][1] *= -1;
+}
+
+void VulkanRenderer::updateCameraView(mat4 newView)
+{
+	uboViewProjection.view = newView;
 }
 
 void VulkanRenderer::draw()
