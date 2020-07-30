@@ -145,7 +145,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="InputHandler.cpp" />
+    <ClCompile Include="InputHandlerMouse.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="MeshModel.cpp" />
@@ -153,9 +153,10 @@
     <ClCompile Include="VulkanRenderer.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="CameraCommands.h" />
+    <ClInclude Include="Commands.h" />
     <ClInclude Include="ControlConstants.h" />
     <ClInclude Include="InputHandler.h" />
+    <ClInclude Include="InputHandlerMouse.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="MeshModel.h" />
     <ClInclude Include="Pawn.h" />

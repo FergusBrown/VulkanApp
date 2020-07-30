@@ -10,7 +10,7 @@
 
 #include "VulkanRenderer.h"
 #include "Pawn.h"
-#include "InputHandler.h"
+#include "InputHandlerMouse.h"
 
 GLFWwindow* window;
 VulkanRenderer vulkanRenderer;
@@ -46,14 +46,20 @@ int main()
 	float deltaTime = 0.0f;
 	float lastTime = 0.0f;
 
+	// Frame count
+	int noFrames = 0;
+	float timeSinceLastPrint = 0.0f;
+
 	Pawn player = Pawn();
 	vulkanRenderer.updateCameraView(player.generateView());
 	int frog = vulkanRenderer.createMeshModel("Models/12268_banjofrog_v1_L3.obj");
 	//glm::mat4 testMat = glm::rotate(glm::mat4(1.0f), glm::radians(angle), glm::vec3(1.0f, 1.0f, 0.0f));
 	//vulkanRenderer.updateModel(frog, testMat);
 
-	InputHandler inputHandler = InputHandler(window);
-	
+	InputHandler* inputHandler = new InputHandlerMouse(window);
+	inputHandler->init();
+
+
 	// Loop until closed
 	while (glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS 
 		&& !glfwWindowShouldClose(window))
@@ -63,6 +69,17 @@ int main()
 		float now = glfwGetTime();
 		deltaTime = now - lastTime;
 		lastTime = now;
+
+		++noFrames;
+		timeSinceLastPrint += deltaTime;
+
+		if (timeSinceLastPrint > 1)
+		{
+			std::cout << "Average frame time is " << timeSinceLastPrint / noFrames * 1000 << " ms" << std::endl;
+			timeSinceLastPrint = 0.0f;
+			noFrames = 0;
+		}
+			
 
 		angle += 100.0f * deltaTime;
 		if (angle > 360.0f)
@@ -77,7 +94,7 @@ int main()
 
 		std::vector<CommandPtr> commandList;
 
-		if (inputHandler.handleInput(commandList))
+		if (inputHandler->handleInput(commandList, deltaTime))
 		{
 			for (auto& command : commandList)
 			{
@@ -89,6 +106,8 @@ int main()
 	}
 
 	vulkanRenderer.cleanup();
+
+	delete inputHandler;
 
 	// Destroy GLFW window and stop GLFW
 	glfwDestroyWindow(window);

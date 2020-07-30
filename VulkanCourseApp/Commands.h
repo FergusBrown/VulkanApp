@@ -3,6 +3,9 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include "Pawn.h"
+#include <memory>
+
+//typedef std::unique_ptr<Command> CommandPtr;
 
 class Command
 {

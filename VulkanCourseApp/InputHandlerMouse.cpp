@@ -1,35 +1,27 @@
-#include "InputHandler.h"
+#include "InputHandlerMouse.h"
+#include "ControlConstants.h"
 
-// TODO: create an inputhandler base class 
-// derive a M+K and controller handler appropriately 
-InputHandler::InputHandler(GLFWwindow* window) :
-	mWindow(window), mLastTime(NULL)
+InputHandlerMouse::InputHandlerMouse(GLFWwindow* window)
+	: InputHandler(window)
 {
-	// Hide mouse
-	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+	mWindow = InputHandler::mWindow;
 }
 
-bool InputHandler::handleInput(std::vector<CommandPtr>& commandList)
+bool InputHandlerMouse::handleInput(std::vector<CommandPtr>& commandList, float deltaTime)
 {
-	if (mLastTime == NULL)
-	{
-		mLastTime = glfwGetTime();
-	}
-
-	double currentTime = glfwGetTime();
-
-   	float deltaTime = float(currentTime - mLastTime);
-
 	handleMouse(commandList, deltaTime);
 	handleKeyboard(commandList, deltaTime);
-
-
-	mLastTime = currentTime;
 
 	return !commandList.empty();
 }
 
-void InputHandler::handleMouse(std::vector<CommandPtr>& commandList, float deltaTime)
+void InputHandlerMouse::init()
+{
+	// Hide mouse
+	glfwSetInputMode(mWindow, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+}
+
+void InputHandlerMouse::handleMouse(std::vector<CommandPtr>& commandList, float deltaTime)
 {
 	int width, height;
 	glfwGetWindowSize(mWindow, &width, &height);
@@ -59,7 +51,7 @@ void InputHandler::handleMouse(std::vector<CommandPtr>& commandList, float delta
 	glfwSetCursorPos(mWindow, xCentre, yCentre);
 }
 
-void InputHandler::handleKeyboard(std::vector<CommandPtr>& commandList, float deltaTime)
+void InputHandlerMouse::handleKeyboard(std::vector<CommandPtr>& commandList, float deltaTime)
 {
 	// Move Up
 	if (glfwGetKey(mWindow, GLFW_KEY_SPACE) == GLFW_PRESS) {
@@ -104,3 +96,5 @@ void InputHandler::handleKeyboard(std::vector<CommandPtr>& commandList, float de
 	}
 
 }
+
+

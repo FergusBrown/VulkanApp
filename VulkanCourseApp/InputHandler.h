@@ -1,26 +1,22 @@
 #pragma once
-#include "CameraCommands.h"
-#include "ControlConstants.h"
-
 #include <GLFW/glfw3.h>
 #include <vector>
-#include <memory>
+
+#include "Commands.h"
 
 typedef std::unique_ptr<Command> CommandPtr;
 
 class InputHandler
 {
 public:
-	InputHandler(GLFWwindow* window);
+	InputHandler(GLFWwindow* window) :
+		mWindow(window)
+	{
+	};
 
-	bool handleInput(std::vector<CommandPtr>& commandList);
+	virtual void init() = 0;
+	virtual bool handleInput(std::vector<CommandPtr>& commandList, float deltaTime) = 0;
 
-private:
+protected:
 	GLFWwindow* mWindow;
-	double mLastTime;
-
-	// helper
-	void handleMouse(std::vector<CommandPtr>& commandList, float deltaTime);
-	void handleKeyboard(std::vector<CommandPtr>& commandList, float deltaTime);
 };
-
