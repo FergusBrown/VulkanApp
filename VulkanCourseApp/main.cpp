@@ -9,8 +9,8 @@
 #include <iostream>
 
 #include "VulkanRenderer.h"
-#include "Pawn.h"
-#include "InputHandlerMouse.h"
+#include "Input/Pawn.h"
+#include "Input/InputHandlerMouse.h"
 
 GLFWwindow* window;
 VulkanRenderer vulkanRenderer;
@@ -80,28 +80,16 @@ int main()
 			noFrames = 0;
 		}
 			
-
-		angle += 100.0f * deltaTime;
-		if (angle > 360.0f)
-		{
-			angle -= 360.0f;
-		}
-
-		
-		//glm::mat4 testMat = glm::rotate(glm::mat4(1.0f), glm::radians(angle), glm::vec3(1.0f, 1.0f, 0.0f));
-		//testMat = glm::rotate(testMat, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-		//vulkanRenderer.updateModel(frog, testMat);
-
 		std::vector<CommandPtr> commandList;
 
-		if (inputHandler->handleInput(commandList, deltaTime))
+		/*if (inputHandler->handleInput(commandList, deltaTime))
 		{
 			for (auto& command : commandList)
 			{
 				command->execute(player);
 			}
 		}
-		vulkanRenderer.updateCameraView(player.generateView());
+		vulkanRenderer.updateCameraView(player.generateView());*/
 		vulkanRenderer.draw();
 	}
 

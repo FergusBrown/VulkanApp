@@ -146,6 +146,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="InputHandlerMouse.cpp" />
+    <ClCompile Include="Input\InputHandlerMouse.cpp" />
+    <ClCompile Include="Input\Pawn.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="MeshModel.cpp" />
@@ -157,6 +159,11 @@
     <ClInclude Include="ControlConstants.h" />
     <ClInclude Include="InputHandler.h" />
     <ClInclude Include="InputHandlerMouse.h" />
+    <ClInclude Include="Input\Commands.h" />
+    <ClInclude Include="Input\ControlConstants.h" />
+    <ClInclude Include="Input\InputHandler.h" />
+    <ClInclude Include="Input\InputHandlerMouse.h" />
+    <ClInclude Include="Input\Pawn.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="MeshModel.h" />
     <ClInclude Include="Pawn.h" />
