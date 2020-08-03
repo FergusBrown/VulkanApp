@@ -9,7 +9,6 @@ int VulkanRenderer::init(GLFWwindow* newWindow)
 	window = newWindow;
 
 	try {
-		// order is important aas some of these have dependencies on each other
 		createInstance();
 		setupDebugMessenger();
 		createSurface();
@@ -31,19 +30,11 @@ int VulkanRenderer::init(GLFWwindow* newWindow)
 		createDescriptorPool();
 		createDescriptorSets();
 		createInputDescriptorSets();
-		//recordCommands();
 		createSynchronation();
 
 		createCamera(90.0f);
 
-		//uboViewProjection.projection = glm::perspective(glm::radians(45.0f), (float)swapChainExtent.width / (float)swapChainExtent.height, 0.1f, 100.0f);
-		//uboViewProjection.view = glm::lookAt(glm::vec3(10.0f, 0.0f, 20.0f), glm::vec3(0.0f, 0.0f, -2.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-
-		//uboViewProjection.projection[1][1] *= -1;
-
-		// create default "no texture" texture
-		createTexture("plain.png");
-
+		createTexture("default_checker.png");
 
 	}
 	catch (const std::runtime_error& e) {

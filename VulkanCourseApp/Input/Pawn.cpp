@@ -25,7 +25,7 @@ const mat4& Pawn::generateView() const
 	);
 }
 
-void Pawn::movePositionBy(vec3 position)
+void Pawn::movePositionBy(const vec3& position)
 {
 	mPosition +=  position;
 }
@@ -46,7 +46,7 @@ void Pawn::moveUpBy(float distance)
 }
 
 // Recreate view matrix on each rotation to avoid rounding errors
-void Pawn::rotate(vec3 eulerAngles)
+void Pawn::rotate(const vec3& eulerAngles)
 {
 	// Compute new orientation
 	mXRotation += eulerAngles.x;

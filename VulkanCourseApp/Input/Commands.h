@@ -5,8 +5,6 @@
 #include "Pawn.h"
 #include <memory>
 
-//typedef std::unique_ptr<Command> CommandPtr;
-
 class Command
 {
 public:

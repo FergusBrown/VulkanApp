@@ -11,11 +11,11 @@ public:
 
 	const mat4& generateView() const;
 
-	void movePositionBy(vec3 position);
+	void movePositionBy(const vec3& position);
 	void moveForwardBy(float distance);
 	void moveRightBy(float distance);
 	void moveUpBy(float distance);
-	void rotate(vec3 eulerAngles);
+	void rotate(const vec3& eulerAngles);
 
 private:
 

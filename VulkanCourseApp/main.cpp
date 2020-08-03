@@ -52,11 +52,12 @@ int main()
 
 	Pawn player = Pawn();
 	vulkanRenderer.updateCameraView(player.generateView());
-	int frog = vulkanRenderer.createMeshModel("Models/12268_banjofrog_v1_L3.obj");
+	//int frog = vulkanRenderer.createMeshModel("Models/12268_banjofrog_v1_L3.obj");
+	int frog = vulkanRenderer.createMeshModel("Models/sphere.obj");
 	//glm::mat4 testMat = glm::rotate(glm::mat4(1.0f), glm::radians(angle), glm::vec3(1.0f, 1.0f, 0.0f));
 	//vulkanRenderer.updateModel(frog, testMat);
 
-	InputHandler* inputHandler = new InputHandlerMouse(window);
+	std::unique_ptr<InputHandler> inputHandler(new InputHandlerMouse(window));
 	inputHandler->init();
 
 
@@ -82,20 +83,18 @@ int main()
 			
 		std::vector<CommandPtr> commandList;
 
-		/*if (inputHandler->handleInput(commandList, deltaTime))
+		if (inputHandler->handleInput(commandList, deltaTime))
 		{
 			for (auto& command : commandList)
 			{
 				command->execute(player);
 			}
 		}
-		vulkanRenderer.updateCameraView(player.generateView());*/
+		vulkanRenderer.updateCameraView(player.generateView());
 		vulkanRenderer.draw();
 	}
 
 	vulkanRenderer.cleanup();
-
-	delete inputHandler;
 
 	// Destroy GLFW window and stop GLFW
 	glfwDestroyWindow(window);
