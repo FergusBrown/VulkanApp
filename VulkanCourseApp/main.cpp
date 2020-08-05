@@ -9,13 +9,13 @@
 #include <iostream>
 
 #include "VulkanRenderer.h"
-#include "Input/Pawn.h"
-#include "Input/InputHandlerMouse.h"
+#include "Pawn.h"
+#include "InputHandlerMouse.h"
 
 GLFWwindow* window;
 VulkanRenderer vulkanRenderer;
 
-// function for handling GLFW. Probably want a class to do this if also handling input
+// TODO: function for handling GLFW. Probably want to connect group this together with the input handler
 void initWindow(std::string wName = "Test Window", const int width = 800, const int height = 600)
 {
 	// Initialise GLFW
@@ -46,10 +46,6 @@ int main()
 	float deltaTime = 0.0f;
 	float lastTime = 0.0f;
 
-	// Frame count
-	int noFrames = 0;
-	float timeSinceLastPrint = 0.0f;
-
 	Pawn player = Pawn();
 	vulkanRenderer.updateCameraView(player.generateView());
 	//int frog = vulkanRenderer.createMeshModel("Models/12268_banjofrog_v1_L3.obj");
@@ -70,16 +66,6 @@ int main()
 		float now = glfwGetTime();
 		deltaTime = now - lastTime;
 		lastTime = now;
-
-		++noFrames;
-		timeSinceLastPrint += deltaTime;
-
-		if (timeSinceLastPrint > 1)
-		{
-			std::cout << "Average frame time is " << timeSinceLastPrint / noFrames * 1000 << " ms" << std::endl;
-			timeSinceLastPrint = 0.0f;
-			noFrames = 0;
-		}
 			
 		std::vector<CommandPtr> commandList;
 
