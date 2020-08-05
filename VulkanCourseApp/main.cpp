@@ -50,8 +50,14 @@ int main()
 	vulkanRenderer.updateCameraView(player.generateView());
 	//int frog = vulkanRenderer.createMeshModel("Models/12268_banjofrog_v1_L3.obj");
 	int sphere = vulkanRenderer.createMeshModel("Models/sphere.obj");
+	int torus = vulkanRenderer.createMeshModel("Models/torus.obj");
 	mat4 newModel = glm::translate(mat4(1.0f), vec3(0.0f, 2.0f, 0.0f));
 	vulkanRenderer.updateModel(sphere, newModel);
+	
+	mat4 rotateMatrix = glm::rotate(mat4(1.0f), glm::radians(45.0f), vec3(-1.0f, 0.0f, -1.0f));
+	newModel = glm::translate(mat4(1.0f), vec3(-2.0f, 2.0f, 2.0f)) * rotateMatrix;
+	vulkanRenderer.updateModel(torus, newModel);
+
 	int plane = vulkanRenderer.createMeshModel("Models/blank_plane.obj");
 	//glm::mat4 testMat = glm::rotate(glm::mat4(1.0f), glm::radians(angle), glm::vec3(1.0f, 1.0f, 0.0f));
 	//vulkanRenderer.updateModel(frog, testMat);
