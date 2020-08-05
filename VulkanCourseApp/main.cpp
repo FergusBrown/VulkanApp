@@ -54,12 +54,11 @@ int main()
 	vulkanRenderer.updateModel(sphere, newModel);
 	
 	int torus = vulkanRenderer.createMeshModel("Models/torus.obj");
-	mat4 rotateMatrix = glm::rotate(mat4(1.0f), glm::radians(45.0f), vec3(1.0f, 0.0f, -1.0f));
-	newModel = glm::translate(mat4(1.0f), vec3(-2.0f, 2.0f, -2.0f)) * rotateMatrix;
-	vulkanRenderer.updateModel(torus, newModel);
+	mat4 torusModel = glm::translate(mat4(1.0f), vec3(-2.0f, 2.0f, -2.0f));
+	vulkanRenderer.updateModel(torus, torusModel);
 
 	int plane = vulkanRenderer.createMeshModel("Models/blank_plane.obj");
-	rotateMatrix = glm::rotate(mat4(1.0f), glm::radians(90.0f), vec3(0.0f, -1.0f, 0.0f));
+	mat4 rotateMatrix = glm::rotate(mat4(1.0f), glm::radians(90.0f), vec3(0.0f, -1.0f, 0.0f));
 	vulkanRenderer.updateModel(plane, rotateMatrix);
 
 	//glm::mat4 testMat = glm::rotate(glm::mat4(1.0f), glm::radians(angle), glm::vec3(1.0f, 1.0f, 0.0f));
@@ -89,6 +88,11 @@ int main()
 			}
 		}
 		vulkanRenderer.updateCameraView(player.generateView());
+
+		torusModel *= glm::rotate(mat4(1.0f), deltaTime, vec3(1.0f, 0.0f, -1.0f));
+		vulkanRenderer.updateModel(torus, torusModel);
+
+
 		vulkanRenderer.draw();
 	}
 
