@@ -34,7 +34,8 @@ int VulkanRenderer::init(GLFWwindow* newWindow)
 
 		createCamera(90.0f);
 
-		createTexture("default_checker.png");
+		//createTexture("default_checker.png");
+		createTexture("default_black.png");
 
 	}
 	catch (const std::runtime_error& e) {
@@ -1011,7 +1012,6 @@ void VulkanRenderer::createFrameBuffers()
 			swapChainImages[i].imageView,
 			colourBufferImageView[i],
 			depthBufferImageView[i]
-			
 		};
 
 		VkFramebufferCreateInfo framebufferCreateInfo = {};
