@@ -228,7 +228,7 @@ void VulkanRenderer::createInstance()
 	appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);	// Custom version of the application
 	appInfo.pEngineName = "No Engine";						// Custom engine name
 	appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);		// Custom engine version
-	appInfo.apiVersion = VK_API_VERSION_1_1;				// The Vulkan Version
+	appInfo.apiVersion = VK_API_VERSION_1_2;				// The Vulkan Version
 
 	// Creation information for a VkInstance (Vulkan Instance)
 	VkInstanceCreateInfo createInfo = {};
@@ -426,7 +426,7 @@ void VulkanRenderer::createSwapChain()
 	swapChainImageFormat = surfaceFormat.format;
 	swapChainExtent = extent;
 
-	// get Swapchai images (first count, then values)
+	// get Swapchain images (first count, then values)
 	uint32_t swapChainImageCount;
 	vkGetSwapchainImagesKHR(mainDevice.logicalDevice, swapchain, &swapChainImageCount, nullptr);
 	std::vector<VkImage> images(swapChainImageCount);
@@ -593,7 +593,7 @@ void VulkanRenderer::createDescriptorSetLayout()
 	// UboViewProjection Binding Info
 	VkDescriptorSetLayoutBinding vpLayoutBinding = {};
 	vpLayoutBinding.binding = 0;											// Binding point in shader ( designated by binding number in shader)
-	vpLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;	// Type of descriptor (uniform, dynamic uniform, image sampler, etc)
+	vpLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;		// Type of descriptor (uniform, dynamic uniform, image sampler, etc)
 	vpLayoutBinding.descriptorCount = 1;									// Numbers of descriptors for binding
 	vpLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;				// Shader stage to bind to
 	vpLayoutBinding.pImmutableSamplers = nullptr;							// For textture: can make the sampler data unchangeable (immutable) by specifying in layout
@@ -952,7 +952,7 @@ void VulkanRenderer::createGraphicsPipeline()
 
 void VulkanRenderer::createColourBufferImage()
 {
-	// Resize supported format for clour attachment
+	// Resize supported format for colour attachment
 	colourBufferImage.resize(swapChainImages.size());
 	colourBufferImageMemory.resize(swapChainImages.size());
 	colourBufferImageView.resize(swapChainImages.size());
@@ -1035,7 +1035,7 @@ void VulkanRenderer::createFrameBuffers()
 
 void VulkanRenderer::createCommandPool()
 {
-	// Get indices of queu families for device
+	// Get indices of queue families for device
 	QueueFamilyIndices queueFamilyIndices = getQueueFamilies(mainDevice.physicalDevice);
 
 	VkCommandPoolCreateInfo poolInfo = {};
@@ -1321,7 +1321,7 @@ void VulkanRenderer::createInputDescriptorSets()
 		throw std::runtime_error("Failed to allocate Input Attachment Descriptor Sets!");
 	}
 
-	// Update each descriptor set with uinput attachment
+	// Update each descriptor set with input attachment
 	for (size_t i = 0; i < swapChainImages.size(); ++i)
 	{
 		// Colour Attachment Descriptor
@@ -1540,7 +1540,7 @@ bool VulkanRenderer::checkInstanceExtensionSupport(std::vector<const char*>* che
 	std::vector<VkExtensionProperties> extensions(extensionCount);
 	vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, extensions.data());
 
-	// Check if given extensions are in list of availabel extensions
+	// Check if given extensions are in list of available extensions
 	for (const auto& checkExtension : *checkExtensions)
 	{
 		bool hasExtension = false;
