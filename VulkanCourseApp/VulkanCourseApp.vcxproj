@@ -157,6 +157,7 @@
     <ClInclude Include="Actor.h" />
     <ClInclude Include="Commands.h" />
     <ClInclude Include="ControlConstants.h" />
+    <ClInclude Include="ctpl_stl.h" />
     <ClInclude Include="DirectionalLight.h" />
     <ClInclude Include="InputHandler.h" />
     <ClInclude Include="InputHandlerMouse.h" />

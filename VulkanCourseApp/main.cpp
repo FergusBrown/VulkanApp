@@ -57,6 +57,18 @@ int main()
 	mat4 torusModel = glm::translate(mat4(1.0f), vec3(-2.0f, 2.0f, -2.0f));
 	vulkanRenderer.updateModel(torus, torusModel);
 
+	int index = torus + 1;
+	for (int i = 0; i < 100; ++i)
+	{
+		for (int j = 0; j < 10; ++j)
+		{
+			vulkanRenderer.createMeshModel("Models/torus.obj");
+			mat4 tempModel = glm::translate(mat4(1.0f), vec3(-50.0f + i, 4.0f + j, -2.0f));
+			vulkanRenderer.updateModel(index, tempModel);
+			++index;
+		}
+	}
+
 	int plane = vulkanRenderer.createMeshModel("Models/blank_plane.obj");
 	mat4 rotateMatrix = glm::rotate(mat4(1.0f), glm::radians(90.0f), vec3(0.0f, -1.0f, 0.0f));
 	vulkanRenderer.updateModel(plane, rotateMatrix);
