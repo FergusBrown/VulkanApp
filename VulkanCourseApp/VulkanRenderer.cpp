@@ -1481,6 +1481,8 @@ void VulkanRenderer::recordCommands(uint32_t currentImage) // Current image is s
 		vkCmdBeginRenderPass(primaryCommandBuffers[currentImage], &renderPassBeginInfo, VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFERS);
 		//vkCmdBeginRenderPass(primaryCommandBuffers[currentImage], &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
+		
+
 			// Split objects to draw equally between threads
 			uint32_t numModels = modelList.size();
 
@@ -1489,6 +1491,9 @@ void VulkanRenderer::recordCommands(uint32_t currentImage) // Current image is s
 			uint32_t objectsPerBuffer = static_cast<uint32_t> (std::floor(avgObjectsPerBuffer));
 			uint32_t remainderObjects = numModels % objectsPerBuffer;
 			uint32_t objectStart = 0;
+
+			// Vector for results of tasks pushed to threadpool
+			std::vector<std::future<VkCommandBuffer*>> futureSecondaryCommandBuffers;
 
 			for (uint32_t i = 0; i < numThreads; ++i)
 			{
@@ -1504,23 +1509,25 @@ void VulkanRenderer::recordCommands(uint32_t currentImage) // Current image is s
 				}
 
 				// Push lambda function to threadpool for running
-				threadPool.push([=] (size_t threadID) {
+				auto futureResult = threadPool.push([=] (size_t threadID) {
 					return recordSecondaryCommandBuffers(secondaryBeginInfo, objectStart, objectEnd, currentImage, threadID);
 				});
 
+				futureSecondaryCommandBuffers.push_back(std::move(futureResult));
 			}
 
-			while (threadPool.n_idle() != numThreads)
+			std::vector<VkCommandBuffer* > secondaryCommandBufferPtrs;
+
+			for (auto& fut : futureSecondaryCommandBuffers)
 			{
+				secondaryCommandBufferPtrs.push_back(fut.get());
 			}
 			
-			std::vector<VkCommandBuffer> secondaryCommandBuffers;
-
-			for (size_t i = 0; i < numThreads; ++i)
-			{
-				secondaryCommandBuffers.push_back(threadData[i].commandBuffer);
-			}
-
+			
+			std::vector<VkCommandBuffer> secondaryCommandBuffers(secondaryCommandBufferPtrs.size(), VK_NULL_HANDLE);
+			// transform to a vector of commandbuffers
+			std::transform(secondaryCommandBufferPtrs.begin(), secondaryCommandBufferPtrs.end(),
+				secondaryCommandBuffers.begin(), [](VkCommandBuffer* item) {return *item;} );
 
 			// Submit the secondary command buffers to the primary command buffer.
 			vkCmdExecuteCommands(primaryCommandBuffers[currentImage], secondaryCommandBuffers.size(), secondaryCommandBuffers.data());
@@ -1555,7 +1562,7 @@ void VulkanRenderer::recordCommands(uint32_t currentImage) // Current image is s
 	}*/
 }
 
-void VulkanRenderer::recordSecondaryCommandBuffers(VkCommandBufferBeginInfo beginInfo, uint32_t objectStart, uint32_t objectEnd, uint32_t currentImage, size_t threadID)
+VkCommandBuffer* VulkanRenderer::recordSecondaryCommandBuffers(VkCommandBufferBeginInfo beginInfo, uint32_t objectStart, uint32_t objectEnd, uint32_t currentImage, size_t threadID)
 {
 	ThreadData* thread = &threadData[threadID];
 
@@ -1615,6 +1622,8 @@ void VulkanRenderer::recordSecondaryCommandBuffers(VkCommandBufferBeginInfo begi
 	{
 		throw std::runtime_error("Failed to stop recording Command Buffer!");
 	}
+
+	return &thread->commandBuffer;
 
 }
 

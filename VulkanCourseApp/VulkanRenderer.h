@@ -19,8 +19,10 @@
 #include <iostream>
 #include <cstring>
 
-#include "stb_image.h"
+#include <future>
 #include "ctpl_stl.h"
+
+#include "stb_image.h"
 #include "Mesh.h"
 #include "MeshModel.h"
 
@@ -204,7 +206,7 @@ private:
 
 	// - Record Functions
 	void recordCommands(uint32_t currentImage);
-	void recordSecondaryCommandBuffers(VkCommandBufferBeginInfo beginInfo, uint32_t objectStart, uint32_t objectEnd, uint32_t currentImage, size_t threadID);
+	VkCommandBuffer* recordSecondaryCommandBuffers(VkCommandBufferBeginInfo beginInfo, uint32_t objectStart, uint32_t objectEnd, uint32_t currentImage, size_t threadID);
 
 	// -- Create Helper Functions
 	void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);

@@ -58,7 +58,7 @@ int main()
 	vulkanRenderer.updateModel(torus, torusModel);
 
 	int index = torus + 1;
-	for (int i = 0; i < 1; ++i)
+	for (int i = 0; i < 100; ++i)
 	{
 		for (int j = 0; j < 10; ++j)
 		{
