@@ -57,8 +57,6 @@ private:
 
 	// Scene objects
 	std::vector<MeshModel> modelList;
-	std::vector<Mesh*> meshList;
-	uint32_t numMeshes = 0;
 
 	// Scene Settings
 	struct UboViewProjection {		// Stands for "Model View Projection"
@@ -88,7 +86,7 @@ private:
 	std::vector<VkFramebuffer> swapChainFramebuffers;
 	std::vector<VkCommandBuffer> primaryCommandBuffers;
 
-	std::vector<VkCommandBuffer> secondaryCommandBuffers;
+	//std::vector<VkCommandBuffer> secondaryCommandBuffers;
 
 	std::vector<VkImage> colourBufferImage;
 	std::vector <VkDeviceMemory> colourBufferImageMemory;
@@ -158,18 +156,25 @@ private:
 	uint32_t numThreads;
 	ctpl::thread_pool threadPool;
 
+	struct ThreadPushConstantBlock {
+		Model model;
+	};
+
 	// Attach command pool and buffer to each thread
-	/*struct ThreadData {
+	struct ThreadData {
 		VkCommandPool commandPool;
 		// One command buffer per render object
-		std::vector<VkCommandBuffer> commandBuffer;
+		VkCommandBuffer commandBuffer;
+
+		// Models to for thread to draw
+		//std::vector<MeshModel*> assignedModels;
 
 		// One push constant block per render object
 		//std::vector<ThreadPushConstantBlock> pushConstBlock;
 		// Per object information (position, rotation, etc.)
 		//std::vector<ObjectData> objectData;
 	};
-	std::vector<ThreadData> threadData;*/
+	std::vector<ThreadData> threadData;
 
 	// Vulkan Functions
 	// - Create Functions
@@ -185,10 +190,10 @@ private:
 	void createColourBufferImage();
 	void createDepthBufferImage();
 	void createFrameBuffers();
+	void createThreadPool();
 	void createCommandPools();
 	void createCommandBuffers();
 	void createSynchronation();
-	void createThreadPool();
 	void createTextureSampler();
 	void createUniformBuffers();
 	void createDescriptorPool();
@@ -199,8 +204,7 @@ private:
 
 	// - Record Functions
 	void recordCommands(uint32_t currentImage);
-	//void recordSecondaryCommandBuffers(std::vector<Mesh*> meshList, uint32_t meshStart, uint32_t meshEnd, VkCommandBuffer& commandBuffer, size_t threadID);
-	void recordSecondaryCommandBuffers(uint32_t meshStart, uint32_t meshEnd, uint32_t currentImage, uint32_t bufferIndex, size_t threadID);
+	void recordSecondaryCommandBuffers(VkCommandBufferBeginInfo beginInfo, uint32_t objectStart, uint32_t objectEnd, uint32_t currentImage, size_t threadID);
 
 	// -- Create Helper Functions
 	void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
