@@ -27,6 +27,8 @@ void initWindow(std::string wName = "Test Window", const int width = 800, const 
 	// don't allow window resize to prevent everything being redrawn
 	glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
+	glfwWindowHint(GLFW_DOUBLEBUFFER, GL_FALSE);
+
 	// note c_str converts a cpp string to a c string
 	window = glfwCreateWindow(width, height, wName.c_str(), nullptr, nullptr);
 }
@@ -58,9 +60,9 @@ int main()
 	vulkanRenderer.updateModel(torus, torusModel);
 
 	int index = torus + 1;
-	for (int i = 0; i < 100; ++i)
+	for (int i = 0; i < 10; ++i)
 	{
-		for (int j = 0; j < 10; ++j)
+		for (int j = 0; j < 100; ++j)
 		{
 			vulkanRenderer.createMeshModel("Models/torus.obj");
 			mat4 tempModel = glm::translate(mat4(1.0f), vec3(-50.0f + i, 4.0f + j, -2.0f));

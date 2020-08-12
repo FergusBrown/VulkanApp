@@ -142,7 +142,7 @@ private:
 
 	// - Pools
 	VkCommandPool graphicsCommandPool;
-	std::vector<VkCommandPool> secondaryCommandPools;
+	//std::vector<VkCommandPool> secondaryCommandPools;
 
 	// - Utility
 	VkFormat swapChainImageFormat;
@@ -166,7 +166,7 @@ private:
 	struct ThreadData {
 		VkCommandPool commandPool;
 		// One command buffer per render object
-		VkCommandBuffer commandBuffer;
+		std::vector<VkCommandBuffer> commandBuffer;
 
 		// Models to for thread to draw
 		//std::vector<MeshModel*> assignedModels;
@@ -206,7 +206,7 @@ private:
 
 	// - Record Functions
 	void recordCommands(uint32_t currentImage);
-	VkCommandBuffer* recordSecondaryCommandBuffers(VkCommandBufferBeginInfo beginInfo, uint32_t objectStart, uint32_t objectEnd, uint32_t currentImage, size_t threadID);
+	VkCommandBuffer* recordSecondaryCommandBuffers(VkCommandBufferBeginInfo beginInfo, uint32_t objectStart, uint32_t objectEnd, uint32_t currentImage, size_t threadID, size_t threadTEMP);
 
 	// -- Create Helper Functions
 	void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
