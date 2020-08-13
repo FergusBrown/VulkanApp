@@ -50,28 +50,32 @@ int main()
 
 	Pawn player = Pawn();
 	vulkanRenderer.updateCameraView(player.generateView());
-	//int frog = vulkanRenderer.createMeshModel("Models/12268_banjofrog_v1_L3.obj");
-	int sphere = vulkanRenderer.createMeshModel("Models/sphere.obj");
+	//int frog = vulkanRenderer.loadMeshModelData("Models/12268_banjofrog_v1_L3.obj");
+	int sphereData = vulkanRenderer.loadMeshModelData("Models/sphere.obj");
+	int sphere = vulkanRenderer.createModel(sphereData);
 	mat4 newModel = glm::translate(mat4(1.0f), vec3(0.0f, 2.0f, 0.0f));
 	vulkanRenderer.updateModel(sphere, newModel);
 	
-	int torus = vulkanRenderer.createMeshModel("Models/torus.obj");
+	int torusData = vulkanRenderer.loadMeshModelData("Models/torus.obj");
+	std::vector<int> torusInstances;
+	torusInstances.push_back(vulkanRenderer.createModel(torusData));
 	mat4 torusModel = glm::translate(mat4(1.0f), vec3(-2.0f, 2.0f, -2.0f));
-	vulkanRenderer.updateModel(torus, torusModel);
+	vulkanRenderer.updateModel(torusInstances[0], torusModel);
 
-	int index = torus + 1;
+	int index = torusInstances[0] + 1;
 	for (int i = 0; i < 10; ++i)
 	{
 		for (int j = 0; j < 100; ++j)
 		{
-			vulkanRenderer.createMeshModel("Models/torus.obj");
+			torusInstances.push_back(vulkanRenderer.createModel(torusData));
 			mat4 tempModel = glm::translate(mat4(1.0f), vec3(-50.0f + i, 4.0f + j, -2.0f));
 			vulkanRenderer.updateModel(index, tempModel);
 			++index;
 		}
 	}
 
-	int plane = vulkanRenderer.createMeshModel("Models/blank_plane.obj");
+	int planeData = vulkanRenderer.loadMeshModelData("Models/blank_plane.obj");
+	int plane = vulkanRenderer.createModel(planeData);
 	mat4 rotateMatrix = glm::rotate(mat4(1.0f), glm::radians(90.0f), vec3(0.0f, -1.0f, 0.0f));
 	vulkanRenderer.updateModel(plane, rotateMatrix);
 
@@ -104,7 +108,7 @@ int main()
 		vulkanRenderer.updateCameraView(player.generateView());
 
 		torusModel *= glm::rotate(mat4(1.0f), deltaTime, vec3(1.0f, 0.0f, -1.0f));
-		vulkanRenderer.updateModel(torus, torusModel);
+		vulkanRenderer.updateModel(torusInstances[0], torusModel);
 
 
 		vulkanRenderer.draw();

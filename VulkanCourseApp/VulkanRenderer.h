@@ -24,6 +24,7 @@
 
 #include "stb_image.h"
 #include "Mesh.h"
+#include "MeshModelData.h"
 #include "MeshModel.h"
 
 #include "Utilities.h"
@@ -39,7 +40,9 @@ public:
 	int init(GLFWwindow* newWindow);
 
 	// Model control
-	int createMeshModel(std::string modelFile);
+	int loadMeshModelData(std::string modelFile);
+	int createModel(int modelDataIndex);
+	bool destroyModel(int modelDataIndex);
 	void updateModel(int modelId, mat4 newModel);
 
 	// Camera Control
@@ -58,16 +61,23 @@ private:
 	int currentFrame = 0;
 
 	// Scene objects
-	std::vector<MeshModel> modelList;
+	std::vector<MeshModelData> modelDataList;			// Model data
+
+	// TODO: this is maybe a bit messy setup for models
+	struct InstanceList {
+		std::vector<MeshModel> instanceList;
+	};
+	std::vector<InstanceList> modelList;		// Hold all instance MeshModels
+	std::vector<MeshModel*> modelListOrderByID;	// Holds pointers to all MeshModels in order of creation time
+	uint32_t modelCount;						// Use model count to keep track of number of models as modelListOrderByID may point to nullptr if an object is destroyed
+
+	//std::vector<MeshModel> modelList;					// Model instance
 
 	// Scene Settings
 	struct UboViewProjection {		// Stands for "Model View Projection"
 		glm::mat4 projection;
 		glm::mat4 view;
 	} uboViewProjection;
-
-	//std::vector<UboViewProjection> cameraList;
-
 
 	// Vulkan Components
 	// - Main
@@ -83,11 +93,21 @@ private:
 	VkSurfaceKHR surface;
 	VkSwapchainKHR swapchain;
 
+	
+	// TODO: update structure to have a frame object which contains all the 
+	/*struct frameData {
+		SwapchainImage swapChainImages;
+		VkFramebuffer swapChainFramebuffer;
+		VkCommandBuffer primaryCommandBuffer;
+		std::vector<VkCommandBuffer> secondaryCommandBuffers;
+	};
+
+	std::vector<frameData> frames;*/
+
 	// All 3 of below are 1:1 connected
 	std::vector<SwapchainImage> swapChainImages;
 	std::vector<VkFramebuffer> swapChainFramebuffers;
 	std::vector<VkCommandBuffer> primaryCommandBuffers;
-
 	//std::vector<VkCommandBuffer> secondaryCommandBuffers;
 
 	std::vector<VkImage> colourBufferImage;
@@ -167,9 +187,6 @@ private:
 		VkCommandPool commandPool;
 		// One command buffer per render object
 		std::vector<VkCommandBuffer> commandBuffer;
-
-		// Models to for thread to draw
-		//std::vector<MeshModel*> assignedModels;
 
 		// One push constant block per render object
 		//std::vector<ThreadPushConstantBlock> pushConstBlock;

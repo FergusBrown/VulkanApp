@@ -4,9 +4,10 @@ VulkanRenderer::VulkanRenderer()
 {
 }
 
-int VulkanRenderer::init(GLFWwindow* newWindow)
+int VulkanRenderer::init(GLFWwindow* newWindow) 
 {
 	window = newWindow;
+	modelCount = 0;
 
 	try {
 		createInstance();
@@ -49,9 +50,9 @@ int VulkanRenderer::init(GLFWwindow* newWindow)
 
 void VulkanRenderer::updateModel(int modelId, glm::mat4 newModel)
 {
-	if (modelId >= modelList.size()) return;
+	if (modelId >= modelListOrderByID.size()) return;
 
-	modelList[modelId].setModel(newModel);
+	modelListOrderByID[modelId]->setModel(newModel);
 }
 
 void VulkanRenderer::createCamera(float FoVinDegrees)
@@ -132,9 +133,9 @@ void VulkanRenderer::cleanup()
 
 	//_aligned_free(modelTransferSpace);
 
-	for (size_t i = 0; i < modelList.size(); ++i)
+	for (size_t i = 0; i < modelDataList.size(); ++i)
 	{
-		modelList[i].destroyMeshModel();
+		modelDataList[i].destroyMeshModel();
 	}
 
 	vkDestroyDescriptorPool(mainDevice.logicalDevice, inputDescriptorPool, nullptr);
@@ -2121,7 +2122,7 @@ int VulkanRenderer::createTextureDescriptor(VkImageView textureImage)
 
 }
 
-int VulkanRenderer::createMeshModel(std::string modelFile)
+int VulkanRenderer::loadMeshModelData(std::string modelFile)
 {
 	// Import model "scene"
 	Assimp::Importer importer;
@@ -2133,7 +2134,7 @@ int VulkanRenderer::createMeshModel(std::string modelFile)
 	}
 
 	// Get vector of all materials with 1:1 ID placement
-	std::vector<std::string> textureNames = MeshModel::LoadMaterials(scene);
+	std::vector<std::string> textureNames = MeshModelData::LoadMaterials(scene);
 
 	// Conversion from the materials list IDs to our descriptor Array IDs
 	std::vector<int> matToTex(textureNames.size());
@@ -2154,14 +2155,54 @@ int VulkanRenderer::createMeshModel(std::string modelFile)
 	}
 
 	// Load in all our meshes
-	std::vector<Mesh> modelMeshes = MeshModel::LoadNode(mainDevice.physicalDevice, mainDevice.logicalDevice, graphicsQueue, graphicsCommandPool,
+	std::vector<Mesh> modelMeshes = MeshModelData::LoadNode(mainDevice.physicalDevice, mainDevice.logicalDevice, graphicsQueue, graphicsCommandPool,
 		scene->mRootNode, scene, matToTex);
 
 	// Create mesh model and add to list
-	MeshModel meshModel = MeshModel(modelMeshes);
-	modelList.push_back(meshModel);
+	MeshModelData meshModel = MeshModelData(modelMeshes);
+	modelDataList.push_back(meshModel);
 
-	return modelList.size() - 1;
+	modelList.resize(modelDataList.size());
+
+	return modelDataList.size() - 1;
+}
+
+int VulkanRenderer::createModel(int modelDataIndex)
+{
+	MeshModel newModel = MeshModel(&modelDataList[modelDataIndex]);
+
+	modelList[modelDataIndex].instanceList.push_back(newModel);
+
+	MeshModel* modelPtr = &modelList[modelDataIndex].instanceList.back();
+
+	modelListOrderByID.push_back(modelPtr);
+
+	++modelCount;
+
+	return modelListOrderByID.size() - 1;
+}
+
+// Search instance lists and remove the instance
+bool VulkanRenderer::destroyModel(int modelDataIndex)
+{
+	MeshModel* objToDestroy = modelListOrderByID[modelDataIndex];
+	modelListOrderByID[modelDataIndex] = nullptr; // This is probably a pretty bad idea but it will do for just now
+
+	for (auto& vec : modelList)
+	{
+		for (size_t i = 0 ; i < vec.instanceList.size() ; ++i)
+		{
+			if (&vec.instanceList[i] == objToDestroy)
+			{
+				vec.instanceList.erase(vec.instanceList.begin() + i);
+				--modelCount;
+				return true; // TODO : this is bad
+			}
+
+		}
+	}
+
+	return false;
 }
 
 stbi_uc* VulkanRenderer::loadTextureFile(std::string fileName, int* width, int* height, VkDeviceSize* imageSize)

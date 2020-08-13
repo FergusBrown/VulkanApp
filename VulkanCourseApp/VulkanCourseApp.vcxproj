@@ -145,16 +145,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Actor.cpp" />
     <ClCompile Include="InputHandlerMouse.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Mesh.cpp" />
+    <ClCompile Include="MeshModelData.cpp" />
     <ClCompile Include="MeshModel.cpp" />
     <ClCompile Include="Pawn.cpp" />
     <ClCompile Include="VulkanRenderer.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Actor.h" />
     <ClInclude Include="Commands.h" />
     <ClInclude Include="ControlConstants.h" />
     <ClInclude Include="ctpl_stl.h" />
@@ -163,6 +162,7 @@
     <ClInclude Include="InputHandlerMouse.h" />
     <ClInclude Include="Light.h" />
     <ClInclude Include="Mesh.h" />
+    <ClInclude Include="MeshModelData.h" />
     <ClInclude Include="MeshModel.h" />
     <ClInclude Include="Pawn.h" />
     <ClInclude Include="PointLight.h" />
