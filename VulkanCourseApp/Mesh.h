@@ -4,6 +4,7 @@
 #include <GLFW/glfw3.h>
 
 #include <vector>
+#include <mutex>
 
 #include "Utilities.h"
 
@@ -20,6 +21,8 @@ public:
 		std::vector<Vertex>* vertices, std::vector<uint32_t> * indices,
 		int newTexId);
 
+	
+
 	void setModel(glm::mat4 newModel);
 	Model getModel() const;
 
@@ -35,6 +38,11 @@ public:
 
 	~Mesh();
 
+	// explicit copy constructors
+	//Mesh(const Mesh&) = default;
+	//Mesh& operator=(const Mesh&) = default;
+	//Mesh(Mesh&&) = default;
+	//Mesh&& operator=(const Mesh&&) = default;
 private:
 	Model model;
 
@@ -43,6 +51,7 @@ private:
 	int vertexCount;
 	VkBuffer vertexBuffer;
 	VkDeviceMemory vertexBufferMemory;
+	std::mutex vertexMutex;
 
 	int indexCount;
 	VkBuffer indexBuffer;
@@ -50,8 +59,11 @@ private:
 
 	VkPhysicalDevice physicalDevice;
 	VkDevice device;
+	std::mutex indexMutex;
 
 	void createVertexBuffer(VkQueue transferQueue, VkCommandPool transferCommandPool, std::vector<Vertex>* vertices);
 	void createIndexBuffer(VkQueue transferQueue, VkCommandPool transferCommandPool, std::vector<uint32_t>* indices);
+
+	
 };
 

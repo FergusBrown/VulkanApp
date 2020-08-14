@@ -63,9 +63,9 @@ int main()
 	vulkanRenderer.updateModel(torusInstances[0], torusModel);
 
 	int index = torusInstances[0] + 1;
-	for (int i = 0; i < 10; ++i)
+	for (int i = 0; i < 100; ++i)
 	{
-		for (int j = 0; j < 100; ++j)
+		for (int j = 0; j < 10; ++j)
 		{
 			torusInstances.push_back(vulkanRenderer.createModel(torusData));
 			mat4 tempModel = glm::translate(mat4(1.0f), vec3(-50.0f + i, 4.0f + j, -2.0f));

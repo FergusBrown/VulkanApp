@@ -1,8 +1,8 @@
 #include "Mesh.h"
 
-Mesh::Mesh()
+/*Mesh::Mesh()
 {
-}
+}*/
 
 // TODO : Use initialise list
 Mesh::Mesh(VkPhysicalDevice newPhysicalDevice, VkDevice newDevice,
@@ -44,6 +44,7 @@ int Mesh::getVertexCount()
 
 VkBuffer Mesh::getVertexBuffer()
 {
+	std::lock_guard<std::mutex> lock(vertexMutex);
 	return vertexBuffer;
 }
 
@@ -54,6 +55,7 @@ int Mesh::getIndexCount()
 
 VkBuffer Mesh::getIndexBuffer()
 {
+	std::lock_guard<std::mutex> lock(indexMutex);
 	return indexBuffer;
 }
 

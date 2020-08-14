@@ -42,7 +42,7 @@ public:
 	// Model control
 	int loadMeshModelData(std::string modelFile);
 	int createModel(int modelDataIndex);
-	bool destroyModel(int modelDataIndex);
+	//bool destroyModel(int modelDataIndex);
 	void updateModel(int modelId, mat4 newModel);
 
 	// Camera Control
@@ -61,15 +61,17 @@ private:
 	int currentFrame = 0;
 
 	// Scene objects
+	// TODO : if we have an object which is going to be redrawn hundreds or thousands of times then will need to setup functionality for instanced rendering
 	std::vector<MeshModelData> modelDataList;			// Model data
 
-	// TODO: this is maybe a bit messy setup for models
-	struct InstanceList {
-		std::vector<MeshModel> instanceList;
+	/*struct InstanceList {
+		std::vector<MeshModel> instanceList;	// NOTE : this instance list is not actually used for instanced rendering in the sense that only one draw command is required
+												//		  This setup is just used to avoid the need to reload in mesh and texture data if two or three models are the same
 	};
-	std::vector<InstanceList> modelList;		// Hold all instance MeshModels
-	std::vector<MeshModel*> modelListOrderByID;	// Holds pointers to all MeshModels in order of creation time
-	uint32_t modelCount;						// Use model count to keep track of number of models as modelListOrderByID may point to nullptr if an object is destroyed
+	std::vector<InstanceList> modelList;*/		// Hold all instance MeshModels
+	
+	std::vector<MeshModel> modelList;	// Holds pointers to all MeshModels in order of creation time
+	//uint32_t modelCount;						// Use model count to keep track of number of models as modelListOrderByID may point to nullptr if an object is destroyed
 
 	//std::vector<MeshModel> modelList;					// Model instance
 
@@ -129,9 +131,9 @@ private:
 	VkDescriptorPool descriptorPool;
 	VkDescriptorPool samplerDescriptorPool;
 	VkDescriptorPool inputDescriptorPool;
-	std::vector<VkDescriptorSet> descriptorSets;
-	std::vector<VkDescriptorSet> samplerDescriptorSets;
-	std::vector<VkDescriptorSet> inputDescriptorSets;
+	std::vector<VkDescriptorSet> descriptorSets;			// Descriptor set holding uniform data
+	std::vector<VkDescriptorSet> samplerDescriptorSets;		// Desctcriptor sets holding texture samplers
+	std::vector<VkDescriptorSet> inputDescriptorSets;		// Descriptor set holding colour/depth images (used for second subpass)
 
 	std::vector<VkBuffer> vpUniformBuffer;		// We want one of these for every command buffer so that nothing funky happens
 	std::vector<VkDeviceMemory> vpUniformBufferMemory;
@@ -193,7 +195,13 @@ private:
 		// Per object information (position, rotation, etc.)
 		//std::vector<ObjectData> objectData;
 	};
-	std::vector<ThreadData> threadData;
+	//std::vector<ThreadData> threadData;
+
+	struct frameTEMP {
+		std::vector<ThreadData> threadData;
+	};
+
+	std::vector<frameTEMP> frameData;
 
 	// Vulkan Functions
 	// - Create Functions
@@ -223,8 +231,8 @@ private:
 
 	// - Record Functions
 	void recordCommands(uint32_t currentImage);
-	VkCommandBuffer* recordSecondaryCommandBuffers(VkCommandBufferBeginInfo beginInfo, uint32_t objectStart, uint32_t objectEnd, uint32_t currentImage, size_t threadID, size_t threadTEMP);
-
+	//VkCommandBuffer* recordSecondaryCommandBuffers(VkCommandBufferBeginInfo beginInfo, uint32_t objectStart, uint32_t objectEnd, uint32_t currentImage, size_t threadID, size_t threadTEMP);
+	VkCommandBuffer* VulkanRenderer::recordSecondaryCommandBuffers(VkCommandBufferBeginInfo beginInfo, uint32_t currentImage, uint32_t modelIndex, size_t threadID);
 	// -- Create Helper Functions
 	void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
 

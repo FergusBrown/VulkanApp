@@ -1,21 +1,22 @@
 #include "MeshModel.h"
 
-MeshModel::MeshModel(MeshModelData* meshModelData) : 
-	mMeshData(meshModelData), mModel(glm::mat4(1.0f))
+
+
+MeshModel::MeshModel()
 {
 }
 
-size_t MeshModel::getMeshCount()
+MeshModel::MeshModel(int dataID) :
+	mMeshDataID(dataID), mModel(glm::mat4(1.0f))
 {
-	return mMeshData->getMeshCount();
 }
 
-Mesh* MeshModel::getMesh(size_t index)
+int MeshModel::getMeshDataID() const
 {
-	return mMeshData->getMesh(index);
+	return mMeshDataID;
 }
 
-glm::mat4 MeshModel::getModel()
+glm::mat4 MeshModel::getModel() const
 {
 	return mModel;
 }

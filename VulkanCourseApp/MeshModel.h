@@ -9,16 +9,16 @@
 class MeshModel
 {
 public:
-	MeshModel(MeshModelData* meshModelData);
+	MeshModel();
+	MeshModel(int dataID);
 
-	size_t getMeshCount();
-	Mesh* getMesh(size_t index);
+	int getMeshDataID() const;
 
-	glm::mat4 getModel();
+	glm::mat4 getModel() const;
 	void setModel(glm::mat4 newModel);
 
 private:
-	MeshModelData* mMeshData;
+	int mMeshDataID;
 	glm::mat4 mModel;
 
 };
