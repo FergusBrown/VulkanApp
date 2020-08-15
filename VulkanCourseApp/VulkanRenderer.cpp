@@ -7,7 +7,6 @@ VulkanRenderer::VulkanRenderer()
 int VulkanRenderer::init(GLFWwindow* newWindow) 
 {
 	window = newWindow;
-	//modelCount = 0;
 
 	try {
 		createInstance();
@@ -1106,14 +1105,15 @@ void VulkanRenderer::createCommandBuffers()
 	}
 
 	// SECONDARY BUFFERS
+	numSecondaryBuffers = numThreads;
 	cbAllocInfo.level = VK_COMMAND_BUFFER_LEVEL_SECONDARY;
-	cbAllocInfo.commandBufferCount = static_cast<uint32_t>(MAX_OBJECTS/2);
+	cbAllocInfo.commandBufferCount = static_cast<uint32_t>(numSecondaryBuffers);
 
 	for (auto& frame : frameData)
 	{
 		for (size_t i = 0; i < numThreads; ++i)
 		{
-			frame.threadData[i].commandBuffer.resize(MAX_OBJECTS/2);
+			frame.threadData[i].commandBuffer.resize(numSecondaryBuffers);
 
 			cbAllocInfo.commandPool = frame.threadData[i].commandPool;
 
@@ -1509,7 +1509,7 @@ void VulkanRenderer::recordCommands(uint32_t currentImage) // Current image is s
 		
 
 			// Split objects to draw equally between threads
-			/*uint32_t numModels = modelList.size();
+			uint32_t numModels = modelList.size();
 
 			float avgObjectsPerBuffer = static_cast<float>(numModels) / numThreads;
 
@@ -1518,9 +1518,9 @@ void VulkanRenderer::recordCommands(uint32_t currentImage) // Current image is s
 			uint32_t objectStart = 0;
 
 			// Vector for results of tasks pushed to threadpool
-			std::vector<std::future<VkCommandBuffer*>> futureSecondaryCommandBuffers;*/
+			std::vector<std::future<VkCommandBuffer*>> futureSecondaryCommandBuffers; 
 
-			/*for (uint32_t i = 0; i < numThreads; ++i)
+			for (uint32_t i = 0; i < numSecondaryBuffers; ++i)
 			{
 				// Get the end index for the last mesh which will be handled by this buffer
 				uint32_t objectEnd = std::min(numModels, objectStart + objectsPerBuffer);
@@ -1533,28 +1533,15 @@ void VulkanRenderer::recordCommands(uint32_t currentImage) // Current image is s
 					remainderObjects--;
 				}
 
+
 				// Push lambda function to threadpool for running
-				auto futureResult = threadPool.push([=] (size_t threadID) {
-					return recordSecondaryCommandBuffers(secondaryBeginInfo, objectStart, objectEnd, currentImage, threadID, i);
-				});
+				auto futureResult = threadPool.push([=](size_t threadID) {
+					return recordSecondaryCommandBuffers(secondaryBeginInfo, objectStart, objectEnd, currentImage, i, threadID);
+					});
 
 				futureSecondaryCommandBuffers.push_back(std::move(futureResult));
 
 				objectStart = objectEnd;
-			}*/
-
-			// Vector for results of tasks pushed to threadpool
-			std::vector<std::future<VkCommandBuffer*>> futureSecondaryCommandBuffers; 
-
-			for (size_t i = 0; i < modelList.size(); ++i)
-			{
-
-				// Push lambda function to threadpool for running
-				auto futureResult = threadPool.push([=](size_t threadID) {
-					return recordSecondaryCommandBuffers(secondaryBeginInfo, currentImage, i, threadID);
-					});
-
-				futureSecondaryCommandBuffers.push_back(std::move(futureResult));
 			}
 
 			std::vector<VkCommandBuffer* > secondaryCommandBufferPtrs;
@@ -1593,17 +1580,14 @@ void VulkanRenderer::recordCommands(uint32_t currentImage) // Current image is s
 }
 
 
-VkCommandBuffer* VulkanRenderer::recordSecondaryCommandBuffers(VkCommandBufferBeginInfo beginInfo, uint32_t currentImage, uint32_t modelIndex, size_t threadID)
+VkCommandBuffer* VulkanRenderer::recordSecondaryCommandBuffers(VkCommandBufferBeginInfo beginInfo, uint32_t objectStart, uint32_t objectEnd, uint32_t currentImage, uint32_t taskIndex, size_t threadID)
 {
 	ThreadData* thread = &frameData[currentImage].threadData[threadID];
 
-	//std::vector<MeshModel>& thisInstanceList = modelList[modelIndex].instanceList;
-	MeshModel* thisModel = &modelList[modelIndex];
-	int modelDataIndex = thisModel->getMeshDataID();
-	MeshModelData* thisData = &modelDataList[modelDataIndex];
+	VkCommandBuffer& cmdBuffer = thread->commandBuffer[taskIndex];
 
 	// Begin recording for each secondary command buffer
-	VkResult result = vkBeginCommandBuffer(thread->commandBuffer[modelIndex], &beginInfo);
+	VkResult result = vkBeginCommandBuffer(cmdBuffer, &beginInfo);
 
 	if (result != VK_SUCCESS)
 	{
@@ -1611,53 +1595,54 @@ VkCommandBuffer* VulkanRenderer::recordSecondaryCommandBuffers(VkCommandBufferBe
 	}
 
 	// Bind graphics pipeline to command buffer
-	vkCmdBindPipeline(thread->commandBuffer[modelIndex], VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
+	vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
 
-	//for (uint32_t i = 0; i < thisInstanceList.size(); ++i)
-	//{
-		
+	for (uint32_t i = objectStart; i < objectEnd; ++i)
+	{
+		MeshModel* thisModel = &modelList[i];
+		int modelDataIndex = thisModel->getMeshDataID();
+		MeshModelData* thisData = &modelDataList[modelDataIndex];
 
 		// "Push" constants to given shader stage directly
 		vkCmdPushConstants(
-			thread->commandBuffer[modelIndex],
+			cmdBuffer,
 			pipelineLayout,
 			VK_SHADER_STAGE_VERTEX_BIT,		// Stage to push constants to
 			0,								// Offset of push constants to update
 			sizeof(Model),					// Size of data being pushed
 			&thisModel->getModel());		// Actual data being pushed (can be array)
 
-		for (size_t j = 0; j < modelDataList[modelDataIndex].getMeshCount(); ++j)
+		for (size_t j = 0; j < thisData->getMeshCount(); ++j)
 		{
 			Mesh* thisMesh = thisData->getMesh(j);
 
 			VkBuffer vertexBuffers[] = { thisMesh->getVertexBuffer() };				// Buffers to bind
 			VkDeviceSize offsets[] = { 0 };											// Offsets into buffers being bound
-			vkCmdBindVertexBuffers(thread->commandBuffer[modelIndex], 0, 1, vertexBuffers, offsets);	// Command to bind vertex buffer before drawing with them
+			vkCmdBindVertexBuffers(cmdBuffer, 0, 1, vertexBuffers, offsets);	// Command to bind vertex buffer before drawing with them
 
-			// Bind mesh index buffer, with offset of 0 and using the uint32 type
-			vkCmdBindIndexBuffer(thread->commandBuffer[modelIndex], thisMesh->getIndexBuffer(), 0, VK_INDEX_TYPE_UINT32);
+			vkCmdBindIndexBuffer(cmdBuffer, thisMesh->getIndexBuffer(), 0, VK_INDEX_TYPE_UINT32);
 
 			std::array<VkDescriptorSet, 2> descriptorSetGroup = { descriptorSets[currentImage],
 				samplerDescriptorSets[thisMesh->getTexId()] };
 
 			// Bind descriptor sets
-			vkCmdBindDescriptorSets(thread->commandBuffer[modelIndex], VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout,
+			vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout,
 				0, static_cast<uint32_t>(descriptorSetGroup.size()), descriptorSetGroup.data(), 0, nullptr);
 
 			// Execute pipeline
-			vkCmdDrawIndexed(thread->commandBuffer[modelIndex], thisMesh->getIndexCount(), 1, 0, 0, 0);
+			vkCmdDrawIndexed(cmdBuffer, thisMesh->getIndexCount(), 1, 0, 0, 0);
 
 		}
-	//}
+	}
 
 	// Stop recording to primary command buffers
-	result = vkEndCommandBuffer(thread->commandBuffer[modelIndex]);
+	result = vkEndCommandBuffer(cmdBuffer);
 	if (result != VK_SUCCESS)
 	{
 		throw std::runtime_error("Failed to stop recording Command Buffer!");
 	}
 
-	return &thread->commandBuffer[modelIndex];
+	return &cmdBuffer;
 
 }
 

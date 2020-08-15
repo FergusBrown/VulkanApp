@@ -197,6 +197,7 @@ private:
 	};
 	//std::vector<ThreadData> threadData;
 
+	uint32_t numSecondaryBuffers;
 	struct frameTEMP {
 		std::vector<ThreadData> threadData;
 	};
@@ -231,8 +232,7 @@ private:
 
 	// - Record Functions
 	void recordCommands(uint32_t currentImage);
-	//VkCommandBuffer* recordSecondaryCommandBuffers(VkCommandBufferBeginInfo beginInfo, uint32_t objectStart, uint32_t objectEnd, uint32_t currentImage, size_t threadID, size_t threadTEMP);
-	VkCommandBuffer* VulkanRenderer::recordSecondaryCommandBuffers(VkCommandBufferBeginInfo beginInfo, uint32_t currentImage, uint32_t modelIndex, size_t threadID);
+	VkCommandBuffer* VulkanRenderer::recordSecondaryCommandBuffers(VkCommandBufferBeginInfo beginInfo, uint32_t objectStart, uint32_t objectEnd, uint32_t currentImage, uint32_t taskIndex, size_t threadID);
 	// -- Create Helper Functions
 	void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
 
