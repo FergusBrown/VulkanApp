@@ -1,45 +1,24 @@
-#define STB_IMAGE_IMPLEMENTATION
-#define GLM_FORCE_DEPTH_ZERO_TO_ONE
-
-#define GLFW_INCLUDE_VULKAN
-#include <GLFW/glfw3.h>
-
 #include <stdexcept>
 #include <vector>
 #include <iostream>
 
 #include "VulkanRenderer.h"
+#include "Window.h"
 #include "Pawn.h"
 #include "InputHandlerMouse.h"
 
-GLFWwindow* window;
-VulkanRenderer vulkanRenderer;
-
-// TODO: function for handling GLFW. Probably want to connect group this together with the input handler
-void initWindow(std::string wName = "Test Window", const int width = 800, const int height = 600)
-{
-	// Initialise GLFW
-	glfwInit();
-
-	// Set GLFW to not work with OpenGL
-	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-
-	// don't allow window resize to prevent everything being redrawn
-	glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
-
-	glfwWindowHint(GLFW_DOUBLEBUFFER, GL_FALSE);
-
-	// note c_str converts a cpp string to a c string
-	window = glfwCreateWindow(width, height, wName.c_str(), nullptr, nullptr);
-}
-
 int main()
 {
-	// create window
-	initWindow("Test Window", 1280, 720);
+	Window displayWindow("Vulkan Renderer", 1280, 720);
+	VulkanRenderer vulkanRenderer;
+
+	if (!displayWindow.createWindow())
+	{
+		return EXIT_FAILURE;
+	}
 
 	// Create Vulkan Renderer instance
-	if (vulkanRenderer.init(window) == EXIT_FAILURE)
+	if (vulkanRenderer.init(displayWindow.window) == EXIT_FAILURE)
 	{
 		return EXIT_FAILURE;
 	}
@@ -82,13 +61,13 @@ int main()
 	//glm::mat4 testMat = glm::rotate(glm::mat4(1.0f), glm::radians(angle), glm::vec3(1.0f, 1.0f, 0.0f));
 	//vulkanRenderer.updateModel(frog, testMat);
 
-	std::unique_ptr<InputHandler> inputHandler(new InputHandlerMouse(window));
+	std::unique_ptr<InputHandler> inputHandler(new InputHandlerMouse(displayWindow.window));
 	inputHandler->init();
 
 
 	// Loop until closed
-	while (glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS 
-		&& !glfwWindowShouldClose(window))
+	while (glfwGetKey(displayWindow.window, GLFW_KEY_ESCAPE) != GLFW_PRESS
+		&& !glfwWindowShouldClose(displayWindow.window))
 	{
 		glfwPollEvents();
 
@@ -117,8 +96,8 @@ int main()
 	vulkanRenderer.cleanup();
 
 	// Destroy GLFW window and stop GLFW
-	glfwDestroyWindow(window);
-	glfwTerminate();
+	//glfwDestroyWindow(displayWindow.window);
+	//glfwTerminate();
 
 
 	return 0;

@@ -1,5 +1,5 @@
 #pragma once
-
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
@@ -22,7 +22,6 @@
 #include <future>
 #include "ctpl_stl.h"
 
-#include "stb_image.h"
 #include "Mesh.h"
 #include "MeshModelData.h"
 #include "MeshModel.h"
@@ -187,7 +186,7 @@ private:
 	// Attach command pool and buffer to each thread
 	struct ThreadData {
 		VkCommandPool commandPool;
-		// One command buffer per render object
+		// One command buffer per task
 		std::vector<VkCommandBuffer> commandBuffer;
 
 		// One push constant block per render object

@@ -152,6 +152,7 @@
     <ClCompile Include="MeshModel.cpp" />
     <ClCompile Include="Pawn.cpp" />
     <ClCompile Include="VulkanRenderer.cpp" />
+    <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Commands.h" />
@@ -169,6 +170,7 @@
     <ClInclude Include="Utilities.h" />
     <ClInclude Include="VulkanRenderer.h" />
     <ClInclude Include="VulkanValidation.h" />
+    <ClInclude Include="Window.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\second.frag" />
