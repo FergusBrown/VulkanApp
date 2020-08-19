@@ -29,7 +29,7 @@ public:
 	VkQueue presentationQueue() const;
 
 private:
-	VkPhysicalDevice& mPhysicalDevice;
+	VkPhysicalDevice mPhysicalDevice;
 	VkDevice mLogicalDevice;
 	VkSurfaceKHR mSurface;
 	QueueFamilyIndices mQueueFamilyIndices;
@@ -37,7 +37,7 @@ private:
 	VkQueue mPresentationQueue;
 
 	// - Get Physical Device referece
-	void getSuitablePhysicalDevice(VkInstance instance, const std::vector<const char*>& deviceExtensions);
+	void getPhysicalDevice(VkInstance instance, const std::vector<const char*>& deviceExtensions);
 	// -- Support Functions
 	QueueFamilyIndices getQueueFamilies();
 	bool checkDeviceSuitable(const std::vector<const char*>& deviceExtensions);

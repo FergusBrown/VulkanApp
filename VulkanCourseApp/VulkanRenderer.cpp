@@ -16,8 +16,8 @@ int VulkanRenderer::init(GLFWwindow* newWindow)
 		createInstance();				// LEAVE
 		setupDebugMessenger();			// LEAVE
 		createSurface();				// LEAVE
-		getPhysicalDevice();			// Abstract to Device
-		createLogicalDevice();			// Abstract to Device
+		//getPhysicalDevice();			// Abstract to Device
+		//createLogicalDevice();			// Abstract to Device
 		createSwapChain();				// Abstract to Swapchain
 		createColourBufferImage();
 		createDepthBufferImage();
@@ -213,7 +213,7 @@ void VulkanRenderer::cleanup()
 
 	vkDestroySwapchainKHR(mainDevice.logicalDevice, swapchain, nullptr);
 	vkDestroySurfaceKHR(instance, surface, nullptr);
-	vkDestroyDevice(mainDevice.logicalDevice, nullptr);  // Abstract to device
+	//vkDestroyDevice(mainDevice.logicalDevice, nullptr);  // Abstract to device
 	if (enableValidationLayers) {
 		DestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
 	}

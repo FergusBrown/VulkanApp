@@ -2,10 +2,10 @@
 
 
 
-Device::Device(const VkInstance& instance, VkSurfaceKHR surface, const std::vector<const char*>& deviceExtensions)
-	:mSurface(surface), mPhysicalDevice(VK_NULL_HANDLE), mLogicalDevice(VK_NULL_HANDLE)
+Device::Device(VkInstance instance, VkSurfaceKHR surface, const std::vector<const char*>& deviceExtensions)
+	:mSurface(surface)
 {
-	getSuitablePhysicalDevice(instance, deviceExtensions);
+	getPhysicalDevice(instance, deviceExtensions);
 	createLogicalDevice(deviceExtensions);
 
 }
@@ -15,7 +15,6 @@ Device::~Device()
 	vkDeviceWaitIdle(mLogicalDevice);
 	vkDestroyDevice(mLogicalDevice, nullptr);
 }
-
 
 // NOTE: all these types are just pointers so return by value
 VkPhysicalDevice Device::physicalDevice() const
@@ -151,7 +150,7 @@ bool Device::checkDeviceExtensionSupport(const std::vector<const char*>& deviceE
 	return true;
 }
 
-void Device::getSuitablePhysicalDevice(VkInstance instance, const std::vector<const char*>& deviceExtensions)
+void Device::getPhysicalDevice(VkInstance instance, const std::vector<const char*>& deviceExtensions)
 {
 	// Enumerate Physical devices the vkInstance can access
 	uint32_t deviceCount = 0;
@@ -229,6 +228,6 @@ void Device::createLogicalDevice(const std::vector<const char*>& deviceExtension
 	// Queues are created at the same time as the device...
 	// So we want to handle queues
 	// From given logical device, of given Queue Family, of given Queue Index (0 since only one queue), place reference in given Vkqueue
-	vkGetDeviceQueue(mLogicalDevice, indices.graphicsFamily, 0, &graphicsQueue);
-	vkGetDeviceQueue(mLogicalDevice, indices.presentationFamily, 0, &presentationQueue);
+	vkGetDeviceQueue(mLogicalDevice, indices.graphicsFamily, 0, &mGraphicsQueue);
+	vkGetDeviceQueue(mLogicalDevice, indices.presentationFamily, 0, &mPresentationQueue);
 }
