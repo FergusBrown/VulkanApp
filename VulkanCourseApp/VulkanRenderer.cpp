@@ -18,7 +18,7 @@ int VulkanRenderer::init(GLFWwindow* newWindow)
 		createSurface();				// LEAVE
 		getPhysicalDevice();			// Abstract to Device
 		createLogicalDevice();			// Abstract to Device
-		createSwapChain();
+		createSwapChain();				// Abstract to Swapchain
 		createColourBufferImage();
 		createDepthBufferImage();
 		createRenderPass();
@@ -213,7 +213,7 @@ void VulkanRenderer::cleanup()
 
 	vkDestroySwapchainKHR(mainDevice.logicalDevice, swapchain, nullptr);
 	vkDestroySurfaceKHR(instance, surface, nullptr);
-	vkDestroyDevice(mainDevice.logicalDevice, nullptr);
+	vkDestroyDevice(mainDevice.logicalDevice, nullptr);  // Abstract to device
 	if (enableValidationLayers) {
 		DestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
 	}
@@ -1679,8 +1679,8 @@ void VulkanRenderer::getPhysicalDevice()
 	}
 
 	// Get properties of our new device
-	VkPhysicalDeviceProperties deviceProperties;
-	vkGetPhysicalDeviceProperties(mainDevice.physicalDevice, &deviceProperties);
+	//VkPhysicalDeviceProperties deviceProperties;
+	//vkGetPhysicalDeviceProperties(mainDevice.physicalDevice, &deviceProperties);
 
 	//minUniformBufferOffset = deviceProperties.limits.minUniformBufferOffsetAlignment;
 }
@@ -1762,7 +1762,7 @@ bool VulkanRenderer::checkDeviceSuitable(VkPhysicalDevice device)
 	return indices.isValid() && extensionsSupported && swapChainValid && deviceFeatures.samplerAnisotropy;
 }
 
-QueueFamilyIndices VulkanRenderer::getQueueFamilies(VkPhysicalDevice device)
+QueueFamilyIndices VulkanRenderer::getQueueFamilies(VkPhysicalDevice device) // Abstract to device
 {
 	QueueFamilyIndices indices;
 
@@ -1782,26 +1782,26 @@ QueueFamilyIndices VulkanRenderer::getQueueFamilies(VkPhysicalDevice device)
 
 		// First check if queue family has at least 1 queue in that family (could have no queue)
 		// Queue can be multiple types define through bitfield. Need tobitwise AND with VK_QUEUE_*_BIT to check if has required type
-if (queueFamily.queueCount > 0 && queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT)
-{
-	indices.graphicsFamily = i;		// If queue family is valid then get index
-}
+		if (queueFamily.queueCount > 0 && queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT)
+		{
+			indices.graphicsFamily = i;		// If queue family is valid then get index
+		}
 
-// Check if queue family supports presentation
-VkBool32 presentationSupport = false;
-vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface, &presentationSupport);
-// Check if queue is presentation type (can be both graphics and presentation)
-if (queueFamily.queueCount > 0 && presentationSupport)
-{
-	indices.presentationFamily = i;
-}
+		// Check if queue family supports presentation
+		VkBool32 presentationSupport = false;
+		vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface, &presentationSupport);
+		// Check if queue is presentation type (can be both graphics and presentation)
+		if (queueFamily.queueCount > 0 && presentationSupport)
+		{
+			indices.presentationFamily = i;
+		}
 
-if (indices.isValid())
-{
-	break;
-}
+		if (indices.isValid())
+		{
+			break;
+		}
 
-++i;
+		++i;
 	}
 
 	return indices;

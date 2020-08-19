@@ -65,7 +65,7 @@ private:
 	std::vector<MeshModel> modelList;	// Holds pointers to all MeshModels in order of creation time
 
 	// Scene Settings
-	struct UboViewProjection {		// Stands for "Model View Projection"
+	struct UboViewProjection {
 		glm::mat4 projection;
 		glm::mat4 view;
 	} uboViewProjection;
@@ -79,8 +79,8 @@ private:
 		VkPhysicalDevice physicalDevice;
 		VkDevice logicalDevice;
 	} mainDevice;
-	VkQueue graphicsQueue;
-	VkQueue presentationQueue;
+	VkQueue graphicsQueue;			// abstract to Device
+	VkQueue presentationQueue;		// abstract to Device
 	VkSurfaceKHR surface;
 	//VkSwapchainKHR swapchain;
 

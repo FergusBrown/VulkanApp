@@ -9,6 +9,8 @@
 const int MAX_FRAME_DRAWS = 2;
 const int MAX_OBJECTS = 2048;
 
+// TODO : update device creation to take a list of device extensions
+// read in additional extensions via file?
 const std::vector<const char*> deviceExtensions = {
 	VK_KHR_SWAPCHAIN_EXTENSION_NAME
 };
@@ -33,16 +35,16 @@ struct QueueFamilyIndices {
 };
 
 /* Swapchain*/
-//struct SwapChainDetails {
-//	VkSurfaceCapabilitiesKHR surfaceCapabilities;		// Surface properties e.g. image size/extent
-//	std::vector<VkSurfaceFormatKHR> formats;			// Surface image formats e.g. RGBA and size of each
-//	std::vector<VkPresentModeKHR> presentationModes;	// How images should be presented to screen
-//};
+struct SwapChainDetails {
+	VkSurfaceCapabilitiesKHR surfaceCapabilities;		// Surface properties e.g. image size/extent
+	std::vector<VkSurfaceFormatKHR> formats;			// Surface image formats e.g. RGBA and size of each
+	std::vector<VkPresentModeKHR> presentationModes;	// How images should be presented to screen
+};
 
-//struct SwapchainImage {
-//	VkImage image;
-//	VkImageView imageView;
-//};
+struct SwapchainImage {
+	VkImage image;
+	VkImageView imageView;
+};
 
 static std::vector<char> readFile(const std::string& filename)
 {
