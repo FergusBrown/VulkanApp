@@ -12,11 +12,12 @@ int VulkanRenderer::init(GLFWwindow* newWindow)
 	window = newWindow;
 
 	try {
-		createInstance();
-		setupDebugMessenger();
-		createSurface();
-		getPhysicalDevice();
-		createLogicalDevice();
+		createThreadPool();			
+		createInstance();				// LEAVE
+		setupDebugMessenger();			// LEAVE
+		createSurface();				// LEAVE
+		getPhysicalDevice();			// Abstract to Device
+		createLogicalDevice();			// Abstract to Device
 		createSwapChain();
 		createColourBufferImage();
 		createDepthBufferImage();
@@ -25,7 +26,6 @@ int VulkanRenderer::init(GLFWwindow* newWindow)
 		createPushConstantRange();
 		createGraphicsPipeline();
 		createFrameBuffers();
-		createThreadPool();
 		createCommandPools();
 		createCommandBuffers();
 		createTextureSampler();
@@ -352,6 +352,7 @@ void VulkanRenderer::createLogicalDevice()
 	vkGetDeviceQueue(mainDevice.logicalDevice, indices.presentationFamily, 0, &presentationQueue);
 }
 
+// Create interface to the window
 void VulkanRenderer::createSurface()
 {
 	// Create Surface (creates a surface create info struct, runs the create surface function, returns result)
@@ -1662,7 +1663,7 @@ void VulkanRenderer::getPhysicalDevice()
 		throw std::runtime_error("Can't find GPUs that support Vulkan instance!");
 	}
 
-	// Fet list of Physcial Devices
+	// Get list of Physcial Devices
 	std::vector<VkPhysicalDevice> deviceList(deviceCount);
 	vkEnumeratePhysicalDevices(instance, &deviceCount, deviceList.data());
 

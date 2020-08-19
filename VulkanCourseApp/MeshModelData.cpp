@@ -3,7 +3,6 @@
 MeshModelData::MeshModelData(std::vector<Mesh*> newMeshList)
 {
 	meshList = newMeshList;
-	//model = glm::mat4(1.0f);
 }
 
 size_t MeshModelData::getMeshCount()
@@ -21,15 +20,6 @@ Mesh* MeshModelData::getMesh(size_t index)
 
 }
 
-/*glm::mat4 MeshModelData::getModel()
-{
-	return model;
-}
-
-void MeshModelData::setModel(glm::mat4 newModel)
-{
-	model = newModel;
-}*/
 
 void MeshModelData::destroyMeshModel()
 {

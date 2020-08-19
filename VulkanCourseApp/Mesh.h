@@ -4,7 +4,8 @@
 #include <GLFW/glfw3.h>
 
 #include <vector>
-#include <mutex>
+
+#include "Common.h"
 
 #include "Utilities.h"
 
@@ -38,11 +39,6 @@ public:
 
 	~Mesh();
 
-	// explicit copy constructors
-	//Mesh(const Mesh&) = default;
-	//Mesh& operator=(const Mesh&) = default;
-	//Mesh(Mesh&&) = default;
-	//Mesh&& operator=(const Mesh&&) = default;
 private:
 	Model model;
 

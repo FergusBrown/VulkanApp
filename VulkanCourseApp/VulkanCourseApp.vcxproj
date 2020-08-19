@@ -145,20 +145,27 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Device.cpp" />
+    <ClCompile Include="Frame.cpp" />
     <ClCompile Include="InputHandlerMouse.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="MeshModelData.cpp" />
     <ClCompile Include="MeshModel.cpp" />
     <ClCompile Include="Pawn.cpp" />
+    <ClCompile Include="RenderTarget.cpp" />
+    <ClCompile Include="SwapChain.cpp" />
     <ClCompile Include="VulkanRenderer.cpp" />
     <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Commands.h" />
+    <ClInclude Include="Common.h" />
     <ClInclude Include="ControlConstants.h" />
     <ClInclude Include="ctpl_stl.h" />
+    <ClInclude Include="Device.h" />
     <ClInclude Include="DirectionalLight.h" />
+    <ClInclude Include="Frame.h" />
     <ClInclude Include="InputHandler.h" />
     <ClInclude Include="InputHandlerMouse.h" />
     <ClInclude Include="Light.h" />
@@ -167,6 +174,8 @@
     <ClInclude Include="MeshModel.h" />
     <ClInclude Include="Pawn.h" />
     <ClInclude Include="PointLight.h" />
+    <ClInclude Include="RenderTarget.h" />
+    <ClInclude Include="SwapChain.h" />
     <ClInclude Include="Utilities.h" />
     <ClInclude Include="VulkanRenderer.h" />
     <ClInclude Include="VulkanValidation.h" />

@@ -60,19 +60,9 @@ private:
 	int currentFrame = 0;
 
 	// Scene objects
-	// TODO : if we have an object which is going to be redrawn hundreds or thousands of times then will need to setup functionality for instanced rendering
 	std::vector<MeshModelData> modelDataList;			// Model data
 
-	/*struct InstanceList {
-		std::vector<MeshModel> instanceList;	// NOTE : this instance list is not actually used for instanced rendering in the sense that only one draw command is required
-												//		  This setup is just used to avoid the need to reload in mesh and texture data if two or three models are the same
-	};
-	std::vector<InstanceList> modelList;*/		// Hold all instance MeshModels
-	
 	std::vector<MeshModel> modelList;	// Holds pointers to all MeshModels in order of creation time
-	//uint32_t modelCount;						// Use model count to keep track of number of models as modelListOrderByID may point to nullptr if an object is destroyed
-
-	//std::vector<MeshModel> modelList;					// Model instance
 
 	// Scene Settings
 	struct UboViewProjection {		// Stands for "Model View Projection"
@@ -92,24 +82,12 @@ private:
 	VkQueue graphicsQueue;
 	VkQueue presentationQueue;
 	VkSurfaceKHR surface;
-	VkSwapchainKHR swapchain;
-
-	
-	// TODO: update structure to have a frame object which contains all the 
-	/*struct frameData {
-		SwapchainImage swapChainImages;
-		VkFramebuffer swapChainFramebuffer;
-		VkCommandBuffer primaryCommandBuffer;
-		std::vector<VkCommandBuffer> secondaryCommandBuffers;
-	};
-
-	std::vector<frameData> frames;*/
+	//VkSwapchainKHR swapchain;
 
 	// All 3 of below are 1:1 connected
-	std::vector<SwapchainImage> swapChainImages;
+	//std::vector<SwapchainImage> swapChainImages;
 	std::vector<VkFramebuffer> swapChainFramebuffers;
 	std::vector<VkCommandBuffer> primaryCommandBuffers;
-	//std::vector<VkCommandBuffer> secondaryCommandBuffers;
 
 	std::vector<VkImage> colourBufferImage;
 	std::vector <VkDeviceMemory> colourBufferImageMemory;
@@ -120,6 +98,10 @@ private:
 	std::vector <VkDeviceMemory> depthBufferImageMemory;
 	std::vector <VkImageView> depthBufferImageView;
 	VkFormat depthFormat;
+
+	struct PerFrame {		// Data or synchronisation required per draw
+
+	};
 
 	// - Descriptors
 	VkDescriptorSetLayout descriptorSetLayout; // describes the layout of the descriptor sets
@@ -137,11 +119,8 @@ private:
 	std::vector<VkBuffer> vpUniformBuffer;		// We want one of these for every command buffer so that nothing funky happens
 	std::vector<VkDeviceMemory> vpUniformBufferMemory;
 
-	std::vector<VkBuffer> modelDUniformBuffer;	
-	std::vector<VkDeviceMemory> modelDUniformBufferMemory;
-
-	
-
+	//std::vector<VkBuffer> modelDUniformBuffer;	
+	//std::vector<VkDeviceMemory> modelDUniformBufferMemory;
 	//VkDeviceSize minUniformBufferOffset;
 	//size_t modelUniformAlignment;
 	//UboModel* modelTransferSpace;
@@ -169,39 +148,35 @@ private:
 	VkFormat swapChainImageFormat;
 	VkExtent2D swapChainExtent;
 
-	// - Synchronisation
-	std::vector<VkSemaphore> imageAvailable;
-	std::vector<VkSemaphore> renderFinished;
-	std::vector<VkFence> drawFences;
+	// - Synchronisation /* In Frame Class
+	//std::vector<VkSemaphore> imageAvailable;
+	//std::vector<VkSemaphore> renderFinished;
+	//std::vector<VkFence> drawFences;
 
 	// - Multithreading
 	// Max. number of concurrent threads
 	uint32_t numThreads;
 	ctpl::thread_pool threadPool;
 
-	struct ThreadPushConstantBlock {
-		Model model;
-	};
+	//struct ThreadPushConstantBlock {
+	//	Model model;
+	//};
 
 	// Attach command pool and buffer to each thread
-	struct ThreadData {
-		VkCommandPool commandPool;
-		// One command buffer per task
-		std::vector<VkCommandBuffer> commandBuffer;
+	/* Frame */
+	//struct ThreadData {
+	//	VkCommandPool commandPool;
+	//	// One command buffer per task
+	//	std::vector<VkCommandBuffer> commandBuffer;
+	//};
+	////std::vector<ThreadData> threadData;
 
-		// One push constant block per render object
-		//std::vector<ThreadPushConstantBlock> pushConstBlock;
-		// Per object information (position, rotation, etc.)
-		//std::vector<ObjectData> objectData;
-	};
-	//std::vector<ThreadData> threadData;
+	//uint32_t numSecondaryBuffers;
+	//struct frameTEMP {
+	//	std::vector<ThreadData> threadData;
+	//};
 
-	uint32_t numSecondaryBuffers;
-	struct frameTEMP {
-		std::vector<ThreadData> threadData;
-	};
-
-	std::vector<frameTEMP> frameData;
+	//std::vector<frameTEMP> frameData;
 
 	// Vulkan Functions
 	// - Create Functions

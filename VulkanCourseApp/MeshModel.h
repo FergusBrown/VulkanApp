@@ -1,8 +1,6 @@
 #pragma once
 
-#include <vector>;
-
-#include <glm/glm.hpp>
+#include "Common.h"
 
 #include "MeshModelData.h"
 
