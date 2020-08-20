@@ -276,3 +276,13 @@ static void transitionImageLayout(VkDevice device, VkQueue queue, VkCommandPool 
 	endAndSubmitCommandBuffer(device, commandPool, queue, commandBuffer);
 }
 
+void getWindowExtent(VkExtent2D& windowExtent, GLFWwindow* window)
+{
+	// Get window size
+	int width, height;
+	glfwGetFramebufferSize(window, &width, &height);
+
+	// Create new extent using window size
+	windowExtent.width = static_cast<uint32_t>(width);
+	windowExtent.height = static_cast<uint32_t>(height);
+}

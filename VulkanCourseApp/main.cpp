@@ -17,7 +17,7 @@ int main()
 		return EXIT_FAILURE;
 	}
 
-	// Create Vulkan Renderer instance
+	// Create Vulkan Renderer mInstance
 	if (vulkanRenderer.init(displayWindow.window) == EXIT_FAILURE)
 	{
 		return EXIT_FAILURE;

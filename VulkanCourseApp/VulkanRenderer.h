@@ -29,6 +29,9 @@
 #include "Utilities.h"
 #include "VulkanValidation.h"
 
+#include "Device.h"
+#include "SwapChain.h"
+
 using namespace glm;
 
 class VulkanRenderer
@@ -72,16 +75,18 @@ private:
 
 	// Vulkan Components
 	// - Main
-	VkInstance instance;
+	VkInstance mInstance;
 	VkDebugUtilsMessengerEXT debugMessenger;
-	struct
+	/*struct
 	{
 		VkPhysicalDevice physicalDevice;
 		VkDevice logicalDevice;
 	} mainDevice;
 	VkQueue graphicsQueue;			// abstract to Device
-	VkQueue presentationQueue;		// abstract to Device
-	VkSurfaceKHR surface;
+	VkQueue presentationQueue;		// abstract to Device*/
+	VkSurfaceKHR mSurface;
+	std::unique_ptr<Device> mDevice;
+	std::unique_ptr<Swapchain> mSwapchain;
 	//VkSwapchainKHR swapchain;
 
 	// All 3 of below are 1:1 connected
@@ -98,10 +103,6 @@ private:
 	std::vector <VkDeviceMemory> depthBufferImageMemory;
 	std::vector <VkImageView> depthBufferImageView;
 	VkFormat depthFormat;
-
-	struct PerFrame {		// Data or synchronisation required per draw
-
-	};
 
 	// - Descriptors
 	VkDescriptorSetLayout descriptorSetLayout; // describes the layout of the descriptor sets
@@ -149,9 +150,9 @@ private:
 	VkExtent2D swapChainExtent;
 
 	// - Synchronisation /* In Frame Class
-	//std::vector<VkSemaphore> imageAvailable;
-	//std::vector<VkSemaphore> renderFinished;
-	//std::vector<VkFence> drawFences;
+	std::vector<VkSemaphore> imageAvailable;
+	std::vector<VkSemaphore> renderFinished;
+	std::vector<VkFence> drawFences;
 
 	// - Multithreading
 	// Max. number of concurrent threads
@@ -164,26 +165,27 @@ private:
 
 	// Attach command pool and buffer to each thread
 	/* Frame */
-	//struct ThreadData {
-	//	VkCommandPool commandPool;
-	//	// One command buffer per task
-	//	std::vector<VkCommandBuffer> commandBuffer;
-	//};
-	////std::vector<ThreadData> threadData;
+	struct ThreadData {
+		VkCommandPool commandPool;
+		// One command buffer per task
+		std::vector<VkCommandBuffer> commandBuffer;
+	};
+	std::vector<ThreadData> threadData;
 
-	//uint32_t numSecondaryBuffers;
-	//struct frameTEMP {
-	//	std::vector<ThreadData> threadData;
-	//};
+	uint32_t numSecondaryBuffers;
+	struct frameTEMP {
+		std::vector<ThreadData> threadData;
+	};
 
-	//std::vector<frameTEMP> frameData;
+	std::vector<frameTEMP> frameData;
 
 	// Vulkan Functions
 	// - Create Functions
 	void createInstance();
 	void setupDebugMessenger();
-	void createLogicalDevice();
+	//void createLogicalDevice();
 	void createSurface();
+	void createDevice();
 	void createSwapChain();
 	void createRenderPass();
 	void createDescriptorSetLayout();
@@ -211,7 +213,7 @@ private:
 	void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
 
 	// - Get Functions
-	void getPhysicalDevice();
+	//void getPhysicalDevice();
 
 	// - Allocate Functions
 	void allocateDynamicBufferTransferSpace();
@@ -220,17 +222,17 @@ private:
 	// -- Checker Functions
 	bool checkInstanceExtensionSupport(std::vector<const char*>* checkExtensions);
 	bool checkValidationLayerSupport();
-	bool checkDeviceExtensionSupport(VkPhysicalDevice device);
-	bool checkDeviceSuitable(VkPhysicalDevice device);
+	//bool checkDeviceExtensionSupport(VkPhysicalDevice device);
+	//bool checkDeviceSuitable(VkPhysicalDevice device);
 	
 	// -- Getter Functions
-	QueueFamilyIndices getQueueFamilies(VkPhysicalDevice device);
-	SwapChainDetails getSwapChainDetails(VkPhysicalDevice device);
+	//QueueFamilyIndices getQueueFamilies(VkPhysicalDevice device);
+	//SwapChainDetails getSwapChainDetails(VkPhysicalDevice device);
 	
 	// -- Choose Functions
-	VkSurfaceFormatKHR chooseBestSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& formats);
-	VkPresentModeKHR chooseBestPresentationMode(const std::vector<VkPresentModeKHR> presentationMode);
-	VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& surfaceCapabilities);
+	//VkSurfaceFormatKHR chooseBestSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& formats);			// Swapchain
+	//VkPresentModeKHR chooseBestPresentationMode(const std::vector<VkPresentModeKHR> presentationMode);	// Swapchain
+	//VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& surfaceCapabilities);					// Swapchain
 	VkFormat chooseSupportedFormat(const std::vector<VkFormat> &formats, VkImageTiling tiling, VkFormatFeatureFlags featureFlags);
 
 	// -- Create Functions
