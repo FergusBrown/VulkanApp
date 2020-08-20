@@ -44,7 +44,6 @@ public:
 	// Model control
 	int loadMeshModelData(std::string modelFile);
 	int createModel(int modelDataIndex);
-	//bool destroyModel(int modelDataIndex);
 	void updateModel(int modelId, mat4 newModel);
 
 	// Camera Control
