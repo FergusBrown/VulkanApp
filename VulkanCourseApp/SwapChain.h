@@ -22,7 +22,7 @@ class Swapchain
 {
 public:
 
-
+	// TODO: need to be able to recreate swapchain and change priorities before creation
 	Swapchain(Device& device, const VkExtent2D& newExtent);
 	~Swapchain();
 
@@ -31,14 +31,14 @@ public:
 	const SwapchainDetails& details() const;
 	const std::vector<VkImage>& images() const;
 
+	// - Setters
+	void setPresentationPriority(const std::vector<VkPresentModeKHR>& newList);
+	void setSurfaceFormatPriority(const std::vector<VkSurfaceFormatKHR>& newList);
+
 	// - Image Management
-	void createImage(VkFormat format,
-					 VkImageTiling tiling,
-					 VkImageUsageFlags useFlags,
-					 VkMemoryPropertyFlags propFlags,
-					 VkDeviceMemory* imageMemory);
 	VkResult acquireNextImage(VkFence drawFence, VkSemaphore imageAvailable, uint32_t& imageIndex);
 
+	
 private:
 
 	Device& mDevice;
@@ -50,7 +50,7 @@ private:
 	
 	std::vector<VkImage> mImages;
 
-	// TODO - added support for these priorities being changed
+	
 	// - Presentation mode priority  (vector[0] has high priority, vector[size-1] has low priority)
 	std::vector<VkPresentModeKHR> mPresentationModePriority = {
 		VK_PRESENT_MODE_MAILBOX_KHR,				// 0. triple buffer

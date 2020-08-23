@@ -26,6 +26,16 @@ const std::vector<VkImage>& Swapchain::images() const
 	return mImages;
 }
 
+void Swapchain::setPresentationPriority(const std::vector<VkPresentModeKHR>& newList)
+{
+	mPresentationModePriority = newList;
+}
+
+void Swapchain::setSurfaceFormatPriority(const std::vector<VkSurfaceFormatKHR>& newList)
+{
+	mSurfaceFormatPriorityList = newList;
+}
+
 
 //	NOTE: this function will only return once the fence and semaphore are signalled
 VkResult Swapchain::acquireNextImage(VkFence drawFence, VkSemaphore imageAvailable, uint32_t& imageIndex)

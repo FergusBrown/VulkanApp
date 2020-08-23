@@ -16,18 +16,23 @@ public:
 		VkFormat format,
 		VkImageTiling tiling,
 		VkSampleCountFlagBits sampleCount,
-		VkImageUsageFlags useFlags,
+		VkImageUsageFlags usage,
 		VkMemoryPropertyFlags propFlags,
 		VkImageAspectFlags aspectMask
 	);
 	~Image();
 
-	const VkImage& image();
-	const VkImageView& imageView();
+	// - Getters
+	Device& device() const;
+	const VkImage& image() const;
+	const VkImageView& imageView() const;
+	const VkExtent3D& extent() const;
+	VkFormat format() const;
+	VkSampleCountFlagBits sampleCount() const;
+	VkImageUsageFlags usage() const;
 
 private:
 	Device& mDevice;
-
 	VkImage mImage;
 
 	// - Image attributes
@@ -43,7 +48,6 @@ private:
 	// - Associated with image
 	VkDeviceMemory mMemory;
 	VkImageView mImageView;
-
 
 	// - Image view management
 	void createImageView();

@@ -39,14 +39,39 @@ Image::~Image()
 	vkFreeMemory(mDevice.logicalDevice(), mMemory, nullptr);
 }
 
-const VkImage& Image::image()
+Device& Image::device() const
+{
+	return mDevice;
+}
+
+const VkImage& Image::image() const
 {
 	return mImage;
 }
 
-const VkImageView& Image::imageView()
+const VkImageView& Image::imageView() const
 {
 	return mImageView;
+}
+
+const VkExtent3D& Image::extent() const
+{
+	return extent();
+}
+
+VkFormat Image::format() const
+{
+	return mFormat;
+}
+
+VkSampleCountFlagBits Image::sampleCount() const
+{
+	return mSampleCount;
+}
+
+VkImageUsageFlags Image::usage() const
+{
+	return mUsage;
 }
 
 void Image::createImageView()
