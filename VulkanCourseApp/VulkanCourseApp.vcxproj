@@ -147,6 +147,7 @@
   <ItemGroup>
     <ClCompile Include="Device.cpp" />
     <ClCompile Include="Frame.cpp" />
+    <ClCompile Include="Image.cpp" />
     <ClCompile Include="InputHandlerMouse.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Mesh.cpp" />
@@ -166,6 +167,7 @@
     <ClInclude Include="Device.h" />
     <ClInclude Include="DirectionalLight.h" />
     <ClInclude Include="Frame.h" />
+    <ClInclude Include="Image.h" />
     <ClInclude Include="InputHandler.h" />
     <ClInclude Include="InputHandlerMouse.h" />
     <ClInclude Include="Light.h" />

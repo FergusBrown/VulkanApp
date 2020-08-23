@@ -31,6 +31,7 @@
 
 #include "Device.h"
 #include "SwapChain.h"
+#include "RenderTarget.h"
 
 using namespace glm;
 
@@ -86,6 +87,7 @@ private:
 	VkSurfaceKHR mSurface;
 	std::unique_ptr<Device> mDevice;
 	std::unique_ptr<Swapchain> mSwapchain;
+	std::unique_ptr<RenderTarget> mRenderTarget;
 	//VkSwapchainKHR swapchain;
 
 	// All 3 of below are 1:1 connected
@@ -186,6 +188,7 @@ private:
 	void createSurface();
 	void createDevice();
 	void createSwapChain();
+	void createRenderTarget();
 	void createRenderPass();
 	void createDescriptorSetLayout();
 	void createPushConstantRange();

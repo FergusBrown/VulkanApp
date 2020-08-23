@@ -18,6 +18,7 @@ int VulkanRenderer::init(GLFWwindow* newWindow)
 		createSurface();				// LEAVE
 		createDevice();					// COMPLETE
 		createSwapChain();				// COMPLETE
+		createRenderTarget();			// TODO
 		createColourBufferImage();
 		createDepthBufferImage();
 		createRenderPass();
@@ -71,15 +72,17 @@ void VulkanRenderer::updateCameraView(mat4 newView)
 
 void VulkanRenderer::draw()
 {
+	/* BEGIN ABSTRACT TO SWAPCHAIN ACQUIRE NEXT IMAGE*/
 	// -- GET NEXT IMAGE -- **DO NOT REARRANGE ORDER - FENCE CHANGES MUST BE HANDLED FIRST**
 	// Wait for given fence to signal (open) from last draw before continuing
 	vkWaitForFences(mDevice->logicalDevice(), 1, &drawFences[currentFrame], VK_TRUE, std::numeric_limits<uint64_t>::max());		// ANALOGY : Wait until this fence is open (freezes the code)
-	// Manually reset (clode) fences
+	// Manually reset (close) fences
 	vkResetFences(mDevice->logicalDevice(), 1, &drawFences[currentFrame]);														// Close fence behind you
 
 	// Get index of next image to be drawn to and signal semapphore when ready to be drawn to
 	uint32_t imageIndex;
 	vkAcquireNextImageKHR(mDevice->logicalDevice(), mSwapchain->swapchain(), std::numeric_limits<uint64_t>::max(), imageAvailable[currentFrame], VK_NULL_HANDLE, &imageIndex);
+	/* END ABSTRACT */
 
 	recordCommands(imageIndex);		// Only record commands once the image at imageIndex is available (not being used by the queue)
 
@@ -210,11 +213,12 @@ void VulkanRenderer::cleanup()
 		vkDestroyImageView(mDevice->logicalDevice(), image.imageView, nullptr);
 	}
 
-	//vkDestroySwapchainKHR(mDevice->logicalDevice(), swapchain, nullptr);
+	//vkDestroySwapchainKHR(mDevice->logicalDevice(), swapchain, nullptr);	// swapchain
 	//vkDestroyDevice(mDevice->logicalDevice(), nullptr);  // Abstract to device
 	if (enableValidationLayers) {
 		DestroyDebugUtilsMessengerEXT(mInstance, debugMessenger, nullptr);
 	}
+	//* destructor */
 	//vkDestroySurfaceKHR(mInstance, surface, nullptr);
 	//vkDestroyInstance(mInstance, nullptr);
 }
@@ -325,6 +329,10 @@ void VulkanRenderer::createSwapChain()
 	getWindowExtent(windowExtent, window);
 
 	mSwapchain = std::make_unique<Swapchain>(mDevice, windowExtent);
+}
+
+void VulkanRenderer::createRenderTarget()
+{
 }
 
 void VulkanRenderer::createRenderPass()
@@ -878,7 +886,7 @@ void VulkanRenderer::createDepthBufferImage()
 		depthBufferImage[i] = createImage(swapChainExtent.width, swapChainExtent.height, depthFormat, VK_IMAGE_TILING_OPTIMAL,
 			VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &depthBufferImageMemory[i]);
 
-		// Create Depth Vuffer Image View
+		// Create Depth Buffer Image View
 		depthBufferImageView[i] = createImageView(depthBufferImage[i], depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
 	}
 }

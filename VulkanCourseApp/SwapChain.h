@@ -26,16 +26,21 @@ public:
 	Swapchain(Device& device, const VkExtent2D& newExtent);
 	~Swapchain();
 
-	// Getters
+	// - Getters
 	VkSwapchainKHR swapchain() const;
 	const SwapchainDetails& details() const;
-	const std::vector<VkImage> images() const;
-	// TODO: create this function similar to sample
-	//VkResult acquireNextImage(uint32_t imageIndex, )
+	const std::vector<VkImage>& images() const;
+
+	// - Image Management
+	void createImage(VkFormat format,
+					 VkImageTiling tiling,
+					 VkImageUsageFlags useFlags,
+					 VkMemoryPropertyFlags propFlags,
+					 VkDeviceMemory* imageMemory);
+	VkResult acquireNextImage(VkFence drawFence, VkSemaphore imageAvailable, uint32_t& imageIndex);
 
 private:
 
-	// Variables
 	Device& mDevice;
 
 
@@ -60,7 +65,6 @@ private:
 		{VK_FORMAT_R8G8B8A8_UNORM, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR},
 		{VK_FORMAT_B8G8R8A8_UNORM, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR} };
 
-	// Functions
 	// - Swapchain creation
 	void createSwapchain(const VkExtent2D& newExtent);
 	// -- Support
