@@ -31,6 +31,7 @@
 
 #include "Device.h"
 #include "SwapChain.h"
+#include "Image.h"
 #include "RenderTarget.h"
 
 using namespace glm;
@@ -87,7 +88,7 @@ private:
 	VkSurfaceKHR mSurface;
 	std::unique_ptr<Device> mDevice;
 	std::unique_ptr<Swapchain> mSwapchain;
-	std::unique_ptr<RenderTarget> mRenderTarget;
+	std::vector<std::unique_ptr<RenderTarget>> mRenderTargets;
 	//VkSwapchainKHR swapchain;
 
 	// All 3 of below are 1:1 connected
@@ -95,15 +96,15 @@ private:
 	std::vector<VkFramebuffer> swapChainFramebuffers;
 	std::vector<VkCommandBuffer> primaryCommandBuffers;
 
-	std::vector<VkImage> colourBufferImage;
+	/*std::vector<VkImage> colourBufferImage;
 	std::vector <VkDeviceMemory> colourBufferImageMemory;
-	std::vector <VkImageView> colourBufferImageView;
-	VkFormat colourFormat;
+	std::vector <VkImageView> colourBufferImageView;*/
+	VkFormat mColourFormat{ VK_FORMAT_R8G8B8A8_UNORM };
 
-	std::vector<VkImage> depthBufferImage;
+	/*std::vector<VkImage> depthBufferImage;
 	std::vector <VkDeviceMemory> depthBufferImageMemory;
-	std::vector <VkImageView> depthBufferImageView;
-	VkFormat depthFormat;
+	std::vector <VkImageView> depthBufferImageView;*/
+	VkFormat mDepthFormat{ VK_FORMAT_D32_SFLOAT_S8_UINT };
 
 	// - Descriptors
 	VkDescriptorSetLayout descriptorSetLayout; // describes the layout of the descriptor sets
@@ -188,13 +189,13 @@ private:
 	void createSurface();
 	void createDevice();
 	void createSwapChain();
-	void createRenderTarget();
+	void createFrameData();
 	void createRenderPass();
 	void createDescriptorSetLayout();
 	void createPushConstantRange();
 	void createGraphicsPipeline();
-	void createColourBufferImage();
-	void createDepthBufferImage();
+	//void createColourBufferImage();
+	//void createDepthBufferImage();
 	void createFrameBuffers();
 	void createThreadPool();
 	void createCommandPools();
@@ -238,9 +239,9 @@ private:
 	VkFormat chooseSupportedFormat(const std::vector<VkFormat> &formats, VkImageTiling tiling, VkFormatFeatureFlags featureFlags);
 
 	// -- Create Functions
-	VkImage createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags useFlags, 
-		VkMemoryPropertyFlags propFlags, VkDeviceMemory *imageMemory);
-	VkImageView createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags);
+	//VkImage createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags useFlags, 
+	//	VkMemoryPropertyFlags propFlags, VkDeviceMemory *imageMemory);
+	//VkImageView createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags);
 	VkShaderModule createShaderModule(const std::vector<char>& code);
 
 	int createTextureImage(std::string fileName);

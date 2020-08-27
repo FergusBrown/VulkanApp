@@ -1,20 +1,29 @@
 #pragma once
+#include "ctpl_stl.h"
 
 #include "Common.h"
 
+#include "Device.h"
 #include "RenderTarget.h"
 
 
-// This is a container for objects which must be held by every frame
-// The Frame Object manages creation and destruction of the objects it owns
+// This is a container for data which must be held by every frame
+// This include buffer bools for descriptors and commands, synchronisation objects
+// and the rendertarget which must create the image attachments used in a renderpass
 class Frame
 {
 public:
-	Frame();
+	Frame(Device& device, std::unique_ptr<RenderTarget>& renderTarget, uint32_t threadCount = 1);
+	~Frame();
 
+	// - Getters
+	Device& device() const;
 
 
 private:
+	// Variables
+	Device& mDevice;
+
 	// - Primary Command Buffer
 	static VkCommandPool mPrimaryCommandPool;
 	VkCommandBuffer mPrimaryCommandBuffer;
@@ -24,21 +33,35 @@ private:
 	std::vector<VkDescriptorSet> mDescriptorSets;
 
 	// - Synchronisation
-	VkSemaphore mImageAvailable;
+	// TODO : add fence and semaphore pool
+	/*VkSemaphore mImageAvailable;
 	VkSemaphore mRenderFinished;
-	VkFence		mDrawFence;
+	VkFence		mDrawFence;*/
 
-	// - Per Thread Data
-	static size_t threadCount;
+	// - Thread Pool
+	uint32_t mThreadCount;
+	ctpl::thread_pool mThreadPool;
+
 	struct ThreadData {
-		VkCommandPool commandPool;
-		// One secondary command buffer per task
-		std::vector<VkCommandBuffer> commandBuffer;
+		VkCommandPool secondaryCommandPool;
+		// One secondary command buffer per thread
+		std::vector<VkCommandBuffer> secondaryCommandBuffers;
 	};
 	std::vector<ThreadData> mThreadData;
 
-
 	// - Render target
 	std::unique_ptr<RenderTarget> mRenderTarget;
+
+	// Functions
+	// - Command Buffers
+	// -- Primary
+	void createPrimaryCommandPool();
+	void createPrimaryCommandBuffer();
+
+	// - Thread pool management
+	void createThreadPool();
+
+	// - Synchronisation
+	//void createSynchronisation();
 };
 

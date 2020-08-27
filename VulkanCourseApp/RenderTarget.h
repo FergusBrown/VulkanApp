@@ -11,12 +11,14 @@ struct Attachment {
 
 	VkImageUsageFlags usage;
 
-	VkImageLayout initialLayout;
+	VkImageLayout initialLayout{ VK_IMAGE_LAYOUT_UNDEFINED };
 
 	Attachment() = default;
 	Attachment(VkFormat format, VkSampleCountFlagBits sampleCount, VkImageUsageFlags usage);
 };
 
+// Contains all images handled in the renderpass and their associated imageviews
+// attachment indices are used to indicate which attachments are used in the input and output of a subpass
 class RenderTarget
 {
 public:
@@ -33,6 +35,8 @@ public:
 
 	// - Setters
 	void setLayout(uint32_t attachmentIndex, VkImageLayout layout);
+
+	// OBSELETE?
 	void setInputAttachmentIndices(std::vector<uint32_t> newIndices);
 	void setOutputAttachmentIndices(std::vector<uint32_t> newIndices);
 private:
@@ -40,7 +44,7 @@ private:
 
 	VkExtent3D mExtent;
 
-	std::vector<Image>& mImages;
+	std::vector<Image> mImages;
 	std::vector<VkImageView> mImageViews;
 
 	std::vector<Attachment> mAttachments;

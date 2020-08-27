@@ -21,6 +21,11 @@ RenderTarget::~RenderTarget()
 
 }
 
+const VkExtent3D& RenderTarget::extent() const
+{
+	return mExtent;
+}
+
 const std::vector<VkImageView>& RenderTarget::imageViews() const
 {
 	return mImageViews;

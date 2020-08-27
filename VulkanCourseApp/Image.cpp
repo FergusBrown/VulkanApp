@@ -1,7 +1,44 @@
 #include "Image.h"
 
-Image::Image(Device& device, const VkExtent2D& extent, uint32_t mipLevels, uint32_t arrayLayerCount, VkFormat format, VkImageTiling tiling, VkSampleCountFlagBits sampleCount, VkImageUsageFlags usage, VkMemoryPropertyFlags propFlags, VkImageAspectFlags aspectMask) :
-	mDevice(device), mExtent({ extent.width, extent.height, 1 }), mSubresource({aspectMask, mipLevels, arrayLayerCount}), mFormat(format), mTiling(tiling), mSampleCount(sampleCount), mUsage(usage), mPropFlags(propFlags)
+Image::Image(Device& device, 
+	VkImage image, 
+	const VkExtent2D& extent, 
+	VkFormat format, 
+	VkImageUsageFlags usage,
+	VkSampleCountFlagBits sampleCount) :
+
+	mDevice(device),
+	mExtent({ extent.width, extent.height, 1 }),
+	mFormat(format),
+	mSampleCount(sampleCount),
+	mUsage(usage)
+{
+	mSubresource.arrayLayer = 1;
+	mSubresource.mipLevel = 1;
+	mSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+
+	createImageView();
+}
+
+Image::Image(Device& device, 
+	const VkExtent2D& extent, 
+	VkFormat format, 
+	VkImageUsageFlags usage, 
+	VkMemoryPropertyFlags propFlags, 
+	VkImageAspectFlags aspectMask,
+	VkSampleCountFlagBits sampleCount,
+	uint32_t mipLevels,
+	uint32_t arrayLayerCount,
+	VkImageTiling tiling) :
+
+	mDevice(device), 
+	mExtent({ extent.width, extent.height, 1 }), 
+	mSubresource({aspectMask, mipLevels, arrayLayerCount}), 
+	mFormat(format), 
+	mTiling(tiling), 
+	mSampleCount(sampleCount), 
+	mUsage(usage), 
+	mPropFlags(propFlags)
 {
 	// CREATE IMAGE
 	// Image Creation Info
@@ -35,8 +72,14 @@ Image::Image(Device& device, const VkExtent2D& extent, uint32_t mipLevels, uint3
 Image::~Image()
 {
 	vkDestroyImageView(mDevice.logicalDevice(), mImageView, nullptr);
-	vkDestroyImage(mDevice.logicalDevice(), mImage, nullptr);
-	vkFreeMemory(mDevice.logicalDevice(), mMemory, nullptr);
+
+	// If memory null then object was created from an exteernal VkImage
+	if (mMemory != VK_NULL_HANDLE)
+	{
+		vkDestroyImage(mDevice.logicalDevice(), mImage, nullptr);
+		vkFreeMemory(mDevice.logicalDevice(), mMemory, nullptr);
+	}
+		
 }
 
 Device& Image::device() const

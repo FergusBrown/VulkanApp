@@ -9,17 +9,28 @@
 class Image
 {
 public:
+	// Create an Image object from an existing handle e.g. Swapchain image
+	Image(Device& device,
+		VkImage image,
+		const VkExtent2D& extent,
+		VkFormat format,
+		VkImageUsageFlags usage,
+		VkSampleCountFlagBits sampleCount = VK_SAMPLE_COUNT_1_BIT
+	);
+
+	// Create an image object from input parameters
 	Image(Device& device,
 		const VkExtent2D& extent,
-		uint32_t mipLevels,
-		uint32_t arrayLayerCount,
 		VkFormat format,
-		VkImageTiling tiling,
-		VkSampleCountFlagBits sampleCount,
 		VkImageUsageFlags usage,
 		VkMemoryPropertyFlags propFlags,
-		VkImageAspectFlags aspectMask
+		VkImageAspectFlags aspectMask,
+		VkSampleCountFlagBits sampleCount = VK_SAMPLE_COUNT_1_BIT,
+		uint32_t mipLevels = 1,
+		uint32_t arrayLayerCount = 1,
+		VkImageTiling tiling = VK_IMAGE_TILING_OPTIMAL
 	);
+
 	~Image();
 
 	// - Getters
@@ -33,7 +44,7 @@ public:
 
 private:
 	Device& mDevice;
-	VkImage mImage;
+	VkImage mImage{ VK_NULL_HANDLE };
 
 	// - Image attributes
 	VkImageType mType;
@@ -46,8 +57,8 @@ private:
 	VkImageUsageFlags mUsage;
 	
 	// - Associated with image
-	VkDeviceMemory mMemory;
-	VkImageView mImageView;
+	VkDeviceMemory mMemory{ VK_NULL_HANDLE };
+	VkImageView mImageView{ VK_NULL_HANDLE };
 
 	// - Image view management
 	void createImageView();

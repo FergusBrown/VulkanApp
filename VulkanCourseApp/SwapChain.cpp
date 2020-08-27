@@ -1,14 +1,21 @@
 #include "SwapChain.h"
 
-Swapchain::Swapchain(Device& device, const VkExtent2D& newExtent) :
+// TODO: check usage is valid
+Swapchain::Swapchain(Device& device, const VkExtent2D& newExtent, VkImageUsageFlags usage) :
 	mDevice(device)
 {
+	mDetails.usage = usage;
 	createSwapchain(newExtent);
 }
 
 Swapchain::~Swapchain()
 {
 	vkDestroySwapchainKHR(mDevice.logicalDevice(), mSwapchain, nullptr);
+}
+
+Device& Swapchain::device() const
+{
+	return mDevice;
 }
 
 VkSwapchainKHR Swapchain::swapchain() const
@@ -19,6 +26,21 @@ VkSwapchainKHR Swapchain::swapchain() const
 const SwapchainDetails& Swapchain::details() const
 {
 	return mDetails;
+}
+
+const VkExtent2D& Swapchain::extent() const
+{
+	return mDetails.extent;
+}
+
+VkFormat Swapchain::format() const
+{
+	return mDetails.surfaceFormat.format;
+}
+
+VkImageUsageFlags Swapchain::usage() const
+{
+	return mDetails.usage;
 }
 
 const std::vector<VkImage>& Swapchain::images() const
@@ -88,7 +110,7 @@ void Swapchain::createSwapchain(const VkExtent2D& newExtent)
 	swapChainCreateInfo.imageExtent = mDetails.extent;											// Swapchain image extents
 	swapChainCreateInfo.minImageCount = mDetails.imageCount;									// Minimum images in swapchain
 	swapChainCreateInfo.imageArrayLayers = 1;													// Number of layers for each image in chain
-	swapChainCreateInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;						// What attachment images will be used at
+	swapChainCreateInfo.imageUsage = mDetails.usage;						// What attachment images will be used at
 	swapChainCreateInfo.preTransform = surfaceSupport.surfaceCapabilities.currentTransform;		// Transform to perform on swap chain
 	swapChainCreateInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;						// How to handle blending images with external graphics (e.g. other windows)
 	swapChainCreateInfo.clipped = VK_TRUE;														// whether to clip part of images not in view (e.g. behind another window, off screen etc.)

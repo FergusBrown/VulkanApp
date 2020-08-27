@@ -12,10 +12,11 @@ struct SurfaceSupport {
 
 // Properties of a swapchain
 struct SwapchainDetails {
+	uint32_t imageCount;
+	VkExtent2D extent;
 	VkSurfaceFormatKHR surfaceFormat;
 	VkPresentModeKHR presentMode;
-	VkExtent2D extent;
-	uint32_t imageCount;
+	VkImageUsageFlags usage;
 };
 
 class Swapchain
@@ -23,12 +24,16 @@ class Swapchain
 public:
 
 	// TODO: need to be able to recreate swapchain and change priorities before creation
-	Swapchain(Device& device, const VkExtent2D& newExtent);
+	Swapchain(Device& device, const VkExtent2D& newExtent, VkImageUsageFlags usage);
 	~Swapchain();
 
 	// - Getters
+	Device& device() const;
 	VkSwapchainKHR swapchain() const;
 	const SwapchainDetails& details() const;
+	const VkExtent2D& extent() const;
+	VkFormat format() const;
+	VkImageUsageFlags usage() const;
 	const std::vector<VkImage>& images() const;
 
 	// - Setters
