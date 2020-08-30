@@ -23,6 +23,7 @@
 #include "Device.h"
 #include "SwapChain.h"
 #include "Image.h"
+#include "DescriptorSetLayout.h"
 #include "RenderTarget.h"
 #include "Framebuffer.h"
 
@@ -100,9 +101,10 @@ private:
 	VkFormat mDepthFormat{ VK_FORMAT_D32_SFLOAT_S8_UINT };
 
 	// - Descriptors
-	VkDescriptorSetLayout descriptorSetLayout; // describes the layout of the descriptor sets
-	VkDescriptorSetLayout samplerSetLayout; 
-	VkDescriptorSetLayout inputSetLayout; 
+	//VkDescriptorSetLayout descriptorSetLayout; // describes the layout of the descriptor sets
+	//VkDescriptorSetLayout samplerSetLayout; 
+	//VkDescriptorSetLayout inputSetLayout; 
+	std::vector<std::unique_ptr<DescriptorSetLayout>> mDescriptorSetLayouts;
 	VkPushConstantRange pushConstantRange;
 
 	VkDescriptorPool descriptorPool;
@@ -185,7 +187,7 @@ private:
 	void createSwapChain();
 	void createPerFrameObjects();
 	void createRenderPass();
-	void createDescriptorSetLayout();
+	void createDescriptorSetLayouts();
 	void createPushConstantRange();
 	void createGraphicsPipeline();
 	//void createColourBufferImage();

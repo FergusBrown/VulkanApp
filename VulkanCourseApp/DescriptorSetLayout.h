@@ -1,0 +1,47 @@
+#pragma once
+#include "Common.h"
+
+#include "Device.h"
+
+//enum class ShaderResourceType
+//{
+//	ImageSampler,
+//	UniformBuffer,
+//	InputAttachment
+//};
+
+struct ShaderResource {
+	uint32_t				binding;
+	VkDescriptorType		descriptorType;
+	uint32_t				descriptorCount;
+	VkShaderStageFlags		stageFlags;
+
+
+};
+
+class DescriptorSetLayout
+{
+public:
+	DescriptorSetLayout(Device& device, uint32_t setIndex, std::vector<ShaderResource>& shaderResources);
+	~DescriptorSetLayout();
+
+	// - Getters
+	Device& device();
+	VkDescriptorSetLayout handle();
+
+private:
+	Device& mDevice;
+
+	VkDescriptorSetLayout mHandle{ VK_NULL_HANDLE };
+
+	const uint32_t mSetIndex;
+
+	std::vector<VkDescriptorSetLayoutBinding> mLayoutBindings;
+
+	// - Support
+	void createDescriptorSetLayoutBinding(std::vector<VkDescriptorSetLayoutBinding>& bindings, ShaderResource& shaderResource);
+	void createDescriptorSetLayout(std::vector<VkDescriptorSetLayoutBinding>& bindings);
+
+
+};
+

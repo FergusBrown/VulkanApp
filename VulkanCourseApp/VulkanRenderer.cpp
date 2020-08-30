@@ -22,7 +22,7 @@ int VulkanRenderer::init(GLFWwindow* newWindow)
 		//createColourBufferImage();	// Abstract to create renderpass images
 		//createDepthBufferImage();		// abstract to create renderpass images
 		createRenderPass();				// Change to use rendertarget and subpass objects
-		createDescriptorSetLayout();
+		createDescriptorSetLayouts();
 		createPushConstantRange();
 		createGraphicsPipeline();
 		//createFrameBuffers();
@@ -533,8 +533,23 @@ void VulkanRenderer::createRenderPass()
 	
 }
 
-void VulkanRenderer::createDescriptorSetLayout()
+void VulkanRenderer::createDescriptorSetLayouts()
 {
+	std::vector<ShaderResource> shaderResources;
+
+	// Create shader resource objects
+	// UNIFORM BUFFER
+
+	// TEXTURE SAMPLER
+
+	// INPUT ATTACHMENTS
+
+
+	// Create Descriptor Set Layouts
+	mDescriptorSetLayouts.push_back(std::make_unique<DescriptorSetLayout>(mDevice, 0, shaderResources));
+
+
+
 	// UNIFORM VALUES DESCRIPTOR SET LAYOUT
 	// UboViewProjection Binding Info
 	VkDescriptorSetLayoutBinding vpLayoutBinding = {};
