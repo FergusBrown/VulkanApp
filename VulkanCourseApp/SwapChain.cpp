@@ -1,4 +1,4 @@
-#include "SwapChain.h"
+#include "Swapchain.h"
 
 // TODO: check usage is valid
 Swapchain::Swapchain(Device& device, const VkExtent2D& newExtent, VkImageUsageFlags usage) :

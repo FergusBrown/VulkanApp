@@ -12,22 +12,23 @@ int VulkanRenderer::init(GLFWwindow* newWindow)
 	window = newWindow;
 
 	try {
-		createThreadPool();			
+		/*createThreadData();*/			
 		createInstance();				// LEAVE
 		setupDebugMessenger();			// LEAVE
 		createSurface();				// LEAVE
 		createDevice();					// COMPLETE
 		createSwapChain();				// COMPLETE
-		createFrameData();					// TODO : still need to create frame with descriptor sets, command buffers etc
+		createPerFrameObjects();					// TODO : still need to create frame with descriptor sets, command buffers etc
 		//createColourBufferImage();	// Abstract to create renderpass images
 		//createDepthBufferImage();		// abstract to create renderpass images
 		createRenderPass();				// Change to use rendertarget and subpass objects
 		createDescriptorSetLayout();
 		createPushConstantRange();
 		createGraphicsPipeline();
-		createFrameBuffers();
-		createCommandPools();
-		createCommandBuffers();
+		//createFrameBuffers();
+		createFramebuffers();
+		/*createCommandPools();
+		createCommandBuffers();*/
 		createTextureSampler();
 		//allocateDynamicBufferTransferSpace();
 		createUniformBuffers();
@@ -189,25 +190,25 @@ void VulkanRenderer::cleanup()
 		vkDestroyFence(mDevice->logicalDevice(), drawFences[i], nullptr);
 	}
 	
-	for (auto& frame : frameData)
-	{
+	//for (auto& frame : frameData)
+	//{
 
-		for (size_t i = 0; i < numThreads; ++i)
-		{
-			vkDestroyCommandPool(mDevice->logicalDevice(), frame.threadData[i].commandPool, nullptr);
-		}
-	}
-	vkDestroyCommandPool(mDevice->logicalDevice(), graphicsCommandPool, nullptr);
+	//	for (size_t i = 0; i < numThreads; ++i)
+	//	{
+	//		vkDestroyCommandPool(mDevice->logicalDevice(), frame.threadData[i].commandPool, nullptr);
+	//	}
+	//}
+	/*vkDestroyCommandPool(mDevice->logicalDevice(), graphicsCommandPool, nullptr);*/
 
-	for (auto framebuffer : swapChainFramebuffers)
+	/*for (auto framebuffer : swapChainFramebuffers)
 	{
 		vkDestroyFramebuffer(mDevice->logicalDevice(), framebuffer, nullptr);
-	}
+	}*/
 	vkDestroyPipeline(mDevice->logicalDevice(), secondPipeline, nullptr);
 	vkDestroyPipelineLayout(mDevice->logicalDevice(), secondPipelineLayout, nullptr);
 	vkDestroyPipeline(mDevice->logicalDevice(), graphicsPipeline, nullptr);
 	vkDestroyPipelineLayout(mDevice->logicalDevice(), pipelineLayout, nullptr);
-	vkDestroyRenderPass(mDevice->logicalDevice(), renderPass, nullptr);
+	vkDestroyRenderPass(mDevice->logicalDevice(), mRenderPass, nullptr);
 	//for (auto image : swapChainImages)
 	//{
 	//	vkDestroyImageView(mDevice->logicalDevice(), image.imageView, nullptr);
@@ -332,7 +333,7 @@ void VulkanRenderer::createSwapChain()
 }
 
 // Prepare rendertargets and frames
-void VulkanRenderer::createFrameData()
+void VulkanRenderer::createPerFrameObjects()
 {
 	auto& device = mSwapchain->device();
 	auto& swapchainExtent = mSwapchain->extent();
@@ -354,6 +355,7 @@ void VulkanRenderer::createFrameData()
 
 	for (auto& image : mSwapchain->images())
 	{
+		// IMAGES + RENDERTARGET
 		std::vector<Image> renderTargetImages;
 
 		// 0 - swapchain image
@@ -386,9 +388,6 @@ void VulkanRenderer::createFrameData()
 		mRenderTargets.push_back(std::make_unique<RenderTarget>(renderTargetImages));
 		// TODO : create frame data
 	}
-
-	
-
 }
 
 void VulkanRenderer::createRenderPass()
@@ -525,7 +524,7 @@ void VulkanRenderer::createRenderPass()
 	renderPassCreateInfo.dependencyCount = static_cast<uint32_t>(subpassDependencies.size());
 	renderPassCreateInfo.pDependencies = subpassDependencies.data();
 
-	VkResult result = vkCreateRenderPass(mDevice->logicalDevice(), &renderPassCreateInfo, nullptr, &renderPass);
+	VkResult result = vkCreateRenderPass(mDevice->logicalDevice(), &renderPassCreateInfo, nullptr, &mRenderPass);
 	if (result != VK_SUCCESS)
 	{
 		throw std::runtime_error("Failed to create a Render Pass !");
@@ -828,7 +827,7 @@ void VulkanRenderer::createGraphicsPipeline()
 	pipelineCreateInfo.pColorBlendState = &colourBlendingCreateInfo;
 	pipelineCreateInfo.pDepthStencilState = &depthStencilCreateInfo;
 	pipelineCreateInfo.layout = pipelineLayout;						// Pipeline layout pipeline should use
-	pipelineCreateInfo.renderPass = renderPass;						// Render pass description the pipeline is compatible with
+	pipelineCreateInfo.renderPass = mRenderPass;						// Render pass description the pipeline is compatible with
 	pipelineCreateInfo.subpass = 0;									// Subpass of render pass to use with pipeline
 
 	// Pipeline derivatives : Can create multiple pipeline which derive from one another for optimisation
@@ -947,125 +946,126 @@ void VulkanRenderer::createGraphicsPipeline()
 //	}
 //}
 
-void VulkanRenderer::createFrameBuffers()
-{
-	// Resize framebuffer count to equal swapchain image count
-	swapChainFramebuffers.resize(mSwapchain->details().imageCount);
+//void VulkanRenderer::createFrameBuffers()
+//{
+//	// Resize framebuffer count to equal swapchain image count
+//	swapChainFramebuffers.resize(mSwapchain->details().imageCount);
+//
+//	// Create a framebuffer for each swapchain image
+//	for (size_t i = 0; i < swapChainFramebuffers.size(); ++i)
+//	{
+//		std::array<VkImageView, 3> attachments = {
+//			swapChainImages[i].imageView,
+//			colourBufferImageView[i],
+//			depthBufferImageView[i]
+//		};
+//
+//		VkFramebufferCreateInfo framebufferCreateInfo = {};
+//		framebufferCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+//		framebufferCreateInfo.mRenderPass = mRenderPass;											// Render pass layout the framebuffer will be used with
+//		framebufferCreateInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
+//		framebufferCreateInfo.pAttachments = attachments.data();								// List of attachments (1:1 with Render Pass)
+//		framebufferCreateInfo.width = swapChainExtent.width;									// Framebuffer width
+//		framebufferCreateInfo.height = swapChainExtent.height;									// Framebuffer height
+//		framebufferCreateInfo.layers = 1;														// Framebuffer layers
+//
+//		VkResult result = vkCreateFramebuffer(mDevice->logicalDevice(), &framebufferCreateInfo, nullptr, &swapChainFramebuffers[i]);
+//		if (result != VK_SUCCESS)
+//		{
+//			throw std::runtime_error("Failed to create a Framebuffer");
+//		}
+//	}
+//
+//
+//}
 
-	// Create a framebuffer for each swapchain image
-	for (size_t i = 0; i < swapChainFramebuffers.size(); ++i)
-	{
-		std::array<VkImageView, 3> attachments = {
-			swapChainImages[i].imageView,
-			colourBufferImageView[i],
-			depthBufferImageView[i]
-		};
+/* abstracted to frames*/
+//void VulkanRenderer::createCommandPools()
+//{
+//	// PRIMARY POOL
+//	// Get indices of queue families for device
+//	QueueFamilyIndices queueFamilyIndices = mDevice->queueFamilyIndices();
+//
+//	VkCommandPoolCreateInfo poolInfo = {};
+//	poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+//	poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+//	poolInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily;		// Queue family type that buffers from this command pool will use
+//
+//	// Create a graphics queue family command pool
+//	VkResult result = vkCreateCommandPool(mDevice->logicalDevice(), &poolInfo, nullptr, &graphicsCommandPool);
+//	if (result != VK_SUCCESS)
+//	{
+//		throw std::runtime_error("Failed to create a Command Pool!");
+//	}
+//
+//	// COMMAND POOL FOR EACH SECONDARY BUFFER 
+//	// (One command pool cannot be accessed by 2 threads simultaneously)
+//
+//	//secondaryCommandPools.resize(numThreads);
+//
+//	for (auto& frame : frameData)
+//	{
+//		for (size_t i = 0; i < numThreads; ++i)
+//		{
+//			result = vkCreateCommandPool(mDevice->logicalDevice(), &poolInfo, nullptr, &frame.threadData[i].commandPool);
+//			if (result != VK_SUCCESS)
+//			{
+//				throw std::runtime_error("Failed to create a Command Pool!");
+//			}
+//		}
+//	}
+//
+//
+//
+//}
 
-		VkFramebufferCreateInfo framebufferCreateInfo = {};
-		framebufferCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-		framebufferCreateInfo.renderPass = renderPass;											// Render pass layout the framebuffer will be used with
-		framebufferCreateInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
-		framebufferCreateInfo.pAttachments = attachments.data();								// List of attachments (1:1 with Render Pass)
-		framebufferCreateInfo.width = swapChainExtent.width;									// Framebuffer width
-		framebufferCreateInfo.height = swapChainExtent.height;									// FrameBuffer height
-		framebufferCreateInfo.layers = 1;														// Framebuffer layers
-
-		VkResult result = vkCreateFramebuffer(mDevice->logicalDevice(), &framebufferCreateInfo, nullptr, &swapChainFramebuffers[i]);
-		if (result != VK_SUCCESS)
-		{
-			throw std::runtime_error("Failed to create a Framebuffer");
-		}
-	}
-
-
-}
-
-void VulkanRenderer::createCommandPools()
-{
-	// PRIMARY POOL
-	// Get indices of queue families for device
-	QueueFamilyIndices queueFamilyIndices = mDevice->queueFamilyIndices();
-
-	VkCommandPoolCreateInfo poolInfo = {};
-	poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-	poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-	poolInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily;		// Queue family type that buffers from this command pool will use
-
-	// Create a graphics queue family command pool
-	VkResult result = vkCreateCommandPool(mDevice->logicalDevice(), &poolInfo, nullptr, &graphicsCommandPool);
-	if (result != VK_SUCCESS)
-	{
-		throw std::runtime_error("Failed to create a Command Pool!");
-	}
-
-	// COMMAND POOL FOR EACH SECONDARY BUFFER 
-	// (One command pool cannot be accessed by 2 threads simultaneously)
-
-	//secondaryCommandPools.resize(numThreads);
-
-	for (auto& frame : frameData)
-	{
-		for (size_t i = 0; i < numThreads; ++i)
-		{
-			result = vkCreateCommandPool(mDevice->logicalDevice(), &poolInfo, nullptr, &frame.threadData[i].commandPool);
-			if (result != VK_SUCCESS)
-			{
-				throw std::runtime_error("Failed to create a Command Pool!");
-			}
-		}
-	}
-
-
-
-}
-
-void VulkanRenderer::createCommandBuffers()
-{
-
-	size_t numFrames = swapChainFramebuffers.size();
-
-	// PRIMARY BUFFERS
-	// Resize command buffer count to have one for each framebuffer
-	primaryCommandBuffers.resize(numFrames);
-
-	VkCommandBufferAllocateInfo cbAllocInfo = {};
-	cbAllocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-	cbAllocInfo.commandPool = graphicsCommandPool;
-	cbAllocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;				// VK_COMMAND_BUFFER_LEVEL_PRIMARY   : buffer you submit directly to the queue. Cannot be called by other buffers.
-																		// VK_COMMAND_BUFFER_LEVEL_SECONDARY : buffer cannot be called directly. Can be called by other buffers via "vkCmdExecuteCommands" when recording commands in primary buffer
-	cbAllocInfo.commandBufferCount = static_cast<uint32_t>(primaryCommandBuffers.size());
-
-	// Allocate command buffers and place handles in array of buffers
-	VkResult result = vkAllocateCommandBuffers(mDevice->logicalDevice(), &cbAllocInfo, primaryCommandBuffers.data());
-	if (result != VK_SUCCESS)
-	{
-		throw std::runtime_error("Failed to allocate Command Buffers!");
-	}
-
-	// SECONDARY BUFFERS
-	numSecondaryBuffers = numThreads;
-	cbAllocInfo.level = VK_COMMAND_BUFFER_LEVEL_SECONDARY;
-	cbAllocInfo.commandBufferCount = static_cast<uint32_t>(numSecondaryBuffers);
-
-	for (auto& frame : frameData)
-	{
-		for (size_t i = 0; i < numThreads; ++i)
-		{
-			frame.threadData[i].commandBuffer.resize(numSecondaryBuffers);
-
-			cbAllocInfo.commandPool = frame.threadData[i].commandPool;
-
-			// Allocate command buffers and place handles in array of buffers
-			result = vkAllocateCommandBuffers(mDevice->logicalDevice(), &cbAllocInfo, frame.threadData[i].commandBuffer.data());
-			if (result != VK_SUCCESS)
-			{
-				throw std::runtime_error("Failed to allocate Command Buffers!");
-			}
-		}
-	}
-
-	
-}
+//void VulkanRenderer::createCommandBuffers()
+//{
+//
+//	size_t numFrames = swapChainFramebuffers.size();
+//
+//	// PRIMARY BUFFERS
+//	// Resize command buffer count to have one for each framebuffer
+//	primaryCommandBuffers.resize(numFrames);
+//
+//	VkCommandBufferAllocateInfo cbAllocInfo = {};
+//	cbAllocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+//	cbAllocInfo.commandPool = graphicsCommandPool;
+//	cbAllocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;				// VK_COMMAND_BUFFER_LEVEL_PRIMARY   : buffer you submit directly to the queue. Cannot be called by other buffers.
+//																		// VK_COMMAND_BUFFER_LEVEL_SECONDARY : buffer cannot be called directly. Can be called by other buffers via "vkCmdExecuteCommands" when recording commands in primary buffer
+//	cbAllocInfo.commandBufferCount = static_cast<uint32_t>(primaryCommandBuffers.size());
+//
+//	// Allocate command buffers and place handles in array of buffers
+//	VkResult result = vkAllocateCommandBuffers(mDevice->logicalDevice(), &cbAllocInfo, primaryCommandBuffers.data());
+//	if (result != VK_SUCCESS)
+//	{
+//		throw std::runtime_error("Failed to allocate Command Buffers!");
+//	}
+//
+//	// SECONDARY BUFFERS
+//	numSecondaryBuffers = numThreads;
+//	cbAllocInfo.level = VK_COMMAND_BUFFER_LEVEL_SECONDARY;
+//	cbAllocInfo.commandBufferCount = static_cast<uint32_t>(numSecondaryBuffers);
+//
+//	for (auto& frame : frameData)
+//	{
+//		for (size_t i = 0; i < numThreads; ++i)
+//		{
+//			frame.threadData[i].commandBuffer.resize(numSecondaryBuffers);
+//
+//			cbAllocInfo.commandPool = frame.threadData[i].commandPool;
+//
+//			// Allocate command buffers and place handles in array of buffers
+//			result = vkAllocateCommandBuffers(mDevice->logicalDevice(), &cbAllocInfo, frame.threadData[i].commandBuffer.data());
+//			if (result != VK_SUCCESS)
+//			{
+//				throw std::runtime_error("Failed to allocate Command Buffers!");
+//			}
+//		}
+//	}
+//
+//	
+//}
 
 void VulkanRenderer::createSynchronation()
 {
@@ -1094,18 +1094,33 @@ void VulkanRenderer::createSynchronation()
 	
 }
 
-void VulkanRenderer::createThreadPool()
-{
-	numThreads = std::thread::hardware_concurrency();
-	threadPool.resize(numThreads);
-	frameData.resize(mSwapchain->details().imageCount);
+//void VulkanRenderer::createFramebuffer()
+//{
+//
+//}
 
-	for (auto& frame : frameData)
+void VulkanRenderer::createFramebuffers()
+{
+	const VkExtent2D& extent = { mRenderTargets.back()->extent().width, mRenderTargets.back()->extent().height };
+
+	for (auto& renderTarget : mRenderTargets)
 	{
-		frame.threadData.resize(numThreads);
+		mFramebuffers.push_back(std::make_unique<Framebuffer>(mDevice, extent, renderTarget->imageViews(), mRenderPass));
 	}
-	
 }
+
+//void VulkanRenderer::createThreadData()
+//{
+//	numThreads = std::thread::hardware_concurrency();
+//	threadPool.resize(numThreads);
+//	frameData.resize(mSwapchain->details().imageCount);
+//
+//	for (auto& frame : frameData)
+//	{
+//		frame.threadData.resize(numThreads);
+//	}
+//	
+//}
 
 void VulkanRenderer::createTextureSampler()
 {
@@ -1402,7 +1417,7 @@ void VulkanRenderer::recordCommands(uint32_t currentImage) // Current image is s
 	// Information about how to begin a render pass (only needed for graphical applications)
 	VkRenderPassBeginInfo renderPassBeginInfo = {};
 	renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-	renderPassBeginInfo.renderPass = renderPass;							// Render pass to begin
+	renderPassBeginInfo.renderPass = mRenderPass;							// Render pass to begin
 	renderPassBeginInfo.renderArea.offset = { 0, 0 };						// Start point of render pass in pixels
 	renderPassBeginInfo.renderArea.extent = swapChainExtent;				// Size of region to run render pass on (starting at offset)
 
@@ -1428,7 +1443,7 @@ void VulkanRenderer::recordCommands(uint32_t currentImage) // Current image is s
 	// Inheritance create info allows secondary buffers to inherit render pass state
 	VkCommandBufferInheritanceInfo inheritanceInfo = {};
 	inheritanceInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO;
-	inheritanceInfo.renderPass = renderPass;
+	inheritanceInfo.renderPass = mRenderPass;
 	inheritanceInfo.framebuffer = swapChainFramebuffers[currentImage];
 	inheritanceInfo.subpass = 0;
 

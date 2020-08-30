@@ -5,6 +5,7 @@
 
 #include "Device.h"
 #include "RenderTarget.h"
+#include "CommandPool.h"
 
 
 // This is a container for data which must be held by every frame
@@ -13,24 +14,22 @@
 class Frame
 {
 public:
-	Frame(Device& device, std::unique_ptr<RenderTarget>& renderTarget, uint32_t threadCount = 1);
+	Frame(Device& device, std::unique_ptr<RenderTarget>&& renderTarget, uint32_t threadCount = 1);
 	~Frame();
 
 	// - Getters
 	Device& device() const;
 
+	// Frame management
+	void reset();
 
 private:
 	// Variables
 	Device& mDevice;
 
-	// - Primary Command Buffer
-	static VkCommandPool mPrimaryCommandPool;
-	VkCommandBuffer mPrimaryCommandBuffer;
-
 	// - Descriptors
-	std::vector<VkDescriptorPool> mDescriptorPools;
-	std::vector<VkDescriptorSet> mDescriptorSets;
+	/*std::vector<VkDescriptorPool> mDescriptorPools;
+	std::vector<VkDescriptorSet> mDescriptorSets;*/
 
 	// - Synchronisation
 	// TODO : add fence and semaphore pool
@@ -43,9 +42,7 @@ private:
 	ctpl::thread_pool mThreadPool;
 
 	struct ThreadData {
-		VkCommandPool secondaryCommandPool;
-		// One secondary command buffer per thread
-		std::vector<VkCommandBuffer> secondaryCommandBuffers;
+		std::unique_ptr<CommandPool> commandPool;
 	};
 	std::vector<ThreadData> mThreadData;
 
@@ -55,11 +52,11 @@ private:
 	// Functions
 	// - Command Buffers
 	// -- Primary
-	void createPrimaryCommandPool();
-	void createPrimaryCommandBuffer();
+	/*void createPrimaryCommandPool();
+	void createPrimaryCommandBuffer();*/
 
 	// - Thread pool management
-	void createThreadPool();
+	void createThreadData();
 
 	// - Synchronisation
 	//void createSynchronisation();

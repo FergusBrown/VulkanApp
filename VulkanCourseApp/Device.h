@@ -1,7 +1,8 @@
 #pragma once
 
 #include "Common.h"
-//#include "Utilities.h"
+
+#include "CommandPool.h"
 
 	// Indicies of Queue Families (if they exist at all)
 struct QueueFamilyIndices {
@@ -29,6 +30,7 @@ public:
 	QueueFamilyIndices queueFamilyIndices() const;
 	VkQueue graphicsQueue() const;
 	VkQueue presentationQueue() const;
+	CommandPool& primaryCommandPool();
 
 private:
 	// Variables
@@ -39,6 +41,9 @@ private:
 	VkQueue mGraphicsQueue;
 	VkQueue mPresentationQueue;
 
+	// Command pool associated with the primary queue
+	std::unique_ptr<CommandPool> mPrimaryCommandPool;
+
 	// Functions
 	// - Get Physical Device referece
 	void getPhysicalDevice(VkInstance instance, const std::vector<const char*>& deviceExtensions);
@@ -47,8 +52,9 @@ private:
 	bool checkDeviceSuitable(const std::vector<const char*>& deviceExtensions);
 	bool checkDeviceExtensionSupport(const std::vector<const char*>& deviceExtensions);
 
-	// - Logical Device Creation
+	// - Object creation
 	void createLogicalDevice(const std::vector<const char*>& deviceExtensions);
+	void createCommandPool();
 	
 };
 

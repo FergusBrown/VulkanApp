@@ -10,22 +10,13 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 
-#include <stdexcept>
-#include <vector>
-#include <set>
-#include <algorithm>
-#include <array>
-
-#include <iostream>
-#include <cstring>
-
-#include <future>
 #include "ctpl_stl.h"
 
 #include "Mesh.h"
 #include "MeshModelData.h"
 #include "MeshModel.h"
 
+#include "Common.h"
 #include "Utilities.h"
 #include "VulkanValidation.h"
 
@@ -33,6 +24,7 @@
 #include "SwapChain.h"
 #include "Image.h"
 #include "RenderTarget.h"
+#include "Framebuffer.h"
 
 using namespace glm;
 
@@ -89,11 +81,12 @@ private:
 	std::unique_ptr<Device> mDevice;
 	std::unique_ptr<Swapchain> mSwapchain;
 	std::vector<std::unique_ptr<RenderTarget>> mRenderTargets;
+	std::vector<std::unique_ptr<Framebuffer>> mFramebuffers;
 	//VkSwapchainKHR swapchain;
 
 	// All 3 of below are 1:1 connected
 	//std::vector<SwapchainImage> swapChainImages;
-	std::vector<VkFramebuffer> swapChainFramebuffers;
+	//std::vector<VkFramebuffer> swapChainFramebuffers;
 	std::vector<VkCommandBuffer> primaryCommandBuffers;
 
 	/*std::vector<VkImage> colourBufferImage;
@@ -141,7 +134,7 @@ private:
 	VkPipeline secondPipeline;
 	VkPipelineLayout secondPipelineLayout;
 
-	VkRenderPass renderPass;
+	VkRenderPass mRenderPass;
 
 	// - Pools
 	VkCommandPool graphicsCommandPool;
@@ -165,21 +158,22 @@ private:
 	//	Model model;
 	//};
 
+	/* Below abstracted to Frame*/
 	// Attach command pool and buffer to each thread
 	/* Frame */
-	struct ThreadData {
-		VkCommandPool commandPool;
-		// One command buffer per task
-		std::vector<VkCommandBuffer> commandBuffer;
-	};
-	std::vector<ThreadData> threadData;
+	//struct ThreadData {
+	//	VkCommandPool commandPool;
+	//	// One command buffer per task
+	//	std::vector<VkCommandBuffer> commandBuffer;
+	//};
+	//std::vector<ThreadData> threadData;
 
-	uint32_t numSecondaryBuffers;
-	struct frameTEMP {
-		std::vector<ThreadData> threadData;
-	};
+	//uint32_t numSecondaryBuffers;
+	//struct frameTEMP {
+	//	std::vector<ThreadData> threadData;
+	//};
 
-	std::vector<frameTEMP> frameData;
+	//std::vector<frameTEMP> frameData;
 
 	// Vulkan Functions
 	// - Create Functions
@@ -189,17 +183,18 @@ private:
 	void createSurface();
 	void createDevice();
 	void createSwapChain();
-	void createFrameData();
+	void createPerFrameObjects();
 	void createRenderPass();
 	void createDescriptorSetLayout();
 	void createPushConstantRange();
 	void createGraphicsPipeline();
 	//void createColourBufferImage();
 	//void createDepthBufferImage();
-	void createFrameBuffers();
-	void createThreadPool();
-	void createCommandPools();
-	void createCommandBuffers();
+	//void createFrameBuffers();
+	void createFramebuffers();
+	/*void createThreadData();*/
+	/*void createCommandPools();
+	void createCommandBuffers();*/
 	void createSynchronation();
 	void createTextureSampler();
 	void createUniformBuffers();
@@ -207,6 +202,8 @@ private:
 	void createDescriptorSets();
 	void createInputDescriptorSets();
 
+	// -- Support
+	//void createFramebuffer();
 	void updateUniformBuffers(uint32_t imageIndex);
 
 	// - Record Functions

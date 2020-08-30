@@ -7,7 +7,7 @@ Device::Device(VkInstance instance, VkSurfaceKHR surface, const std::vector<cons
 {
 	getPhysicalDevice(instance, deviceExtensions);
 	createLogicalDevice(deviceExtensions);
-
+	createCommandPool();
 }
 
 Device::~Device()
@@ -40,6 +40,11 @@ VkQueue Device::graphicsQueue() const
 VkQueue Device::presentationQueue() const
 {
 	return mPresentationQueue;
+}
+
+CommandPool& Device::primaryCommandPool()
+{
+	return *mPrimaryCommandPool;
 }
 
 QueueFamilyIndices Device::getQueueFamilies()
@@ -230,4 +235,8 @@ void Device::createLogicalDevice(const std::vector<const char*>& deviceExtension
 	// From given logical device, of given Queue Family, of given Queue Index (0 since only one queue), place reference in given Vkqueue
 	vkGetDeviceQueue(mLogicalDevice, indices.graphicsFamily, 0, &mGraphicsQueue);
 	vkGetDeviceQueue(mLogicalDevice, indices.presentationFamily, 0, &mPresentationQueue);
+}
+// TODO
+void Device::createCommandPool()
+{
 }

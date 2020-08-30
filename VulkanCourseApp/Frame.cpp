@@ -1,13 +1,13 @@
 #include "Frame.h"
 
-Frame::Frame(Device& device, std::unique_ptr<RenderTarget>& renderTarget, uint32_t threadCount) :
-	mDevice(device), mRenderTarget(renderTarget), mThreadCount(threadCount)
+Frame::Frame(Device& device, std::unique_ptr<RenderTarget>&& renderTarget, uint32_t threadCount) :
+	mDevice(device), mRenderTarget(std::move(renderTarget)), mThreadCount(threadCount)
 {
-	createThreadPool();
+	mThreadPool.resize(mThreadCount);
+	mThreadData.resize(mThreadCount);
 
-	// CREATE DESCRIPTOR SETS
-
-	// CREATE COMMAND BUFFERS
+	// THREAD SPECIFIC DATA : COMMAND + DESCRIPTOR POOLS
+	createThreadData();
 
 
 }
@@ -21,16 +21,22 @@ Device& Frame::device() const
 	return mDevice;
 }
 
-
-void Frame::createThreadPool()
+void Frame::reset()
 {
-	mThreadCount = std::thread::hardware_concurrency();
-	mThreadPool.resize(mThreadCount);
-	mThreadData.resize(mThreadCount);
+	for (auto& thread : mThreadData)
+	{
+		thread.commandPool->reset();
+	}
+}
+
+
+void Frame::createThreadData()
+{
+
 
 	for (auto& thread : mThreadData)
 	{
-		thread.secondaryCommandBuffers.resize(mThreadCount);
+		thread.commandPool = std::make_unique<CommandPool>(mDevice, mDevice.queueFamilyIndices().graphicsFamily);
 	}
 }
 
