@@ -16,7 +16,8 @@ struct ShaderResource {
 	uint32_t				descriptorCount;
 	VkShaderStageFlags		stageFlags;
 
-
+	ShaderResource() = default;
+	ShaderResource(uint32_t binding, VkDescriptorType descriptorType, uint32_t descriptorCount, VkShaderStageFlags stageFlags);
 };
 
 class DescriptorSetLayout

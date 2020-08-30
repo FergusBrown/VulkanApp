@@ -58,3 +58,8 @@ void DescriptorSetLayout::createDescriptorSetLayout(std::vector<VkDescriptorSetL
 		throw std::runtime_error("Failed to create a Descriptor Set Layout!");
 	}
 }
+
+ShaderResource::ShaderResource(uint32_t binding, VkDescriptorType descriptorType, uint32_t descriptorCount, VkShaderStageFlags stageFlags) :
+	binding(binding), descriptorType(descriptorType), descriptorCount(descriptorCount), stageFlags(stageFlags)
+{
+}

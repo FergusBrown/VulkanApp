@@ -144,10 +144,10 @@ void VulkanRenderer::cleanup()
 	}
 
 	vkDestroyDescriptorPool(mDevice->logicalDevice(), inputDescriptorPool, nullptr);
-	vkDestroyDescriptorSetLayout(mDevice->logicalDevice(), inputSetLayout, nullptr);
+	//vkDestroyDescriptorSetLayout(mDevice->logicalDevice(), inputSetLayout, nullptr);
 
 	vkDestroyDescriptorPool(mDevice->logicalDevice(), samplerDescriptorPool, nullptr);
-	vkDestroyDescriptorSetLayout(mDevice->logicalDevice(), samplerSetLayout, nullptr);
+	//vkDestroyDescriptorSetLayout(mDevice->logicalDevice(), samplerSetLayout, nullptr);
 
 	vkDestroySampler(mDevice->logicalDevice(), textureSampler, nullptr);
 
@@ -173,7 +173,7 @@ void VulkanRenderer::cleanup()
 	}*/
 
 	vkDestroyDescriptorPool(mDevice->logicalDevice(), descriptorPool, nullptr);
-	vkDestroyDescriptorSetLayout(mDevice->logicalDevice(), descriptorSetLayout, nullptr);
+	//vkDestroyDescriptorSetLayout(mDevice->logicalDevice(), descriptorSetLayout, nullptr);
 	for (size_t i = 0; i < mSwapchain->details().imageCount; ++i)
 	{
 		vkDestroyBuffer(mDevice->logicalDevice(), vpUniformBuffer[i], nullptr);
@@ -539,103 +539,35 @@ void VulkanRenderer::createDescriptorSetLayouts()
 
 	// Create shader resource objects
 	// UNIFORM BUFFER
+	ShaderResource vpBuffer(0,
+		VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+		1,
+		VK_SHADER_STAGE_VERTEX_BIT);
 
 	// TEXTURE SAMPLER
+	ShaderResource textureSampler(1,
+		VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+		1,
+		VK_SHADER_STAGE_FRAGMENT_BIT);
 
 	// INPUT ATTACHMENTS
+	ShaderResource depthAttachment(2,
+		VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT,
+		1,
+		VK_SHADER_STAGE_FRAGMENT_BIT);
 
+	ShaderResource colourAttachment(3,
+		VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT,
+		1,
+		VK_SHADER_STAGE_FRAGMENT_BIT);
+
+	shaderResources.push_back(vpBuffer);
+	shaderResources.push_back(textureSampler);
+	shaderResources.push_back(depthAttachment);
+	shaderResources.push_back(colourAttachment);
 
 	// Create Descriptor Set Layouts
 	mDescriptorSetLayouts.push_back(std::make_unique<DescriptorSetLayout>(mDevice, 0, shaderResources));
-
-
-
-	// UNIFORM VALUES DESCRIPTOR SET LAYOUT
-	// UboViewProjection Binding Info
-	VkDescriptorSetLayoutBinding vpLayoutBinding = {};
-	vpLayoutBinding.binding = 0;											// Binding point in shader ( designated by binding number in shader)
-	vpLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;		// Type of descriptor (uniform, dynamic uniform, image sampler, etc)
-	vpLayoutBinding.descriptorCount = 1;									// Numbers of descriptors for binding
-	vpLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;				// Shader stage to bind to
-	vpLayoutBinding.pImmutableSamplers = nullptr;							// For textture: can make the sampler data unchangeable (immutable) by specifying in layout
-
-	/*
-	// Model binding info
-	VkDescriptorSetLayoutBinding modelLayoutBinding = {};
-	modelLayoutBinding.binding = 1;
-	modelLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
-	modelLayoutBinding.descriptorCount = 1;
-	modelLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-	modelLayoutBinding.pImmutableSamplers = nullptr;
-	*/
-
-	std::vector<VkDescriptorSetLayoutBinding> layoutBindings = { vpLayoutBinding };
-
-	// Create descriptor set layout with given bindings
-	VkDescriptorSetLayoutCreateInfo layoutCreateInfo = {};
-	layoutCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-	layoutCreateInfo.bindingCount = static_cast<uint32_t>(layoutBindings.size());			// Number of binding infos
-	layoutCreateInfo.pBindings = layoutBindings.data();											// Array of binding infos
-
-	// Create descriptor set layout
-	VkResult result = vkCreateDescriptorSetLayout(mDevice->logicalDevice(), &layoutCreateInfo, nullptr, &descriptorSetLayout);
-	if (result != VK_SUCCESS)
-	{
-		throw std::runtime_error("Failed to create a Descriptor Set Layout!");
-	}
-
-
-	// CREATE TEXTURE SAMPLER DESCRIPTOR SET LAYOUT
-	// Texture binding info
-	VkDescriptorSetLayoutBinding samplerLayoutBinding = {};
-	samplerLayoutBinding.binding = 0;
-	samplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-	samplerLayoutBinding.descriptorCount = 1;
-	samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-	samplerLayoutBinding.pImmutableSamplers = nullptr;
-
-	// Create a descriptor set layout with given bindings for texture
-	VkDescriptorSetLayoutCreateInfo textureLayoutCreateInfo = {};
-	textureLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-	textureLayoutCreateInfo.bindingCount = 1;
-	textureLayoutCreateInfo.pBindings = &samplerLayoutBinding;
-
-	// Create Descrptor set layout
-	result = vkCreateDescriptorSetLayout(mDevice->logicalDevice(), &textureLayoutCreateInfo, nullptr, &samplerSetLayout);
-	if (result != VK_SUCCESS)
-	{
-		throw std::runtime_error("Failed to create a Descriptor Set Layout!");
-	}
-
-	// CREATE INPUT ATTACHMENT DESCRIPTOR SET LAYOUT
-	// Colour input Binding
-	VkDescriptorSetLayoutBinding colourInputLayoutBinding = {};
-	colourInputLayoutBinding.binding = 0;
-	colourInputLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;
-	colourInputLayoutBinding.descriptorCount = 1;
-	colourInputLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-	
-	// Depth input Binding
-	VkDescriptorSetLayoutBinding depthInputLayoutBinding = {};
-	depthInputLayoutBinding.binding = 1;
-	depthInputLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;
-	depthInputLayoutBinding.descriptorCount = 1;
-	depthInputLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-
-	//Array of input attachment bindings
-	std::vector<VkDescriptorSetLayoutBinding> inputBindings = { colourInputLayoutBinding, depthInputLayoutBinding };
-
-	// Create a descriptor set layout fopr input attachments
-	VkDescriptorSetLayoutCreateInfo inputLayoutCreateInfo = {};
-	inputLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-	inputLayoutCreateInfo.bindingCount = static_cast<uint32_t>(inputBindings.size());
-	inputLayoutCreateInfo.pBindings = inputBindings.data();
-
-	result = vkCreateDescriptorSetLayout(mDevice->logicalDevice(), &inputLayoutCreateInfo, nullptr, &inputSetLayout);
-	if (result != VK_SUCCESS)
-	{
-		throw std::runtime_error("Failed to create a Descriptor Set Layout!");
-	}
 }
 
 void VulkanRenderer::createPushConstantRange()
