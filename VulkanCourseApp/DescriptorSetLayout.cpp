@@ -27,9 +27,14 @@ Device& DescriptorSetLayout::device()
 	return mDevice;
 }
 
-VkDescriptorSetLayout DescriptorSetLayout::handle()
+VkDescriptorSetLayout DescriptorSetLayout::handle() const
 {
 	return mHandle;
+}
+
+const std::vector<VkDescriptorSetLayoutBinding>& DescriptorSetLayout::layoutBindings() const
+{
+	return mLayoutBindings;
 }
 
 void DescriptorSetLayout::createDescriptorSetLayoutBinding(std::vector<VkDescriptorSetLayoutBinding>& bindings, ShaderResource& shaderResource)

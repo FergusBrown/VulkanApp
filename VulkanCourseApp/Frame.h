@@ -6,11 +6,11 @@
 #include "Device.h"
 #include "RenderTarget.h"
 #include "CommandPool.h"
-
+#include "DescriptorPool.h"
+#include "DescriptorSet.h"
 
 // This is a container for data which must be held by every frame
-// This include buffer bools for descriptors and commands, synchronisation objects
-// and the rendertarget which must create the image attachments used in a renderpass
+// All operation regarding command buffers and descriptor sets are handled in this class and multithreaded where possible
 class Frame
 {
 public:
@@ -43,6 +43,8 @@ private:
 
 	struct ThreadData {
 		std::unique_ptr<CommandPool> commandPool;
+		std::vector<std::unique_ptr<DescriptorPool>> descriptorPools;
+		std::vector<std::unique_ptr<DescriptorSet>> descriptorSets;
 	};
 	std::vector<ThreadData> mThreadData;
 

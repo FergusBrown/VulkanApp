@@ -28,7 +28,9 @@ public:
 
 	// - Getters
 	Device& device();
-	VkDescriptorSetLayout handle();
+	VkDescriptorSetLayout handle() const;
+
+	const std::vector<VkDescriptorSetLayoutBinding>& layoutBindings() const;
 
 private:
 	Device& mDevice;

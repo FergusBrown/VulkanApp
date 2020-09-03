@@ -12,4 +12,5 @@
 #include <mutex>
 #include <stdexcept>
 #include <set>
+#include <unordered_map>	// hash map
 #include <vector>

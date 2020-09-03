@@ -104,7 +104,9 @@ private:
 	//VkDescriptorSetLayout descriptorSetLayout; // describes the layout of the descriptor sets
 	//VkDescriptorSetLayout samplerSetLayout; 
 	//VkDescriptorSetLayout inputSetLayout; 
-	std::vector<std::unique_ptr<DescriptorSetLayout>> mDescriptorSetLayouts;
+	std::vector<std::unique_ptr<DescriptorSetLayout>> mUniformSetLayout;
+	std::vector<std::unique_ptr<DescriptorSetLayout>> mSamplerSetLayout;
+	std::vector<std::unique_ptr<DescriptorSetLayout>> mAttachmentSetLayout;
 	VkPushConstantRange pushConstantRange;
 
 	VkDescriptorPool descriptorPool;
