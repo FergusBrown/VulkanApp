@@ -31,6 +31,7 @@ public:
 	VkDescriptorSetLayout handle() const;
 
 	const std::vector<VkDescriptorSetLayoutBinding>& layoutBindings() const;
+	const VkDescriptorSetLayoutBinding& layoutBinding(uint32_t bindingIndex) const;
 
 private:
 	Device& mDevice;

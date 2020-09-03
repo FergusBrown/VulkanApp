@@ -37,6 +37,11 @@ const std::vector<VkDescriptorSetLayoutBinding>& DescriptorSetLayout::layoutBind
 	return mLayoutBindings;
 }
 
+const VkDescriptorSetLayoutBinding& DescriptorSetLayout::layoutBinding(uint32_t bindingIndex) const
+{
+	return mLayoutBindings.at(bindingIndex);
+}
+
 void DescriptorSetLayout::createDescriptorSetLayoutBinding(std::vector<VkDescriptorSetLayoutBinding>& bindings, ShaderResource& shaderResource)
 {
 	VkDescriptorSetLayoutBinding layoutBinding = {};

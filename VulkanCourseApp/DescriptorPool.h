@@ -19,7 +19,7 @@ public:
 
 	// - Pool Management
 	void reset();
-	void allocate(uint32_t numberOfSets = 1);
+	VkDescriptorSet allocate(uint32_t numberOfSets = 1);
 
 private:
 	Device& mDevice;

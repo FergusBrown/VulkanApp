@@ -75,7 +75,7 @@ void DescriptorPool::reset()
 	}
 }
 
-void DescriptorPool::allocate(uint32_t numberOfSets)
+VkDescriptorSet DescriptorPool::allocate(uint32_t numberOfSets)
 {
 	if (mAllocatedSets >= mMaxSets || (mAllocatedSets + numberOfSets) >= mMaxSets)
 	{
@@ -99,4 +99,6 @@ void DescriptorPool::allocate(uint32_t numberOfSets)
 	{
 		throw std::runtime_error("Failed to allocate Input Attachment Descriptor Sets!");
 	}
+
+	return descriptorSetHandle;
 }
