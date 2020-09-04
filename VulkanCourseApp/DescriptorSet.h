@@ -31,7 +31,9 @@ public:
 	// - Management
 	void update(const std::vector<uint32_t>& bindingsToUpdate = {});
 	void reset(const BindingMap<VkDescriptorImageInfo>& newImageInfos = {},
-		const BindingMap<VkDescriptorImageInfo>& newBufferInfos = {});
+		const BindingMap<VkDescriptorBufferInfo>& newBufferInfos = {});
+
+
 private:
 	Device& mDevice;
 	DescriptorSetLayout& mDescriptorSetLayout;
@@ -43,7 +45,10 @@ private:
 	BindingMap<VkDescriptorBufferInfo>	mBufferInfos;
 
 	std::vector<VkWriteDescriptorSet> mWriteOperations;
+	std::vector<uint32_t> mUpdatedBindings;
 
+	// - Write operation support
+	void prepareWriteOperations();
 	void prepareImageWriteOperations();
 	void prepareBufferWriteOperations();
 

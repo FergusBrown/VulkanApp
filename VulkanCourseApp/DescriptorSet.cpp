@@ -12,8 +12,7 @@ DescriptorSet::DescriptorSet(Device& device,
 	mDescriptorSetLayout(descriptorSetLayout),
 	mHandle(descriptorPool.allocate())
 {
-	prepareImageWriteOperations();
-	prepareBufferWriteOperations();
+	prepareWriteOperations();
 }
 
 Device& DescriptorSet::device() const
@@ -37,9 +36,77 @@ const BindingMap<VkDescriptorBufferInfo>& DescriptorSet::bufferInfos() const
 }
 
 // If passed vector is empty then update all bindings, otherwise only update selected bindings
+// Before updating, check if binding is already updated
 void DescriptorSet::update(const std::vector<uint32_t>& bindingsToUpdate)
 {
-	// TODO
+	std::vector<VkWriteDescriptorSet> writeOperationsToPerform;
+
+	// If empty, update all
+	if (bindingsToUpdate.empty())
+	{
+		for (auto& writeOperation : mWriteOperations)
+		{
+			// if not already updated then add to writeOperationsToPerform
+			if (std::find(mUpdatedBindings.begin(), mUpdatedBindings.end(), writeOperation.dstBinding) == mUpdatedBindings.end())
+			{
+				writeOperationsToPerform.push_back(writeOperation);
+			}
+		}
+	}
+	else 
+	{
+		// Otherwise just update bindingsToUpdate
+		for (auto& writeOperation : mWriteOperations)
+		{
+			// if update requested then add to writeOperationsToPerform if not already updated
+			if (std::find(bindingsToUpdate.begin(), bindingsToUpdate.end(), writeOperation.dstBinding) != mUpdatedBindings.end() &&
+				std::find(mUpdatedBindings.begin(), mUpdatedBindings.end(), writeOperation.dstBinding) == mUpdatedBindings.end())
+			{
+				writeOperationsToPerform.push_back(writeOperation);
+			}
+		}
+	}
+
+	// Update descriptor sets
+	if (!writeOperationsToPerform.empty())
+	{
+		vkUpdateDescriptorSets(mDevice.logicalDevice(),
+			static_cast<uint32_t>(writeOperationsToPerform.size()),
+			writeOperationsToPerform.data(),
+			0,
+			nullptr);
+	}
+
+	// add list of updated bindings
+	for (auto& writeOperation : writeOperationsToPerform)
+	{
+		mUpdatedBindings.push_back(writeOperation.dstBinding);
+	}
+
+}
+
+// Clear updated binding vector
+// If a non-empty info vector is passed prepare new write operations
+void DescriptorSet::reset(const BindingMap<VkDescriptorImageInfo>& newImageInfos, const BindingMap<VkDescriptorBufferInfo>& newBufferInfos)
+{
+	mUpdatedBindings.clear();
+
+	// Prepare new write operations
+	if (!newImageInfos.empty() && !newBufferInfos.empty())
+	{
+		mImageInfos = newImageInfos;
+		mBufferInfos = newBufferInfos;
+
+		mWriteOperations.clear();
+		prepareWriteOperations();
+	}
+	
+}
+
+void DescriptorSet::prepareWriteOperations()
+{
+	prepareImageWriteOperations();
+	prepareBufferWriteOperations();
 }
 
 void DescriptorSet::prepareImageWriteOperations()
