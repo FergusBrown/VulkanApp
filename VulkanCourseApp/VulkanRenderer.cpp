@@ -12,6 +12,7 @@ int VulkanRenderer::init(GLFWwindow* newWindow)
 	window = newWindow;
 
 	try {
+		mThreadCount = std::thread::hardware_concurrency();
 		/*createThreadData();*/			
 		createInstance();				// LEAVE
 		setupDebugMessenger();			// LEAVE
@@ -32,7 +33,7 @@ int VulkanRenderer::init(GLFWwindow* newWindow)
 		createTextureSampler();
 		//allocateDynamicBufferTransferSpace();
 		createUniformBuffers();
-		createDescriptorPool();
+		createDescriptorPools();
 		createDescriptorSets();
 		createInputDescriptorSets();
 		createSynchronation();			// TODO : abstract to a pool
@@ -193,7 +194,7 @@ void VulkanRenderer::cleanup()
 	//for (auto& frame : frameData)
 	//{
 
-	//	for (size_t i = 0; i < numThreads; ++i)
+	//	for (size_t i = 0; i < threadCount; ++i)
 	//	{
 	//		vkDestroyCommandPool(mDevice->logicalDevice(), frame.threadData[i].commandPool, nullptr);
 	//	}
@@ -385,8 +386,11 @@ void VulkanRenderer::createPerFrameObjects()
 		renderTargetImages.push_back(colourImage);
 		renderTargetImages.push_back(depthImage);
 
+
+
 		mRenderTargets.push_back(std::make_unique<RenderTarget>(renderTargetImages));
-		// TODO : create frame data
+		
+		mFrames.push_back(std::make_unique<Frame>(mDevice, mRenderTargets.back(), mThreadCount));
 	}
 }
 
@@ -571,9 +575,9 @@ void VulkanRenderer::createDescriptorSetLayouts()
 	attachmentResources.push_back(colourAttachment);
 
 	// Create Descriptor Set Layouts
-	mUniformSetLayout.push_back(std::make_unique<DescriptorSetLayout>(mDevice, 0, vpResources));
-	mSamplerSetLayout.push_back(std::make_unique<DescriptorSetLayout>(mDevice, 1, samplerResources));
-	mAttachmentSetLayout.push_back(std::make_unique<DescriptorSetLayout>(mDevice, 2, attachmentResources));
+	mUniformSetLayout = std::make_unique<DescriptorSetLayout>(mDevice, 0, vpResources);
+	mSamplerSetLayout = (std::make_unique<DescriptorSetLayout>(mDevice, 1, samplerResources);
+	mAttachmentSetLayout = (std::make_unique<DescriptorSetLayout>(mDevice, 2, attachmentResources);
 
 	// UNIFORM VALUES DESCRIPTOR SET LAYOUT
 	// UboViewProjection Binding Info
@@ -1043,11 +1047,11 @@ void VulkanRenderer::createGraphicsPipeline()
 //	// COMMAND POOL FOR EACH SECONDARY BUFFER 
 //	// (One command pool cannot be accessed by 2 threads simultaneously)
 //
-//	//secondaryCommandPools.resize(numThreads);
+//	//secondaryCommandPools.resize(threadCount);
 //
 //	for (auto& frame : frameData)
 //	{
-//		for (size_t i = 0; i < numThreads; ++i)
+//		for (size_t i = 0; i < threadCount; ++i)
 //		{
 //			result = vkCreateCommandPool(mDevice->logicalDevice(), &poolInfo, nullptr, &frame.threadData[i].commandPool);
 //			if (result != VK_SUCCESS)
@@ -1085,13 +1089,13 @@ void VulkanRenderer::createGraphicsPipeline()
 //	}
 //
 //	// SECONDARY BUFFERS
-//	numSecondaryBuffers = numThreads;
+//	numSecondaryBuffers = threadCount;
 //	cbAllocInfo.level = VK_COMMAND_BUFFER_LEVEL_SECONDARY;
 //	cbAllocInfo.commandBufferCount = static_cast<uint32_t>(numSecondaryBuffers);
 //
 //	for (auto& frame : frameData)
 //	{
-//		for (size_t i = 0; i < numThreads; ++i)
+//		for (size_t i = 0; i < threadCount; ++i)
 //		{
 //			frame.threadData[i].commandBuffer.resize(numSecondaryBuffers);
 //
@@ -1153,13 +1157,13 @@ void VulkanRenderer::createFramebuffers()
 
 //void VulkanRenderer::createThreadData()
 //{
-//	numThreads = std::thread::hardware_concurrency();
-//	threadPool.resize(numThreads);
+//	threadCount = std::thread::hardware_concurrency();
+//	threadPool.resize(threadCount);
 //	frameData.resize(mSwapchain->details().imageCount);
 //
 //	for (auto& frame : frameData)
 //	{
-//		frame.threadData.resize(numThreads);
+//		frame.threadData.resize(threadCount);
 //	}
 //	
 //}
@@ -1217,8 +1221,16 @@ void VulkanRenderer::createUniformBuffers()
 	}
 }
 
-void VulkanRenderer::createDescriptorPool()
+void VulkanRenderer::createDescriptorPools()
 {
+	// CREATE UNIFORM DESCRIPTOR POOL
+
+
+	// CREATE SAMPLER DESCRIPTOR POOL
+
+	// CREATE INPUT ATTACHMENT DESCRIPTOR POOL
+
+
 	// CREATE UNIFORM DESCRIPTOR POOL
 	// Type of descriptors + how many DESCRIPTORS, not Descriptor sets (combined makes the pool size)
 	// ViewProjection Pool
@@ -1506,7 +1518,7 @@ void VulkanRenderer::recordCommands(uint32_t currentImage) // Current image is s
 			// Split objects to draw equally between threads
 			uint32_t numModels = modelList.size();
 
-			float avgObjectsPerBuffer = static_cast<float>(numModels) / numThreads;
+			float avgObjectsPerBuffer = static_cast<float>(numModels) / threadCount;
 
 			uint32_t objectsPerBuffer = static_cast<uint32_t> (std::floor(avgObjectsPerBuffer));
 			uint32_t remainderObjects = numModels % objectsPerBuffer;

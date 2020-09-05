@@ -19,9 +19,13 @@ public:
 
 	// - Getters
 	Device& device() const;
+	CommandPool& commandPool(uint32_t threadIndex = 0);
 
-	// Frame management
+	// - Frame management
 	void reset();
+
+	// Request a command buffer to perform operations on
+
 
 private:
 	// Variables
@@ -43,19 +47,18 @@ private:
 
 	struct ThreadData {
 		std::unique_ptr<CommandPool> commandPool;
-		std::vector<std::unique_ptr<DescriptorPool>> descriptorPools;
-		std::vector<std::unique_ptr<DescriptorSet>> descriptorSets;
+		//std::vector<std::unique_ptr<DescriptorPool>> descriptorPools;
+		//std::vector<std::unique_ptr<DescriptorSet>> descriptorSets;
 	};
+
 	std::vector<ThreadData> mThreadData;
 
 	// - Render target
 	std::unique_ptr<RenderTarget> mRenderTarget;
 
-	// Functions
-	// - Command Buffers
-	// -- Primary
-	/*void createPrimaryCommandPool();
-	void createPrimaryCommandBuffer();*/
+	// - Descriptors
+	std::vector<std::unique_ptr<DescriptorPool>> descriptorPools;
+	std::vector<std::unique_ptr<DescriptorSet>> descriptorSets;
 
 	// - Thread pool management
 	void createThreadData();

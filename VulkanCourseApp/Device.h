@@ -24,7 +24,7 @@ public:
 	Device(VkInstance instance, VkSurfaceKHR surface, const std::vector<const char*>& deviceExtensions);
 	~Device();
 
-	// Getters
+	// - Getters
 	VkPhysicalDevice physicalDevice() const;
 	VkDevice logicalDevice() const;
 	QueueFamilyIndices queueFamilyIndices() const;

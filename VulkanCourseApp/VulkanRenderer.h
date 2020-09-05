@@ -24,7 +24,9 @@
 #include "SwapChain.h"
 #include "Image.h"
 #include "DescriptorSetLayout.h"
+#include "DescriptorSet.h"
 #include "RenderTarget.h"
+#include "Frame.h"
 #include "Framebuffer.h"
 
 using namespace glm;
@@ -83,6 +85,8 @@ private:
 	std::unique_ptr<Swapchain> mSwapchain;
 	std::vector<std::unique_ptr<RenderTarget>> mRenderTargets;
 	std::vector<std::unique_ptr<Framebuffer>> mFramebuffers;
+	std::vector<std::unique_ptr<Frame>> mFrames;
+
 	//VkSwapchainKHR swapchain;
 
 	// All 3 of below are 1:1 connected
@@ -104,17 +108,26 @@ private:
 	//VkDescriptorSetLayout descriptorSetLayout; // describes the layout of the descriptor sets
 	//VkDescriptorSetLayout samplerSetLayout; 
 	//VkDescriptorSetLayout inputSetLayout; 
-	std::vector<std::unique_ptr<DescriptorSetLayout>> mUniformSetLayout;
-	std::vector<std::unique_ptr<DescriptorSetLayout>> mSamplerSetLayout;
-	std::vector<std::unique_ptr<DescriptorSetLayout>> mAttachmentSetLayout;
+	std::unique_ptr<DescriptorSetLayout> mUniformSetLayout;
+	std::unique_ptr<DescriptorSetLayout> mSamplerSetLayout;
+	std::unique_ptr<DescriptorSetLayout> mAttachmentSetLayout;
 	VkPushConstantRange pushConstantRange;
 
-	VkDescriptorPool descriptorPool;
+	/*VkDescriptorPool descriptorPool;
 	VkDescriptorPool samplerDescriptorPool;
-	VkDescriptorPool inputDescriptorPool;
-	std::vector<VkDescriptorSet> descriptorSets;			// Descriptor set holding uniform data
-	std::vector<VkDescriptorSet> samplerDescriptorSets;		// Desctcriptor sets holding texture samplers
-	std::vector<VkDescriptorSet> inputDescriptorSets;		// Descriptor set holding colour/depth images (used for second subpass)
+	VkDescriptorPool inputDescriptorPool;*/
+	
+	std::unique_ptr<DescriptorPool> descriptorPool;
+	std::unique_ptr<DescriptorPool> samplerDescriptorPool;
+	std::unique_ptr<DescriptorPool> inputDescriptorPool;
+
+	//std::vector<VkDescriptorSet> descriptorSets;			// Descriptor set holding uniform data
+	//std::vector<VkDescriptorSet> samplerDescriptorSets;		// Desctcriptor sets holding texture samplers
+	//std::vector<VkDescriptorSet> inputDescriptorSets;		// Descriptor set holding colour/depth images (used for second subpass)
+	
+	std::vector<std::unique_ptr<DescriptorSet>> descriptorSets;			// Descriptor set holding uniform data
+	std::vector<std::unique_ptr<DescriptorSet>> samplerDescriptorSets;		// Desctcriptor sets holding texture samplers
+	std::vector<std::unique_ptr<DescriptorSet>> inputDescriptorSets;		// Descriptor set holding colour/depth images (used for second subpass)
 
 	std::vector<VkBuffer> vpUniformBuffer;		// We want one of these for every command buffer so that nothing funky happens
 	std::vector<VkDeviceMemory> vpUniformBufferMemory;
@@ -155,7 +168,7 @@ private:
 
 	// - Multithreading
 	// Max. number of concurrent threads
-	uint32_t numThreads;
+	uint32_t mThreadCount;
 	ctpl::thread_pool threadPool;
 
 	//struct ThreadPushConstantBlock {
@@ -202,7 +215,7 @@ private:
 	void createSynchronation();
 	void createTextureSampler();
 	void createUniformBuffers();
-	void createDescriptorPool();
+	void createDescriptorPools();
 	void createDescriptorSets();
 	void createInputDescriptorSets();
 

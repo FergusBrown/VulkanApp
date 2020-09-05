@@ -21,6 +21,11 @@ Device& Frame::device() const
 	return mDevice;
 }
 
+CommandPool& Frame::commandPool(uint32_t threadIndex)
+{
+	return *mThreadData[threadIndex].commandPool;
+}
+
 void Frame::reset()
 {
 	for (auto& thread : mThreadData)
