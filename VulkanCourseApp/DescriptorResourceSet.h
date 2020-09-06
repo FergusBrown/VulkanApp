@@ -1,6 +1,7 @@
 #pragma once
 #include "Common.h"
 
+#include "Buffer.h"
 #include "Image.h"
 #include "Sampler.h"
 

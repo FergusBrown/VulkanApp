@@ -63,9 +63,11 @@ void DescriptorResourceSet::bindInputImage(const Image& image, const uint32_t bi
 	mResourceBindings[bindingIndex][arrayIndex].sampler =	nullptr;
 }
 
-void bindBuffer(const Buffer& buffer, const uint32_t offset, const uint32_t range, const uint32_t bindingIndex, const uint32_t arrayIndex)
+void DescriptorResourceSet::bindBuffer(const Buffer& buffer, const uint32_t offset, const uint32_t range, const uint32_t bindingIndex, const uint32_t arrayIndex)
 {
 	mResourceBindings[bindingIndex][arrayIndex].buffer =	nullptr;
+	mResourceBindings[bindingIndex][arrayIndex].offset =	offset;
+	mResourceBindings[bindingIndex][arrayIndex].range =		range;
 	mResourceBindings[bindingIndex][arrayIndex].image =		nullptr;
 	mResourceBindings[bindingIndex][arrayIndex].sampler =	nullptr;
 }
