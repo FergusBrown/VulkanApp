@@ -3,11 +3,6 @@
 
 #include "DescriptorPool.h"
 
-/// *** BindingMap ***
-/// Top layer key maps to the descriptor set binding
-/// Bottom layer key maps to a descriptor within the array of descriptors in the binding
-template <typename T>
-using BindingMap = std::map<uint32_t, std::map<uint32_t, T>>;
 
 // This class manages a descriptor set once it is allocated by from a pool
 // This primarily involves updating descriptors with writes

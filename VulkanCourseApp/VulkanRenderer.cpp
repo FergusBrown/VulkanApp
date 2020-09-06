@@ -19,7 +19,7 @@ int VulkanRenderer::init(GLFWwindow* newWindow)
 		createSurface();				// LEAVE
 		createDevice();					// COMPLETE
 		createSwapChain();				// COMPLETE
-		createPerFrameObjects();					// TODO : still need to create frame with descriptor sets, command buffers etc
+		createPerFrameObjects();		// TODO : still need to create frame with descriptor sets, command buffers etc
 		//createColourBufferImage();	// Abstract to create renderpass images
 		//createDepthBufferImage();		// abstract to create renderpass images
 		createRenderPass();				// Change to use rendertarget and subpass objects
@@ -34,7 +34,7 @@ int VulkanRenderer::init(GLFWwindow* newWindow)
 		//allocateDynamicBufferTransferSpace();
 		createUniformBuffers();
 		createDescriptorPools();
-		createDescriptorSets();
+		createUniformDescriptorSets();
 		createInputDescriptorSets();
 		createSynchronation();			// TODO : abstract to a pool
 		createCamera(90.0f);
@@ -1224,89 +1224,111 @@ void VulkanRenderer::createUniformBuffers()
 void VulkanRenderer::createDescriptorPools()
 {
 	// CREATE UNIFORM DESCRIPTOR POOL
-
-
-	// CREATE SAMPLER DESCRIPTOR POOL
-
-	// CREATE INPUT ATTACHMENT DESCRIPTOR POOL
-
-
-	// CREATE UNIFORM DESCRIPTOR POOL
-	// Type of descriptors + how many DESCRIPTORS, not Descriptor sets (combined makes the pool size)
-	// ViewProjection Pool
-	VkDescriptorPoolSize vpPoolSize = {};
-	vpPoolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	vpPoolSize.descriptorCount = static_cast<uint32_t>(vpUniformBuffer.size());
-
-	// Model pool (DYNAMIC)
-	/*VkDescriptorPoolSize modelPoolSize = {};
-	modelPoolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
-	modelPoolSize.descriptorCount = static_cast<uint32_t>(modelDUniformBuffer.size());*/
-
-	// List of pool sizes
-	std::vector<VkDescriptorPoolSize> descriptorPoolSizes = { vpPoolSize };
-
-	// Data to create descriptor pool
-	VkDescriptorPoolCreateInfo poolCreateInfo = {};
-	poolCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-	poolCreateInfo.maxSets = static_cast<uint32_t>(mSwapchain->details().imageCount);					// Maximum number of descriptor sets which can be created from pool
-	poolCreateInfo.poolSizeCount = static_cast<uint32_t>(descriptorPoolSizes.size());		// Amount of Pool Sizes being passed
-	poolCreateInfo.pPoolSizes = descriptorPoolSizes.data();									// Pool sizes to create pool with
-
-	// Create Descriptor pool
-	VkResult result = vkCreateDescriptorPool(mDevice->logicalDevice(), &poolCreateInfo, nullptr, &descriptorPool);
-	if (result != VK_SUCCESS)
-	{
-		throw std::runtime_error("Failed to create a Descriptor Pool!");
-	}
+	mUniformDescriptorPool = std::make_unique<DescriptorPool>(mDevice, mUniformSetLayout, mSwapchain->details().imageCount);
 
 	// CREATE SAMPLER DESCRIPTOR POOL
-	// Texture sampler pool
-	VkDescriptorPoolSize samplerPoolSize = {};
-	samplerPoolSize.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-	samplerPoolSize.descriptorCount = MAX_OBJECTS;
-
-	VkDescriptorPoolCreateInfo samplerPoolCreateInfo = {};
-	samplerPoolCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-	samplerPoolCreateInfo.maxSets = MAX_OBJECTS;
-	samplerPoolCreateInfo.poolSizeCount = 1;
-	samplerPoolCreateInfo.pPoolSizes = &samplerPoolSize;
-
-	result = vkCreateDescriptorPool(mDevice->logicalDevice(), &samplerPoolCreateInfo, nullptr, &samplerDescriptorPool);
-	if (result != VK_SUCCESS)
-	{
-		throw std::runtime_error("Failed to create a Descriptor Pool!");
-	}
+	mSamplerDescriptorPool = std::make_unique<DescriptorPool>(mDevice, mSamplerSetLayout, mSwapchain->details().imageCount);
 
 	// CREATE INPUT ATTACHMENT DESCRIPTOR POOL
-	// Colour Attachment Pool Size
-	VkDescriptorPoolSize colourInputPoolSize = {};
-	colourInputPoolSize.type = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;
-	colourInputPoolSize.descriptorCount = static_cast<uint32_t>(colourBufferImageView.size());
+	mAttachmentDescriptorPool = std::make_unique<DescriptorPool>(mDevice, mAttachmentSetLayout, mSwapchain->details().imageCount);
 
-	// Depth Attachment Pool Size
-	VkDescriptorPoolSize depthInputPoolSize = {};
-	depthInputPoolSize.type = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;
-	depthInputPoolSize.descriptorCount = static_cast<uint32_t>(depthBufferImageView.size());
+	//// CREATE UNIFORM DESCRIPTOR POOL
+	//// Type of descriptors + how many DESCRIPTORS, not Descriptor sets (combined makes the pool size)
+	//// ViewProjection Pool
+	//VkDescriptorPoolSize vpPoolSize = {};
+	//vpPoolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	//vpPoolSize.descriptorCount = static_cast<uint32_t>(vpUniformBuffer.size());
 
-	std::vector<VkDescriptorPoolSize> inputPoolSizes = { colourInputPoolSize, depthInputPoolSize };
+	//// Model pool (DYNAMIC)
+	///*VkDescriptorPoolSize modelPoolSize = {};
+	//modelPoolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
+	//modelPoolSize.descriptorCount = static_cast<uint32_t>(modelDUniformBuffer.size());*/
 
-	// Create input attachment pool
-	VkDescriptorPoolCreateInfo inputPoolCreateInfo = {};
-	inputPoolCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-	inputPoolCreateInfo.maxSets = mSwapchain->details().imageCount;
-	inputPoolCreateInfo.poolSizeCount = static_cast<uint32_t>(inputPoolSizes.size());
-	inputPoolCreateInfo.pPoolSizes = inputPoolSizes.data();
+	//// List of pool sizes
+	//std::vector<VkDescriptorPoolSize> descriptorPoolSizes = { vpPoolSize };
 
-	result = vkCreateDescriptorPool(mDevice->logicalDevice(), &inputPoolCreateInfo, nullptr, &inputDescriptorPool);
-	if (result != VK_SUCCESS)
-	{
-		throw std::runtime_error("Failed to create a Descriptor Pool!");
-	}
+	//// Data to create descriptor pool
+	//VkDescriptorPoolCreateInfo poolCreateInfo = {};
+	//poolCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+	//poolCreateInfo.maxSets = static_cast<uint32_t>(mSwapchain->details().imageCount);					// Maximum number of descriptor sets which can be created from pool
+	//poolCreateInfo.poolSizeCount = static_cast<uint32_t>(descriptorPoolSizes.size());		// Amount of Pool Sizes being passed
+	//poolCreateInfo.pPoolSizes = descriptorPoolSizes.data();									// Pool sizes to create pool with
+
+	//// Create Descriptor pool
+	//VkResult result = vkCreateDescriptorPool(mDevice->logicalDevice(), &poolCreateInfo, nullptr, &descriptorPool);
+	//if (result != VK_SUCCESS)
+	//{
+	//	throw std::runtime_error("Failed to create a Descriptor Pool!");
+	//}
+
+	//// CREATE SAMPLER DESCRIPTOR POOL
+	//// Texture sampler pool
+	//VkDescriptorPoolSize samplerPoolSize = {};
+	//samplerPoolSize.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	//samplerPoolSize.descriptorCount = MAX_OBJECTS;
+
+	//VkDescriptorPoolCreateInfo samplerPoolCreateInfo = {};
+	//samplerPoolCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+	//samplerPoolCreateInfo.maxSets = MAX_OBJECTS;
+	//samplerPoolCreateInfo.poolSizeCount = 1;
+	//samplerPoolCreateInfo.pPoolSizes = &samplerPoolSize;
+
+	//result = vkCreateDescriptorPool(mDevice->logicalDevice(), &samplerPoolCreateInfo, nullptr, &samplerDescriptorPool);
+	//if (result != VK_SUCCESS)
+	//{
+	//	throw std::runtime_error("Failed to create a Descriptor Pool!");
+	//}
+
+	//// CREATE INPUT ATTACHMENT DESCRIPTOR POOL
+	//// Colour Attachment Pool Size
+	//VkDescriptorPoolSize colourInputPoolSize = {};
+	//colourInputPoolSize.type = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;
+	//colourInputPoolSize.descriptorCount = static_cast<uint32_t>(colourBufferImageView.size());
+
+	//// Depth Attachment Pool Size
+	//VkDescriptorPoolSize depthInputPoolSize = {};
+	//depthInputPoolSize.type = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;
+	//depthInputPoolSize.descriptorCount = static_cast<uint32_t>(depthBufferImageView.size());
+
+	//std::vector<VkDescriptorPoolSize> inputPoolSizes = { colourInputPoolSize, depthInputPoolSize };
+
+	//// Create input attachment pool
+	//VkDescriptorPoolCreateInfo inputPoolCreateInfo = {};
+	//inputPoolCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+	//inputPoolCreateInfo.maxSets = mSwapchain->details().imageCount;
+	//inputPoolCreateInfo.poolSizeCount = static_cast<uint32_t>(inputPoolSizes.size());
+	//inputPoolCreateInfo.pPoolSizes = inputPoolSizes.data();
+
+	//result = vkCreateDescriptorPool(mDevice->logicalDevice(), &inputPoolCreateInfo, nullptr, &inputDescriptorPool);
+	//if (result != VK_SUCCESS)
+	//{
+	//	throw std::runtime_error("Failed to create a Descriptor Pool!");
+	//}
 }
 
-void VulkanRenderer::createDescriptorSets()
+// TODO: abstract this
+void VulkanRenderer::createUniformDescriptorSets()
 {
+
+
+	// CREATE SETS
+	for (size_t i = 0; i < mSwapchain->details().imageCount; ++i)
+	{
+		// CREATE INFOS
+		// UNIFORM SETS
+		VkDescriptorBufferInfo vpBufferInfo = {};
+		vpBufferInfo.buffer = vpUniformBuffer[i];					// Buffer to get data from
+		vpBufferInfo.offset = 0;									// Position of start of data
+		vpBufferInfo.range = sizeof(UboViewProjection);				// Size of data
+
+		//std::vector< VkDescriptorImageInfo> imageInfos = {};
+		std::vector<VkDescriptorBufferInfo> uniformBufferInfos = { vpBufferInfo };
+		
+
+		mUniformDescriptorSets.push_back(std::make_unique<DescriptorSet>(mDevice, mUniformDescriptorPool, uniformBufferInfos));
+	}
+
+
 	// Resize descriptor set list so one for every buffer
 	descriptorSets.resize(mSwapchain->details().imageCount);
 

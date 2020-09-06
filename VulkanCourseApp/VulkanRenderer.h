@@ -117,17 +117,22 @@ private:
 	VkDescriptorPool samplerDescriptorPool;
 	VkDescriptorPool inputDescriptorPool;*/
 	
-	std::unique_ptr<DescriptorPool> descriptorPool;
-	std::unique_ptr<DescriptorPool> samplerDescriptorPool;
-	std::unique_ptr<DescriptorPool> inputDescriptorPool;
+	std::unique_ptr<DescriptorPool> mUniformDescriptorPool;
+	std::unique_ptr<DescriptorPool> mSamplerDescriptorPool;
+	std::unique_ptr<DescriptorPool> mAttachmentDescriptorPool;
 
 	//std::vector<VkDescriptorSet> descriptorSets;			// Descriptor set holding uniform data
 	//std::vector<VkDescriptorSet> samplerDescriptorSets;		// Desctcriptor sets holding texture samplers
 	//std::vector<VkDescriptorSet> inputDescriptorSets;		// Descriptor set holding colour/depth images (used for second subpass)
 	
-	std::vector<std::unique_ptr<DescriptorSet>> descriptorSets;			// Descriptor set holding uniform data
-	std::vector<std::unique_ptr<DescriptorSet>> samplerDescriptorSets;		// Desctcriptor sets holding texture samplers
-	std::vector<std::unique_ptr<DescriptorSet>> inputDescriptorSets;		// Descriptor set holding colour/depth images (used for second subpass)
+	BindingMap<VkDescriptorImageInfo> mUniformInfos;
+	std::vector<std::unique_ptr<DescriptorSet>> mUniformDescriptorSets;			// Descriptor set holding uniform data
+
+	BindingMap<VkDescriptorImageInfo> mSamplerInfos;
+	std::vector<std::unique_ptr<DescriptorSet>> mSamplerDescriptorSets;		// Desctcriptor sets holding texture samplers
+
+	BindingMap<VkDescriptorImageInfo> mAttachmentInfos;
+	std::vector<std::unique_ptr<DescriptorSet>> mAttachmentDescriptorSets;		// Descriptor set holding colour/depth images (used for second subpass)
 
 	std::vector<VkBuffer> vpUniformBuffer;		// We want one of these for every command buffer so that nothing funky happens
 	std::vector<VkDeviceMemory> vpUniformBufferMemory;
@@ -216,7 +221,7 @@ private:
 	void createTextureSampler();
 	void createUniformBuffers();
 	void createDescriptorPools();
-	void createDescriptorSets();
+	void createUniformDescriptorSets();
 	void createInputDescriptorSets();
 
 	// -- Support

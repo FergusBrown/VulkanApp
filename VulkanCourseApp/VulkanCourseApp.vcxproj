@@ -148,6 +148,7 @@
     <ClCompile Include="CommandBuffer.cpp" />
     <ClCompile Include="CommandPool.cpp" />
     <ClCompile Include="DescriptorPool.cpp" />
+    <ClCompile Include="DescriptorResourceSet.cpp" />
     <ClCompile Include="DescriptorSet.cpp" />
     <ClCompile Include="DescriptorSetLayout.cpp" />
     <ClCompile Include="Device.cpp" />
@@ -161,6 +162,7 @@
     <ClCompile Include="MeshModel.cpp" />
     <ClCompile Include="Pawn.cpp" />
     <ClCompile Include="RenderTarget.cpp" />
+    <ClCompile Include="Sampler.cpp" />
     <ClCompile Include="Subpass.cpp" />
     <ClCompile Include="Swapchain.cpp" />
     <ClCompile Include="VulkanRenderer.cpp" />
@@ -174,6 +176,7 @@
     <ClInclude Include="ControlConstants.h" />
     <ClInclude Include="ctpl_stl.h" />
     <ClInclude Include="DescriptorPool.h" />
+    <ClInclude Include="DescriptorResourceSet.h" />
     <ClInclude Include="DescriptorSet.h" />
     <ClInclude Include="DescriptorSetLayout.h" />
     <ClInclude Include="Device.h" />
@@ -190,6 +193,7 @@
     <ClInclude Include="Pawn.h" />
     <ClInclude Include="PointLight.h" />
     <ClInclude Include="RenderTarget.h" />
+    <ClInclude Include="Sampler.h" />
     <ClInclude Include="Subpass.h" />
     <ClInclude Include="Swapchain.h" />
     <ClInclude Include="Utilities.h" />
