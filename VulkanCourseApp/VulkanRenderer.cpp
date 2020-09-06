@@ -1311,7 +1311,7 @@ void VulkanRenderer::createUniformDescriptorSets()
 {
 
 
-	// CREATE SETS
+	// CREATE SETS (NEW)
 	for (size_t i = 0; i < mSwapchain->details().imageCount; ++i)
 	{
 		// CREATE INFOS
@@ -1328,6 +1328,9 @@ void VulkanRenderer::createUniformDescriptorSets()
 		mUniformDescriptorSets.push_back(std::make_unique<DescriptorSet>(mDevice, mUniformDescriptorPool, uniformBufferInfos));
 	}
 
+
+
+	//////// OLD
 
 	// Resize descriptor set list so one for every buffer
 	descriptorSets.resize(mSwapchain->details().imageCount);

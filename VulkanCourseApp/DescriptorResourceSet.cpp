@@ -24,9 +24,24 @@ void DescriptorResourceSet::generateDescriptorImageInfo(VkDescriptorImageInfo& i
 	}
 	else
 	{
-		imageInfo.sampler = Sampler->handle();
+		imageInfo.sampler = resource.sampler->handle();
 	}
 
+}
+
+void DescriptorResourceSet::getDescriptorBufferInfo(VkDescriptorBufferInfo& bufferInfo, uint32_t bindingIndex, uint32_t arrayIndex)
+{
+	Resource& resource = mResourceBindings.at(bindingIndex).at(arrayIndex);
+
+	if (resource.buffer == nullptr)
+	{
+		throw std::runtime_error("Attempting to create descriptor info for a resource which is not a buffer!");
+	}
+
+	bufferInfo = {};
+	bufferInfo.buffer = resource.buffer->handle();		// Buffer to get data from
+	bufferInfo.offset = resource.offset;				// Position of start of data
+	bufferInfo.range =  resource.range;					// Size of data
 }
 
 const BindingMap<Resource>& DescriptorResourceSet::resourceBindings() const
@@ -34,9 +49,23 @@ const BindingMap<Resource>& DescriptorResourceSet::resourceBindings() const
 	return mResourceBindings;
 }
 
+void DescriptorResourceSet::bindImage(const Image& image, const Sampler& sampler, const uint32_t bindingIndex, const uint32_t arrayIndex)
+{
+	mResourceBindings[bindingIndex][arrayIndex].buffer =	nullptr;
+	mResourceBindings[bindingIndex][arrayIndex].image =		&image;
+	mResourceBindings[bindingIndex][arrayIndex].sampler =	&sampler;
+}
+
 void DescriptorResourceSet::bindInputImage(const Image& image, const uint32_t bindingIndex, const uint32_t arrayIndex)
 {
 	mResourceBindings[bindingIndex][arrayIndex].buffer =	nullptr;
 	mResourceBindings[bindingIndex][arrayIndex].image =		&image;
+	mResourceBindings[bindingIndex][arrayIndex].sampler =	nullptr;
+}
+
+void bindBuffer(const Buffer& buffer, const uint32_t offset, const uint32_t range, const uint32_t bindingIndex, const uint32_t arrayIndex)
+{
+	mResourceBindings[bindingIndex][arrayIndex].buffer =	nullptr;
+	mResourceBindings[bindingIndex][arrayIndex].image =		nullptr;
 	mResourceBindings[bindingIndex][arrayIndex].sampler =	nullptr;
 }
