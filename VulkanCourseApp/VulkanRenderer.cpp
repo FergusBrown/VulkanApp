@@ -144,10 +144,10 @@ void VulkanRenderer::cleanup()
 		modelDataList[i].destroyMeshModel();
 	}
 
-	vkDestroyDescriptorPool(mDevice->logicalDevice(), inputDescriptorPool, nullptr);
-	//vkDestroyDescriptorSetLayout(mDevice->logicalDevice(), inputSetLayout, nullptr);
+	//vkDestroyDescriptorPool(mDevice->logicalDevice(), inputDescriptorPool, nullptr);
+	////vkDestroyDescriptorSetLayout(mDevice->logicalDevice(), inputSetLayout, nullptr);
 
-	vkDestroyDescriptorPool(mDevice->logicalDevice(), samplerDescriptorPool, nullptr);
+	//vkDestroyDescriptorPool(mDevice->logicalDevice(), samplerDescriptorPool, nullptr);
 	//vkDestroyDescriptorSetLayout(mDevice->logicalDevice(), samplerSetLayout, nullptr);
 
 	vkDestroySampler(mDevice->logicalDevice(), textureSampler, nullptr);
@@ -173,16 +173,16 @@ void VulkanRenderer::cleanup()
 		vkFreeMemory(mDevice->logicalDevice(), colourBufferImageMemory[i], nullptr);
 	}*/
 
-	vkDestroyDescriptorPool(mDevice->logicalDevice(), descriptorPool, nullptr);
+	/*vkDestroyDescriptorPool(mDevice->logicalDevice(), descriptorPool, nullptr);*/
 	//vkDestroyDescriptorSetLayout(mDevice->logicalDevice(), descriptorSetLayout, nullptr);
-	for (size_t i = 0; i < mSwapchain->details().imageCount; ++i)
-	{
-		vkDestroyBuffer(mDevice->logicalDevice(), vpUniformBuffer[i], nullptr);
-		vkFreeMemory(mDevice->logicalDevice(), vpUniformBufferMemory[i], nullptr);
-		
-		//vkDestroyBuffer(mDevice->logicalDevice(), modelDUniformBuffer[i], nullptr);
-		//vkFreeMemory(mDevice->logicalDevice(), modelDUniformBufferMemory[i], nullptr);
-	}
+	//for (size_t i = 0; i < mSwapchain->details().imageCount; ++i)
+	//{
+	//	vkDestroyBuffer(mDevice->logicalDevice(), vpUniformBuffer[i], nullptr);
+	//	vkFreeMemory(mDevice->logicalDevice(), vpUniformBufferMemory[i], nullptr);
+	//	
+	//	//vkDestroyBuffer(mDevice->logicalDevice(), modelDUniformBuffer[i], nullptr);
+	//	//vkFreeMemory(mDevice->logicalDevice(), modelDUniformBufferMemory[i], nullptr);
+	//}
 	
 	for (size_t i = 0; i < MAX_FRAME_DRAWS; ++i)
 	{
@@ -1200,25 +1200,32 @@ void VulkanRenderer::createUniformBuffers()
 	// ViewProjection Buffer size
 	VkDeviceSize vpBufferSize = sizeof(UboViewProjection);
 
-	// Model Buffer size
-	//VkDeviceSize modelBufferSize = modelUniformAlignment * MAX_OBJECTS;
+	mUniformBuffers.push_back(std::make_unique<Buffer>(mDevice,
+		vpBufferSize,
+		VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT));
 
-	// One uniform buffer for each image (and by extension, command buffer)
-	vpUniformBuffer.resize(mSwapchain->details().imageCount);
-	vpUniformBufferMemory.resize(mSwapchain->details().imageCount);
-	
-	//modelDUniformBuffer.resize(swapChainImages.size());
-	//modelDUniformBufferMemory.resize(swapChainImages.size());
+	// TODO : MAP RESOURCE SET
 
-	// Create uniform buffers
-	for (size_t i = 0; i < mSwapchain->details().imageCount; ++i)
-	{
-		createBuffer(mDevice->physicalDevice(), mDevice->logicalDevice(), vpBufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &vpUniformBuffer[i], &vpUniformBufferMemory[i]);
-		
-		//createBuffer(mDevice->physicalDevice(), mDevice->logicalDevice(), modelBufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-		//	VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &modelDUniformBuffer[i], &modelDUniformBufferMemory[i]);
-	}
+	//// Model Buffer size
+	////VkDeviceSize modelBufferSize = modelUniformAlignment * MAX_OBJECTS;
+
+	//// One uniform buffer for each image (and by extension, command buffer)
+	//vpUniformBuffer.resize(mSwapchain->details().imageCount);
+	//vpUniformBufferMemory.resize(mSwapchain->details().imageCount);
+	//
+	////modelDUniformBuffer.resize(swapChainImages.size());
+	////modelDUniformBufferMemory.resize(swapChainImages.size());
+
+	//// Create uniform buffers
+	//for (size_t i = 0; i < mSwapchain->details().imageCount; ++i)
+	//{
+	//	createBuffer(mDevice->physicalDevice(), mDevice->logicalDevice(), vpBufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+	//		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &vpUniformBuffer[i], &vpUniformBufferMemory[i]);
+	//	
+	//	//createBuffer(mDevice->physicalDevice(), mDevice->logicalDevice(), modelBufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+	//	//	VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &modelDUniformBuffer[i], &modelDUniformBufferMemory[i]);
+	//}
 }
 
 void VulkanRenderer::createDescriptorPools()
@@ -1466,11 +1473,14 @@ void VulkanRenderer::createInputDescriptorSets()
 
 void VulkanRenderer::updateUniformBuffers(uint32_t imageIndex)
 {
-		// Copy VP data
-		void* data;
-		vkMapMemory(mDevice->logicalDevice(), vpUniformBufferMemory[imageIndex], 0, sizeof(UboViewProjection), 0, &data);
-		memcpy(data, &uboViewProjection, sizeof(UboViewProjection));
-		vkUnmapMemory(mDevice->logicalDevice(), vpUniformBufferMemory[imageIndex]);
+	// Copy VP data
+	void* data = mUniformBuffers[imageIndex]->map();
+	memcpy(data, &uboViewProjection, sizeof(UboViewProjection));
+	mUniformBuffers[imageIndex]->unmap();
+
+	/*vkMapMemory(mDevice->logicalDevice(), vpUniformBufferMemory[imageIndex], 0, sizeof(UboViewProjection), 0, &data);
+	memcpy(data, &uboViewProjection, sizeof(UboViewProjection));
+	vkUnmapMemory(mDevice->logicalDevice(), vpUniformBufferMemory[imageIndex]);*/
 
 		// Copy Model data
 		/*for (size_t i = 0; i < meshList.size(); ++i)

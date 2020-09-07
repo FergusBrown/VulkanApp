@@ -23,6 +23,8 @@
 #include "Device.h"
 #include "SwapChain.h"
 #include "Image.h"
+#include "Buffer.h"
+#include "Sampler.h"
 #include "DescriptorSetLayout.h"
 #include "DescriptorSet.h"
 #include "RenderTarget.h"
@@ -134,8 +136,10 @@ private:
 	BindingMap<VkDescriptorImageInfo> mAttachmentInfos;
 	std::vector<std::unique_ptr<DescriptorSet>> mAttachmentDescriptorSets;		// Descriptor set holding colour/depth images (used for second subpass)
 
-	std::vector<VkBuffer> vpUniformBuffer;		// We want one of these for every command buffer so that nothing funky happens
-	std::vector<VkDeviceMemory> vpUniformBufferMemory;
+	std::vector<std::unique_ptr<Buffer>> mUniformBuffers;
+	/* ABSTRACTED TO BUFFER CLASS */
+	//std::vector<VkBuffer> vpUniformBuffer;		// We want one of these for every command buffer so that nothing funky happens??
+	//std::vector<VkDeviceMemory> vpUniformBufferMemory;
 
 	//std::vector<VkBuffer> modelDUniformBuffer;	
 	//std::vector<VkDeviceMemory> modelDUniformBufferMemory;
