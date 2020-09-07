@@ -150,7 +150,7 @@ void VulkanRenderer::cleanup()
 	//vkDestroyDescriptorPool(mDevice->logicalDevice(), samplerDescriptorPool, nullptr);
 	//vkDestroyDescriptorSetLayout(mDevice->logicalDevice(), samplerSetLayout, nullptr);
 
-	vkDestroySampler(mDevice->logicalDevice(), textureSampler, nullptr);
+	/*vkDestroySampler(mDevice->logicalDevice(), textureSampler, nullptr);*/
 
 	for (size_t i = 0; i < textureImages.size(); ++i)
 	{
@@ -1170,28 +1170,30 @@ void VulkanRenderer::createFramebuffers()
 
 void VulkanRenderer::createTextureSampler()
 {
-	// Sampler creation Info
-	VkSamplerCreateInfo samplerCreateInfo = {};
-	samplerCreateInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-	samplerCreateInfo.magFilter = VK_FILTER_LINEAR;						// How to render when image is magnified on screen
-	samplerCreateInfo.minFilter = VK_FILTER_LINEAR;						// How to render when image is minified on screen
-	samplerCreateInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;	// How to handle texturee wrap in U (x) direction
-	samplerCreateInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;	// How to handle texturee wrap in V (y) direction
-	samplerCreateInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;	// How to handle texturee wrap in W (z) direction
-	samplerCreateInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;	// Border beyond texture (only works for border clamp)
-	samplerCreateInfo.unnormalizedCoordinates = VK_FALSE;				// Whether coords should be normalised between 0 and 1
-	samplerCreateInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;		// Mipmap interpolation mode
-	samplerCreateInfo.mipLodBias = 0.0f;								// Level of details bias for mipmap level
-	samplerCreateInfo.maxLod = 0.0f;									// Maximum level of detail to pick mip level
-	samplerCreateInfo.minLod = 0.0f;									// Minimum level of detail to pick mip level
-	samplerCreateInfo.anisotropyEnable = VK_TRUE;						// Enable Anisotropy
-	samplerCreateInfo.maxAnisotropy = 16;								// Anistropy sample level
+	mTextureSampler = std::make_unique<Sampler>(mDevice);
 
-	VkResult result = vkCreateSampler(mDevice->logicalDevice(), &samplerCreateInfo, nullptr, &textureSampler);
-	if (result != VK_SUCCESS)
-	{
-		throw std::runtime_error("Failed to create a Texture Sampler!");
-	}
+	//// Sampler creation Info
+	//VkSamplerCreateInfo samplerCreateInfo = {};
+	//samplerCreateInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+	//samplerCreateInfo.magFilter = VK_FILTER_LINEAR;						// How to render when image is magnified on screen
+	//samplerCreateInfo.minFilter = VK_FILTER_LINEAR;						// How to render when image is minified on screen
+	//samplerCreateInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;	// How to handle texture wrap in U (x) direction
+	//samplerCreateInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;	// How to handle texturee wrap in V (y) direction
+	//samplerCreateInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;	// How to handle texturee wrap in W (z) direction
+	//samplerCreateInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;	// Border beyond texture (only works for border clamp)
+	//samplerCreateInfo.unnormalizedCoordinates = VK_FALSE;				// Whether coords should be normalised between 0 and 1
+	//samplerCreateInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;		// Mipmap interpolation mode
+	//samplerCreateInfo.mipLodBias = 0.0f;								// Level of details bias for mipmap level
+	//samplerCreateInfo.maxLod = 0.0f;									// Maximum level of detail to pick mip level
+	//samplerCreateInfo.minLod = 0.0f;									// Minimum level of detail to pick mip level
+	//samplerCreateInfo.anisotropyEnable = VK_TRUE;						// Enable Anisotropy
+	//samplerCreateInfo.maxAnisotropy = 16;								// Anistropy sample level
+
+	//VkResult result = vkCreateSampler(mDevice->logicalDevice(), &samplerCreateInfo, nullptr, &textureSampler);
+	//if (result != VK_SUCCESS)
+	//{
+	//	throw std::runtime_error("Failed to create a Texture Sampler!");
+	//}
 }
 
 void VulkanRenderer::createUniformBuffers()

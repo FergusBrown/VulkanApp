@@ -148,7 +148,8 @@ private:
 	//UboModel* modelTransferSpace;
 
 	// - Assets
-	VkSampler textureSampler;
+	//VkSampler textureSampler;
+	std::unique_ptr<Sampler> mTextureSampler;
 	std::vector<VkImage> textureImages;
 	std::vector<VkDeviceMemory> textureImageMemory;
 	std::vector<VkImageView> textureImageViews;
