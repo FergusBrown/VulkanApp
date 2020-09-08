@@ -357,8 +357,9 @@ void VulkanRenderer::createPerFrameObjects()
 
 	for (auto& image : mSwapchain->images())
 	{
-		// IMAGES + RENDERTARGET
+		// IMAGES + RENDERTARGET + RESOURCE REFERENCE
 		std::vector<Image> renderTargetImages;
+		mAttachmentResources.push_back(std::make_unique<DescriptorResourceReference>());
 
 		// 0 - swapchain image
 		Image swapchainImage(device,
@@ -375,6 +376,10 @@ void VulkanRenderer::createPerFrameObjects()
 			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
 			VK_IMAGE_ASPECT_COLOR_BIT);
 
+		mAttachmentResources.back()->bindInputImage(colourImage,
+			0,
+			0);
+
 		// 2 - depth image
 		Image depthImage(device,
 			swapchainExtent,
@@ -382,6 +387,11 @@ void VulkanRenderer::createPerFrameObjects()
 			VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT,
 			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
 			VK_IMAGE_ASPECT_DEPTH_BIT);
+
+		mAttachmentResources.back()->bindInputImage(depthImage,
+			0,
+			0);
+
 
 		renderTargetImages.push_back(swapchainImage);
 		renderTargetImages.push_back(colourImage);
@@ -549,36 +559,42 @@ void VulkanRenderer::createDescriptorSetLayouts()
 		1,
 		VK_SHADER_STAGE_VERTEX_BIT);
 
+	std::vector<ShaderResource> vpResources;
+
+	vpResources.push_back(vpBuffer);
+
+	mUniformSetLayout = std::make_unique<DescriptorSetLayout>(mDevice, 0, vpResources);
+
+
 	// TEXTURE SAMPLER
-	ShaderResource textureSampler(1,
+	ShaderResource textureSampler(0,
 		VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
 		1,
 		VK_SHADER_STAGE_FRAGMENT_BIT);
 
-	// INPUT ATTACHMENTS
-	ShaderResource depthAttachment(2,
-		VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT,
-		1,
-		VK_SHADER_STAGE_FRAGMENT_BIT);
-
-	ShaderResource colourAttachment(3,
-		VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT,
-		1,
-		VK_SHADER_STAGE_FRAGMENT_BIT);
-
-	std::vector<ShaderResource> vpResources;
 	std::vector<ShaderResource> samplerResources;
+
+	samplerResources.push_back(textureSampler);
+
+	mSamplerSetLayout = (std::make_unique<DescriptorSetLayout>(mDevice, 1, samplerResources));
+
+	// INPUT ATTACHMENTS
+	ShaderResource depthAttachment(0,
+		VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT,
+		1,
+		VK_SHADER_STAGE_FRAGMENT_BIT);
+
+	ShaderResource colourAttachment(1,
+		VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT,
+		1,
+		VK_SHADER_STAGE_FRAGMENT_BIT);
+
 	std::vector<ShaderResource> attachmentResources;
 
-	vpResources.push_back(vpBuffer);
-	samplerResources.push_back(textureSampler);
 	attachmentResources.push_back(depthAttachment);
 	attachmentResources.push_back(colourAttachment);
 
-	// Create Descriptor Set Layouts
-	mUniformSetLayout = std::make_unique<DescriptorSetLayout>(mDevice, 0, vpResources);
-	mSamplerSetLayout = (std::make_unique<DescriptorSetLayout>(mDevice, 1, samplerResources);
-	mAttachmentSetLayout = (std::make_unique<DescriptorSetLayout>(mDevice, 2, attachmentResources);
+	mAttachmentSetLayout = (std::make_unique<DescriptorSetLayout>(mDevice, 2, attachmentResources));	
 
 	// UNIFORM VALUES DESCRIPTOR SET LAYOUT
 	// UboViewProjection Binding Info
@@ -1431,67 +1447,85 @@ void VulkanRenderer::createUniformDescriptorSets()
 
 void VulkanRenderer::createInputDescriptorSets()
 {
-	// Resize array to hold descriptor set for each swap chain image
-	inputDescriptorSets.resize(mSwapchain->details().imageCount);
-
-	// Fill array of layouts ready for set creation
-	std::vector<VkDescriptorSetLayout> setLayouts(mSwapchain->details().imageCount, inputSetLayout);
-
-	// Input Attachment Descriptor Set Allocation Info
-	VkDescriptorSetAllocateInfo setAllocInfo = {};
-	setAllocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-	setAllocInfo.descriptorPool = inputDescriptorPool;
-	setAllocInfo.descriptorSetCount = static_cast<uint32_t>(mSwapchain->details().imageCount);
-	setAllocInfo.pSetLayouts = setLayouts.data();
-
-	// Allocate descriptor sets
-	VkResult result = vkAllocateDescriptorSets(mDevice->logicalDevice(), &setAllocInfo, inputDescriptorSets.data());
-	if (result != VK_SUCCESS)
-	{
-		throw std::runtime_error("Failed to allocate Input Attachment Descriptor Sets!");
-	}
-
-	// Update each descriptor set with input attachment
+	// CREATE SETS
 	for (size_t i = 0; i < mSwapchain->details().imageCount; ++i)
 	{
-		// Colour Attachment Descriptor
-		VkDescriptorImageInfo colourAttachmentDescriptor = {};
-		colourAttachmentDescriptor.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-		colourAttachmentDescriptor.imageView = colourBufferImageView[i];
-		colourAttachmentDescriptor.sampler = VK_NULL_HANDLE;
+		std::vector<VkDescriptorImageInfo> attachmentImageInfos;
 
-		// Colour attachment descriptor write
-		VkWriteDescriptorSet colourWrite = {};
-		colourWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-		colourWrite.dstSet = inputDescriptorSets[i];
-		colourWrite.dstBinding = 0;
-		colourWrite.dstArrayElement = 0;
-		colourWrite.descriptorType = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;
-		colourWrite.descriptorCount = 1;
-		colourWrite.pImageInfo = &colourAttachmentDescriptor;
+		VkDescriptorImageInfo imageInfo = {};
+		mAttachmentResources[i]->generateDescriptorImageInfo(imageInfo, 0, 0);
+		attachmentImageInfos.push_back(imageInfo);
+		mAttachmentResources[i]->generateDescriptorImageInfo(imageInfo, 1, 0);
+		attachmentImageInfos.push_back(imageInfo);
 
-		// Depth Attachment Descriptor
-		VkDescriptorImageInfo depthAttachmentDescriptor = {};
-		depthAttachmentDescriptor.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-		depthAttachmentDescriptor.imageView = depthBufferImageView[i];
-		depthAttachmentDescriptor.sampler = VK_NULL_HANDLE;
+		mAttachmentDescriptorSets.push_back(std::make_unique<DescriptorSet>(mDevice, mAttachmentDescriptorPool, attachmentImageInfos));
 
-		// Depth attachment descriptor write
-		VkWriteDescriptorSet depthWrite = {};
-		depthWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-		depthWrite.dstSet = inputDescriptorSets[i];
-		depthWrite.dstBinding = 1;
-		depthWrite.dstArrayElement = 0;
-		depthWrite.descriptorType = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;
-		depthWrite.descriptorCount = 1;
-		depthWrite.pImageInfo = &depthAttachmentDescriptor;
-
-		// List of input descriptor set writes
-		std::vector<VkWriteDescriptorSet> setWrites = { colourWrite, depthWrite };
-
-		// Update descriptor sets
-		vkUpdateDescriptorSets(mDevice->logicalDevice(), static_cast<uint32_t>(setWrites.size()), setWrites.data(), 0, nullptr);
+		// Update the descriptor sets with new image/binding info
+		std::vector<uint32_t> bindingsToUpdate = { 0, 1 };
+		mAttachmentDescriptorSets.back()->update(bindingsToUpdate);
 	}
+
+	//// Resize array to hold descriptor set for each swap chain image
+	//inputDescriptorSets.resize(mSwapchain->details().imageCount);
+
+	//// Fill array of layouts ready for set creation
+	//std::vector<VkDescriptorSetLayout> setLayouts(mSwapchain->details().imageCount, inputSetLayout);
+
+	//// Input Attachment Descriptor Set Allocation Info
+	//VkDescriptorSetAllocateInfo setAllocInfo = {};
+	//setAllocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+	//setAllocInfo.descriptorPool = inputDescriptorPool;
+	//setAllocInfo.descriptorSetCount = static_cast<uint32_t>(mSwapchain->details().imageCount);
+	//setAllocInfo.pSetLayouts = setLayouts.data();
+
+	//// Allocate descriptor sets
+	//VkResult result = vkAllocateDescriptorSets(mDevice->logicalDevice(), &setAllocInfo, inputDescriptorSets.data());
+	//if (result != VK_SUCCESS)
+	//{
+	//	throw std::runtime_error("Failed to allocate Input Attachment Descriptor Sets!");
+	//}
+
+	//// Update each descriptor set with input attachment
+	//for (size_t i = 0; i < mSwapchain->details().imageCount; ++i)
+	//{
+	//	// Colour Attachment Descriptor
+	//	VkDescriptorImageInfo colourAttachmentDescriptor = {};
+	//	colourAttachmentDescriptor.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+	//	colourAttachmentDescriptor.imageView = colourBufferImageView[i];
+	//	colourAttachmentDescriptor.sampler = VK_NULL_HANDLE;
+
+	//	// Colour attachment descriptor write
+	//	VkWriteDescriptorSet colourWrite = {};
+	//	colourWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+	//	colourWrite.dstSet = inputDescriptorSets[i];
+	//	colourWrite.dstBinding = 0;
+	//	colourWrite.dstArrayElement = 0;
+	//	colourWrite.descriptorType = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;
+	//	colourWrite.descriptorCount = 1;
+	//	colourWrite.pImageInfo = &colourAttachmentDescriptor;
+
+	//	// Depth Attachment Descriptor
+	//	VkDescriptorImageInfo depthAttachmentDescriptor = {};
+	//	depthAttachmentDescriptor.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+	//	depthAttachmentDescriptor.imageView = depthBufferImageView[i];
+	//	depthAttachmentDescriptor.sampler = VK_NULL_HANDLE;
+
+	//	// Depth attachment descriptor write
+	//	VkWriteDescriptorSet depthWrite = {};
+	//	depthWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+	//	depthWrite.dstSet = inputDescriptorSets[i];
+	//	depthWrite.dstBinding = 1;
+	//	depthWrite.dstArrayElement = 0;
+	//	depthWrite.descriptorType = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;
+	//	depthWrite.descriptorCount = 1;
+	//	depthWrite.pImageInfo = &depthAttachmentDescriptor;
+
+	//	// List of input descriptor set writes
+	//	std::vector<VkWriteDescriptorSet> setWrites = { colourWrite, depthWrite };
+
+	//	// Update descriptor sets
+	//	vkUpdateDescriptorSets(mDevice->logicalDevice(), static_cast<uint32_t>(setWrites.size()), setWrites.data(), 0, nullptr);
+	//}
 }
 
 void VulkanRenderer::updateUniformBuffers(uint32_t imageIndex)
