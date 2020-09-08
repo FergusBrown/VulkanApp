@@ -149,7 +149,7 @@
     <ClCompile Include="CommandBuffer.cpp" />
     <ClCompile Include="CommandPool.cpp" />
     <ClCompile Include="DescriptorPool.cpp" />
-    <ClCompile Include="DescriptorResourceSet.cpp" />
+    <ClCompile Include="DescriptorResourceReference.cpp" />
     <ClCompile Include="DescriptorSet.cpp" />
     <ClCompile Include="DescriptorSetLayout.cpp" />
     <ClCompile Include="Device.cpp" />
@@ -178,7 +178,7 @@
     <ClInclude Include="ControlConstants.h" />
     <ClInclude Include="ctpl_stl.h" />
     <ClInclude Include="DescriptorPool.h" />
-    <ClInclude Include="DescriptorResourceSet.h" />
+    <ClInclude Include="DescriptorResourceReference.h" />
     <ClInclude Include="DescriptorSet.h" />
     <ClInclude Include="DescriptorSetLayout.h" />
     <ClInclude Include="Device.h" />

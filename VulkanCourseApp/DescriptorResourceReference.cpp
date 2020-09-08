@@ -1,11 +1,11 @@
-#include "DescriptorResourceSet.h"
+#include "DescriptorResourceReference.h"
 
-void DescriptorResourceSet::reset()
+void DescriptorResourceReference::reset()
 {
 	mResourceBindings.clear();
 }
 
-void DescriptorResourceSet::generateDescriptorImageInfo(VkDescriptorImageInfo& imageInfo, uint32_t bindingIndex, uint32_t arrayIndex)
+void DescriptorResourceReference::generateDescriptorImageInfo(VkDescriptorImageInfo& imageInfo, uint32_t bindingIndex, uint32_t arrayIndex)
 {
 	Resource& resource = mResourceBindings.at(bindingIndex).at(arrayIndex);
 
@@ -29,7 +29,7 @@ void DescriptorResourceSet::generateDescriptorImageInfo(VkDescriptorImageInfo& i
 
 }
 
-void DescriptorResourceSet::getDescriptorBufferInfo(VkDescriptorBufferInfo& bufferInfo, uint32_t bindingIndex, uint32_t arrayIndex)
+void DescriptorResourceReference::generateDescriptorBufferInfo(VkDescriptorBufferInfo& bufferInfo, uint32_t bindingIndex, uint32_t arrayIndex)
 {
 	Resource& resource = mResourceBindings.at(bindingIndex).at(arrayIndex);
 
@@ -44,26 +44,26 @@ void DescriptorResourceSet::getDescriptorBufferInfo(VkDescriptorBufferInfo& buff
 	bufferInfo.range =  resource.range;					// Size of data
 }
 
-const BindingMap<Resource>& DescriptorResourceSet::resourceBindings() const
+const BindingMap<Resource>& DescriptorResourceReference::resourceBindings() const
 {
 	return mResourceBindings;
 }
 
-void DescriptorResourceSet::bindImage(const Image& image, const Sampler& sampler, const uint32_t bindingIndex, const uint32_t arrayIndex)
+void DescriptorResourceReference::bindImage(const Image& image, const Sampler& sampler, const uint32_t bindingIndex, const uint32_t arrayIndex)
 {
 	mResourceBindings[bindingIndex][arrayIndex].buffer =	nullptr;
 	mResourceBindings[bindingIndex][arrayIndex].image =		&image;
 	mResourceBindings[bindingIndex][arrayIndex].sampler =	&sampler;
 }
 
-void DescriptorResourceSet::bindInputImage(const Image& image, const uint32_t bindingIndex, const uint32_t arrayIndex)
+void DescriptorResourceReference::bindInputImage(const Image& image, const uint32_t bindingIndex, const uint32_t arrayIndex)
 {
 	mResourceBindings[bindingIndex][arrayIndex].buffer =	nullptr;
 	mResourceBindings[bindingIndex][arrayIndex].image =		&image;
 	mResourceBindings[bindingIndex][arrayIndex].sampler =	nullptr;
 }
 
-void DescriptorResourceSet::bindBuffer(const Buffer& buffer, const uint32_t offset, const uint32_t range, const uint32_t bindingIndex, const uint32_t arrayIndex)
+void DescriptorResourceReference::bindBuffer(const Buffer& buffer, const uint32_t offset, const uint32_t range, const uint32_t bindingIndex, const uint32_t arrayIndex)
 {
 	mResourceBindings[bindingIndex][arrayIndex].buffer =	nullptr;
 	mResourceBindings[bindingIndex][arrayIndex].offset =	offset;

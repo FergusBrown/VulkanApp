@@ -17,20 +17,21 @@ struct Resource
 
 // Contains actual resources references in descriptor bindings
 // + functions for generating descriptor infos
-class DescriptorResourceSet
+class DescriptorResourceReference
 {
 public:
-	DescriptorResourceSet() = default;
-	~DescriptorResourceSet() = default;
+	DescriptorResourceReference() = default;
+	~DescriptorResourceReference() = default;
 
 	// - Getters
+	const BindingMap<Resource>& resourceBindings() const;
+
 
 	// - Management
 	void reset();
 	void generateDescriptorImageInfo(VkDescriptorImageInfo& imageInfo, uint32_t bindingIndex, uint32_t arrayIndex);
-	void getDescriptorBufferInfo(VkDescriptorBufferInfo& bufferInfo, uint32_t bindingIndex, uint32_t arrayIndex);
+	void generateDescriptorBufferInfo(VkDescriptorBufferInfo& bufferInfo, uint32_t bindingIndex, uint32_t arrayIndex);
 
-	const BindingMap<Resource>& resourceBindings() const;
 	void bindBuffer(const Buffer& buffer, const uint32_t offset, const uint32_t range, const uint32_t bindingIndex, const uint32_t arrayIndex);
 	void bindImage(const Image& image, const Sampler& sampler, const uint32_t bindingIndex, const uint32_t arrayIndex);
 	void bindInputImage(const Image& image, const uint32_t bindingIndex, const uint32_t arrayIndex);

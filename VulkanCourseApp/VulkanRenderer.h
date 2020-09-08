@@ -26,6 +26,7 @@
 #include "Buffer.h"
 #include "Sampler.h"
 #include "DescriptorSetLayout.h"
+#include "DescriptorResourceReference.h"
 #include "DescriptorSet.h"
 #include "RenderTarget.h"
 #include "Frame.h"
@@ -127,13 +128,12 @@ private:
 	//std::vector<VkDescriptorSet> samplerDescriptorSets;		// Desctcriptor sets holding texture samplers
 	//std::vector<VkDescriptorSet> inputDescriptorSets;		// Descriptor set holding colour/depth images (used for second subpass)
 	
-	BindingMap<VkDescriptorImageInfo> mUniformInfos;
+	std::vector<std::unique_ptr<DescriptorResourceReference>> mUniformResources;
+	std::vector<std::unique_ptr<DescriptorResourceReference>> mSamplerResources;
+	std::vector<std::unique_ptr<DescriptorResourceReference>> mAttachmentResources;
+	
 	std::vector<std::unique_ptr<DescriptorSet>> mUniformDescriptorSets;			// Descriptor set holding uniform data
-
-	BindingMap<VkDescriptorImageInfo> mSamplerInfos;
 	std::vector<std::unique_ptr<DescriptorSet>> mSamplerDescriptorSets;		// Desctcriptor sets holding texture samplers
-
-	BindingMap<VkDescriptorImageInfo> mAttachmentInfos;
 	std::vector<std::unique_ptr<DescriptorSet>> mAttachmentDescriptorSets;		// Descriptor set holding colour/depth images (used for second subpass)
 
 	std::vector<std::unique_ptr<Buffer>> mUniformBuffers;
@@ -226,6 +226,7 @@ private:
 	void createTextureSampler();
 	void createUniformBuffers();
 	void createDescriptorPools();
+	//void createDescriptorResourceReferences();
 	void createUniformDescriptorSets();
 	void createInputDescriptorSets();
 

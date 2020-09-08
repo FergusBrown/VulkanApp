@@ -114,13 +114,13 @@
     <ClCompile Include="DescriptorSetLayout.cpp">
       <Filter>Source Files\Renderer</Filter>
     </ClCompile>
-    <ClCompile Include="DescriptorResourceSet.cpp">
-      <Filter>Source Files\Renderer</Filter>
-    </ClCompile>
     <ClCompile Include="Sampler.cpp">
       <Filter>Source Files\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="Buffer.cpp">
+      <Filter>Source Files\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="DescriptorResourceReference.cpp">
       <Filter>Source Files\Renderer</Filter>
     </ClCompile>
   </ItemGroup>
@@ -212,13 +212,13 @@
     <ClInclude Include="DescriptorSetLayout.h">
       <Filter>Header Files\Renderer</Filter>
     </ClInclude>
-    <ClInclude Include="DescriptorResourceSet.h">
-      <Filter>Header Files\Renderer</Filter>
-    </ClInclude>
     <ClInclude Include="Sampler.h">
       <Filter>Header Files\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="Buffer.h">
+      <Filter>Header Files\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="DescriptorResourceReference.h">
       <Filter>Header Files\Renderer</Filter>
     </ClInclude>
   </ItemGroup>
