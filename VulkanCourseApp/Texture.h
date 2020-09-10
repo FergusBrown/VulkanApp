@@ -9,7 +9,7 @@ class Texture
 {
 public:
 	Texture(Device& device, stbi_uc* textureData, int width, int height, VkDeviceSize imageSize);
-	~Texture();
+	~Texture() = default;
 
 	// - Getters
 	const Device& device() const;
@@ -28,7 +28,6 @@ private:
 	uint32_t mID;
 
 	std::unique_ptr<Image> mImage;
-	VkDeviceMemory mMemory;
 
 	void createImage(stbi_uc* textureData, int width, int height, VkDeviceSize imageSize);
 };

@@ -1,5 +1,5 @@
 #define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
+#include <stb_image.h>
 #include "Texture.h"
 
 
@@ -13,11 +13,6 @@ Texture::Texture(Device& device, stbi_uc* textureData, int width, int height, Vk
 	++ID;
 }
 
-Texture::~Texture()
-{
-	vkFreeMemory(mDevice.logicalDevice(), mMemory, nullptr);
-}
-
 const Device& Texture::device() const
 {
 	return mDevice;
@@ -25,7 +20,7 @@ const Device& Texture::device() const
 
 const VkImage& Texture::image() const
 {
-	return mImage->image();
+	return mImage->handle();
 }
 
 const VkImageView& Texture::imageView() const
@@ -35,7 +30,7 @@ const VkImageView& Texture::imageView() const
 
 VkDeviceMemory Texture::memory() const
 {
-	return mMemory;
+	return mImage->memory();
 }
 
 uint32_t Texture::textureID() const
@@ -69,8 +64,7 @@ void Texture::createImage(stbi_uc* textureData, int width, int height, VkDeviceS
 	Buffer stagingBuffer(mDevice,
 		imageSize,
 		VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-		VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
 	// Copy image data to staging buffer
 	void* data = stagingBuffer.map();;
@@ -86,11 +80,10 @@ void Texture::createImage(stbi_uc* textureData, int width, int height, VkDeviceS
 		VK_FORMAT_R8G8B8A8_UNORM,
 		VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
 		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-		VK_IMAGE_ASPECT_COLOR_BIT);
+		VK_IMAGE_ASPECT_COLOR_BIT); /*,
+		VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);*/
 
 	
-
-
 	// COPY DATA TO IMAGE
 	// Transition image to DST for copy operation
 	transitionImageLayout(mDevice->logicalDevice(), mDevice->graphicsQueue(), graphicsCommandPool,
