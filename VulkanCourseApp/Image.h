@@ -2,6 +2,7 @@
 #include "Common.h"
 #include "Utilities.h"
 #include "Device.h"
+#include "DeviceMemory.h"
 
 // TODO: add functionality to change image properties based on member variables
 // TODO: support for 3D images
@@ -28,36 +29,55 @@ public:
 		VkSampleCountFlagBits sampleCount = VK_SAMPLE_COUNT_1_BIT,
 		uint32_t mipLevels = 1,
 		uint32_t arrayLayerCount = 1,
+		VkImageTiling tiling = VK_IMAGE_TILING_OPTIMAL,
+		VkImageLayout initialLayout = VK_IMAGE_LAYOUT_UNDEFINED
+	);
+
+	// Same as above, different order of arguments
+	Image(Device& device,
+		const VkExtent2D& extent,
+		VkFormat format,
+		VkImageUsageFlags usage,
+		VkMemoryPropertyFlags propFlags,
+		VkImageAspectFlags aspectMask,
+		VkImageLayout initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+		VkSampleCountFlagBits sampleCount = VK_SAMPLE_COUNT_1_BIT,
+		uint32_t mipLevels = 1,
+		uint32_t arrayLayerCount = 1,
 		VkImageTiling tiling = VK_IMAGE_TILING_OPTIMAL
+		
 	);
 
 	~Image();
 
 	// - Getters
 	Device& device() const;
-	const VkImage& image() const;
+	const VkImage& handle() const;
 	const VkImageView& imageView() const;
 	const VkExtent3D& extent() const;
 	VkFormat format() const;
 	VkSampleCountFlagBits sampleCount() const;
 	VkImageUsageFlags usage() const;
+	VkDeviceMemory memory() const;
 
 private:
 	Device& mDevice;
-	VkImage mImage{ VK_NULL_HANDLE };
+	VkImage mHandle{ VK_NULL_HANDLE };
 
 	// - Image attributes
-	VkImageType mType;
-	VkExtent3D mExtent;		// use different constructor if creating a 3D image
-	VkImageSubresource mSubresource;
-	VkFormat mFormat;
-	VkImageTiling mTiling;
-	VkSampleCountFlagBits mSampleCount;
-	VkMemoryPropertyFlags mPropFlags;
-	VkImageUsageFlags mUsage;
-	
+	VkImageType				mType;
+	VkExtent3D				mExtent;		// use different constructor if creating a 3D image
+	VkImageSubresource		mSubresource;
+	VkFormat				mFormat;
+	VkImageTiling			mTiling;
+	VkSampleCountFlagBits	mSampleCount;
+	VkMemoryPropertyFlags	mPropFlags;
+	VkImageUsageFlags		mUsage;
+	VkImageLayout			mLayout;
+	VkSharingMode			mSharingMode;
+
 	// - Associated with image
-	VkDeviceMemory mMemory{ VK_NULL_HANDLE };
+	std::unique_ptr<DeviceMemory> mMemory;
 	VkImageView mImageView{ VK_NULL_HANDLE };
 
 	// - Image view management
@@ -65,5 +85,7 @@ private:
 
 	// - Memory management
 	void createMemory();
+
+	void createImage();
 };
 

@@ -16,7 +16,7 @@ struct Model {
 class Mesh
 {
 public:
-	Mesh();
+	Mesh() = delete;
 	Mesh(VkPhysicalDevice newPhysicalDevice, VkDevice newDevice,
 		VkQueue transferQueue, VkCommandPool transferCommandPool,
 		std::vector<Vertex>* vertices, std::vector<uint32_t> * indices,

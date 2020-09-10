@@ -2,6 +2,7 @@
 #include "Common.h"
 
 #include "Device.h"
+#include "DeviceMemory.h"
 
 // Contains a VkBuffer and the VkDeviceMemory which is mapped to the resource
 class Buffer
@@ -28,11 +29,8 @@ private:
 
 	VkBuffer mHandle{ VK_NULL_HANDLE };
 
-	VkDeviceMemory mMemory;
+	std::unique_ptr<DeviceMemory> mMemory;
 
 	VkDeviceSize mSize{ 0 };
-
-	// - Support
-	static uint32_t findMemoryTypeIndex(VkPhysicalDevice physicalDevice, uint32_t allowedTypes, VkMemoryPropertyFlags properties);
 };
 

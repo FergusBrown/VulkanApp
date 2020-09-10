@@ -153,6 +153,7 @@
     <ClCompile Include="DescriptorSet.cpp" />
     <ClCompile Include="DescriptorSetLayout.cpp" />
     <ClCompile Include="Device.cpp" />
+    <ClCompile Include="DeviceMemory.cpp" />
     <ClCompile Include="Frame.cpp" />
     <ClCompile Include="Framebuffer.cpp" />
     <ClCompile Include="Image.cpp" />
@@ -166,6 +167,7 @@
     <ClCompile Include="Sampler.cpp" />
     <ClCompile Include="Subpass.cpp" />
     <ClCompile Include="Swapchain.cpp" />
+    <ClCompile Include="Texture.cpp" />
     <ClCompile Include="VulkanRenderer.cpp" />
     <ClCompile Include="Window.cpp" />
   </ItemGroup>
@@ -182,6 +184,7 @@
     <ClInclude Include="DescriptorSet.h" />
     <ClInclude Include="DescriptorSetLayout.h" />
     <ClInclude Include="Device.h" />
+    <ClInclude Include="DeviceMemory.h" />
     <ClInclude Include="DirectionalLight.h" />
     <ClInclude Include="Frame.h" />
     <ClInclude Include="Framebuffer.h" />
@@ -198,6 +201,7 @@
     <ClInclude Include="Sampler.h" />
     <ClInclude Include="Subpass.h" />
     <ClInclude Include="Swapchain.h" />
+    <ClInclude Include="Texture.h" />
     <ClInclude Include="Utilities.h" />
     <ClInclude Include="VulkanRenderer.h" />
     <ClInclude Include="VulkanValidation.h" />

@@ -31,6 +31,7 @@
 #include "RenderTarget.h"
 #include "Frame.h"
 #include "Framebuffer.h"
+#include "Texture.h"
 
 using namespace glm;
 
@@ -150,9 +151,10 @@ private:
 	// - Assets
 	//VkSampler textureSampler;
 	std::unique_ptr<Sampler> mTextureSampler;
-	std::vector<VkImage> textureImages;
-	std::vector<VkDeviceMemory> textureImageMemory;
-	std::vector<VkImageView> textureImageViews;
+	//std::vector<VkImage> textureImages;
+	//std::vector<VkDeviceMemory> textureImageMemory;
+	//std::vector<VkImageView> textureImageViews;
+	std::map <uint32_t, std::unique_ptr<Texture>> mTextures;
 
 	// - Pipeline
 	VkPipeline graphicsPipeline;
@@ -269,14 +271,15 @@ private:
 	//VkImageView createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags);
 	VkShaderModule createShaderModule(const std::vector<char>& code);
 
-	int createTextureImage(std::string fileName);
+	//int createTextureImage(std::string fileName);
 	int createTexture(std::string fileName);
 	int createTextureDescriptor(VkImageView textureImage);
+	
 
 	
 
 	// -- Loader Functions
-	stbi_uc* loadTextureFile(std::string fileName, int* width, int* height, VkDeviceSize* imageSize);
+	//stbi_uc* loadTextureFile(std::string fileName, int* width, int* height, VkDeviceSize* imageSize);
 	
 };
 
