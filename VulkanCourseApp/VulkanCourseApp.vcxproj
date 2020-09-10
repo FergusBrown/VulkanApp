@@ -86,7 +86,7 @@
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)/../../externals/stb;C:/VulkanSDK/1.2.141.2/Include;$(SolutionDir)/../../externals/GLM/glm;$(SolutionDir)/../../externals/GLFW32/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)/../../externals/stb;C:/VulkanSDK/1.2.141.2/Include;$(SolutionDir)/../../externals/GLM/glm;$(SolutionDir)/../../externals/GLFW32/include;$(SolutionDir)/../../externals/CTPL;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -100,7 +100,7 @@
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:/VulkanSDK/1.2.141.2/Include;$(SolutionDir)/../../externals/GLM/glm;$(SolutionDir)/../../externals/ASSIMP/include;$(SolutionDir)/../../externals/stb;$(SolutionDir)/../../externals/GLFW/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)/../../externals/CTPL;C:/VulkanSDK/1.2.141.2/Include;$(SolutionDir)/../../externals/GLM/glm;$(SolutionDir)/../../externals/ASSIMP/include;$(SolutionDir)/../../externals/stb;$(SolutionDir)/../../externals/GLFW/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
@@ -132,7 +132,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:/VulkanSDK/1.2.141.2/Include;$(SolutionDir)/../../externals/GLM/glm;$(SolutionDir)/../../externals/ASSIMP/include;$(SolutionDir)/../../externals/stb;$(SolutionDir)/../../externals/GLFW/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)/../../externals/CTPL;C:/VulkanSDK/1.2.141.2/Include;$(SolutionDir)/../../externals/GLM/glm;$(SolutionDir)/../../externals/ASSIMP/include;$(SolutionDir)/../../externals/stb;$(SolutionDir)/../../externals/GLFW/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
@@ -178,7 +178,6 @@
     <ClInclude Include="Commands.h" />
     <ClInclude Include="Common.h" />
     <ClInclude Include="ControlConstants.h" />
-    <ClInclude Include="ctpl_stl.h" />
     <ClInclude Include="DescriptorPool.h" />
     <ClInclude Include="DescriptorResourceReference.h" />
     <ClInclude Include="DescriptorSet.h" />

@@ -37,9 +37,6 @@
     <Filter Include="Source Files\Scene">
       <UniqueIdentifier>{a8a0fd61-357f-4782-adb0-9ade3d2ec119}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\External">
-      <UniqueIdentifier>{877628ed-090b-4448-bb89-e03d3c9378f9}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\Other">
       <UniqueIdentifier>{14533a85-3811-4930-b277-f7947d27a5e1}</UniqueIdentifier>
     </Filter>
@@ -163,9 +160,6 @@
     </ClInclude>
     <ClInclude Include="Pawn.h">
       <Filter>Header Files\Scene</Filter>
-    </ClInclude>
-    <ClInclude Include="ctpl_stl.h">
-      <Filter>Header Files\External</Filter>
     </ClInclude>
     <ClInclude Include="Window.h">
       <Filter>Header Files\Other</Filter>
