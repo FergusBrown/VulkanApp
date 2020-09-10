@@ -5,11 +5,11 @@ This is a project I'm using to explore the Vulkan API and graphics theory. The c
 ### Contents
 
 - [Overview](#overview)
-- [Class Structure](#class-structure)
+
 
 
 ## Overview
 
 
 
-## Class Structure
+
