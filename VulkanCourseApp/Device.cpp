@@ -47,6 +47,59 @@ CommandPool& Device::primaryCommandPool()
 	return *mPrimaryCommandPool;
 }
 
+// Allocates a buffer to the device's command pools without incrementing the pool's counter
+// This must be submitted and freed with the submitTemporaryCommandBuffer() function
+// Use this for one-off copy commands etc.
+VkCommandBuffer Device::createAndBeginTemporaryCommandBuffer(VkCommandBufferLevel level)
+{
+	// ALLOCATE COMMAND BUFFER
+	VkCommandBufferAllocateInfo cbAllocInfo = {};
+	cbAllocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+	cbAllocInfo.commandPool = mPrimaryCommandPool->handle();
+	cbAllocInfo.level = level;																
+	cbAllocInfo.commandBufferCount = 1;
+
+	VkCommandBuffer commandBuffer;
+	VkResult result = vkAllocateCommandBuffers(mPrimaryCommandPool->device().logicalDevice(), &cbAllocInfo, &commandBuffer);
+	if (result != VK_SUCCESS)
+	{
+		throw std::runtime_error("Failed to allocate Temporary Command Buffer!");
+	}
+
+	// BEGIN RECORDING
+	VkCommandBufferBeginInfo beginInfo = {};
+	beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+	beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+	vkBeginCommandBuffer(commandBuffer, &beginInfo);
+
+	return commandBuffer;
+}
+
+// end buffer recording, submits to queue and frees the command buffer
+void Device::endAndSubmitTemporaryCommandBuffer(VkCommandBuffer commandBuffer, VkQueue queue)
+{
+	if (commandBuffer == VK_NULL_HANDLE)
+	{
+		return;
+	}
+
+	// END RECORDING
+	vkEndCommandBuffer(commandBuffer);
+
+	// SUBMIT TO QUEUE
+	VkSubmitInfo submitInfo = {};
+	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+	submitInfo.commandBufferCount = 1;
+	submitInfo.pCommandBuffers = &commandBuffer;
+
+	vkQueueSubmit(queue, 1, &submitInfo, VK_NULL_HANDLE);
+	//vkQueueWaitIdle(queue);
+
+	// FREE COMMAND BUFFER
+	vkFreeCommandBuffers(mLogicalDevice, mPrimaryCommandPool, 1, &commandBuffer);
+}
+
 QueueFamilyIndices Device::getQueueFamilies()
 {
 	QueueFamilyIndices indices;

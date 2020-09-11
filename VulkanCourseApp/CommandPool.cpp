@@ -9,7 +9,7 @@ CommandPool::CommandPool(Device& device, uint32_t queueFamilyIndex) :
 	poolInfo.queueFamilyIndex = queueFamilyIndex;					// Queue family type that buffers from this command pool will use
 
 	// Create a graphics queue family command pool
-	VkResult result = vkCreateCommandPool(mDevice.logicalDevice(), &poolInfo, nullptr, &mCommandPool);
+	VkResult result = vkCreateCommandPool(mDevice.logicalDevice(), &poolInfo, nullptr, &mHandle);
 	if (result != VK_SUCCESS)
 	{
 		throw std::runtime_error("Failed to create a Command Pool!");
@@ -18,9 +18,9 @@ CommandPool::CommandPool(Device& device, uint32_t queueFamilyIndex) :
 
 CommandPool::~CommandPool()
 {
-	if (mCommandPool != VK_NULL_HANDLE)
+	if (mHandle != VK_NULL_HANDLE)
 	{
-		vkDestroyCommandPool(mDevice.logicalDevice(), mCommandPool, nullptr);
+		vkDestroyCommandPool(mDevice.logicalDevice(), mHandle, nullptr);
 	}
 }
 
@@ -35,15 +35,15 @@ uint32_t CommandPool::queueFamilyIndex() const
 	return mQueueFamilyIndex;
 }
 
-VkCommandPool CommandPool::commandPool() const
+VkCommandPool CommandPool::handle() const
 {
-	return mCommandPool;
+	return mHandle;
 }
 
 VkResult CommandPool::reset()
 {
 	// This resets all command buffers, allowing them to be recycled without reallocation
-	VkResult result = vkResetCommandPool(mDevice.logicalDevice(), mCommandPool, 0);
+	VkResult result = vkResetCommandPool(mDevice.logicalDevice(), mHandle, 0);
 
 	if (result == VK_SUCCESS)
 	{

@@ -32,6 +32,10 @@ public:
 	VkQueue presentationQueue() const;
 	CommandPool& primaryCommandPool();
 
+	// - Management
+	VkCommandBuffer createAndBeginTemporaryCommandBuffer(VkCommandBufferLevel level);
+	void endAndSubmitTemporaryCommandBuffer(VkCommandBuffer commandBuffer, VkQueue queue);
+
 private:
 	// Variables
 	VkPhysicalDevice mPhysicalDevice;

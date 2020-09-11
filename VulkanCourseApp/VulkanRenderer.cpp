@@ -1113,12 +1113,12 @@ void VulkanRenderer::createGraphicsPipeline()
 //	{
 //		for (size_t i = 0; i < threadCount; ++i)
 //		{
-//			frame.threadData[i].commandBuffer.resize(numSecondaryBuffers);
+//			frame.threadData[i].handle.resize(numSecondaryBuffers);
 //
 //			cbAllocInfo.commandPool = frame.threadData[i].commandPool;
 //
 //			// Allocate command buffers and place handles in array of buffers
-//			result = vkAllocateCommandBuffers(mDevice->logicalDevice(), &cbAllocInfo, frame.threadData[i].commandBuffer.data());
+//			result = vkAllocateCommandBuffers(mDevice->logicalDevice(), &cbAllocInfo, frame.threadData[i].handle.data());
 //			if (result != VK_SUCCESS)
 //			{
 //				throw std::runtime_error("Failed to allocate Command Buffers!");

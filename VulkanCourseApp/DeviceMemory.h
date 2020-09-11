@@ -17,6 +17,8 @@ private:
 
 	VkDeviceMemory mHandle{ VK_NULL_HANDLE };
 
+	//VkMemoryPropertyFlags	mPropFlags;
+
 	// - Support
 	static uint32_t findMemoryTypeIndex(VkPhysicalDevice physicalDevice, uint32_t allowedTypes, VkMemoryPropertyFlags properties);
 };

@@ -80,10 +80,11 @@ void Texture::createImage(stbi_uc* textureData, int width, int height, VkDeviceS
 		VK_FORMAT_R8G8B8A8_UNORM,
 		VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
 		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-		VK_IMAGE_ASPECT_COLOR_BIT); /*,
-		VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);*/
+		VK_IMAGE_ASPECT_COLOR_BIT); 
 
 	
+
+
 	// COPY DATA TO IMAGE
 	// Transition image to DST for copy operation
 	transitionImageLayout(mDevice->logicalDevice(), mDevice->graphicsQueue(), graphicsCommandPool,

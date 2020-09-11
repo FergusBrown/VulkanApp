@@ -11,14 +11,23 @@ public:
 	~CommandBuffer();
 
 	// - Getters
-	const VkCommandBuffer& commandBuffer() const;
+	const VkCommandBuffer& handle() const;
 	const VkCommandBufferLevel level() const;
+
+	// Command buffer operations
+	void begin(VkCommandBufferUsageFlags flags);
+
+	void transitionImageLayout(VkImage image, VkImageLayout oldLayout, VkImageLayout newLayout);
+
+	void end();
+	void submit(VkQueue queue);
 
 private:
 	CommandPool& mCommandPool;
 
-	VkCommandBuffer mCommandBuffer{ VK_NULL_HANDLE };
+	VkCommandBuffer mHandle{ VK_NULL_HANDLE };
 
 	const VkCommandBufferLevel mLevel;
+
 };
 

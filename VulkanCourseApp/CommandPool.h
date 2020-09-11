@@ -14,7 +14,7 @@ public:
 	// - Getters
 	Device& device();
 	uint32_t queueFamilyIndex() const;
-	VkCommandPool commandPool() const;
+	VkCommandPool handle() const;
 
 	// - Pool Operations
 	VkResult reset();
@@ -26,7 +26,7 @@ private:
 
 	uint32_t mQueueFamilyIndex;
 
-	VkCommandPool mCommandPool{ VK_NULL_HANDLE };
+	VkCommandPool mHandle{ VK_NULL_HANDLE };
 
 	std::vector<std::unique_ptr<CommandBuffer>> mPrimaryCommandBuffers;
 

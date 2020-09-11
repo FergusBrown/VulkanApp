@@ -6,13 +6,13 @@ CommandBuffer::CommandBuffer(CommandPool& commandPool, VkCommandBufferLevel leve
 
 	VkCommandBufferAllocateInfo cbAllocInfo = {};
 	cbAllocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-	cbAllocInfo.commandPool = commandPool.commandPool();
+	cbAllocInfo.commandPool = commandPool.handle();
 	cbAllocInfo.level = level;						// VK_COMMAND_BUFFER_LEVEL_PRIMARY   : buffer you submit directly to the queue. Cannot be called by other buffers.
 													// VK_COMMAND_BUFFER_LEVEL_SECONDARY : buffer cannot be called directly. Can be called by other buffers via "vkCmdExecuteCommands" when recording commands in primary buffer
 	cbAllocInfo.commandBufferCount = 1;
 
 	// Allocate command buffers and place handles in array of buffers
-	VkResult result = vkAllocateCommandBuffers(commandPool.device().logicalDevice(), &cbAllocInfo, &mCommandBuffer);
+	VkResult result = vkAllocateCommandBuffers(commandPool.device().logicalDevice(), &cbAllocInfo, &mHandle);
 	if (result != VK_SUCCESS)
 	{
 		throw std::runtime_error("Failed to allocate Command Buffer(s)!");
@@ -22,18 +22,119 @@ CommandBuffer::CommandBuffer(CommandPool& commandPool, VkCommandBufferLevel leve
 CommandBuffer::~CommandBuffer()
 {
 	// Free command buffer when out of scope
-	if (mCommandBuffer != VK_NULL_HANDLE)
+	if (mHandle != VK_NULL_HANDLE)
 	{
-		vkFreeCommandBuffers(mCommandPool.device().logicalDevice(), mCommandPool.commandPool(), 1, nullptr);
+		vkFreeCommandBuffers(mCommandPool.device().logicalDevice(), mCommandPool.handle(), 1, nullptr);
 	}
 }
 
-const VkCommandBuffer& CommandBuffer::commandBuffer() const
+const VkCommandBuffer& CommandBuffer::handle() const
 {
-	return mCommandBuffer;
+	return mHandle;
 }
 
 const VkCommandBufferLevel CommandBuffer::level() const
 {
 	return mLevel;
+}
+
+// TODO : update to work with secondary command buffers
+void CommandBuffer::begin(VkCommandBufferUsageFlags flags)
+{
+	// Information to begin the command buffer record
+	VkCommandBufferBeginInfo beginInfo = {};
+	beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+	beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;		// We're only using the command buffer once so set up for one time submit
+
+	// Begin recording transfer commands
+	VkResult result = vkBeginCommandBuffer(mHandle, &beginInfo);
+
+	if (result != VK_SUCCESS)
+	{
+		throw std::runtime_error("Failed to start recording a Command Buffer!");
+	}
+}
+
+// TODO : pass in struct to define resource range - currently this will only work for images which match the values here
+// TODO : expand functionality to allow for other types of transitions
+// Set up image memory barriers and transition image from one layout to another
+void CommandBuffer::transitionImageLayout(VkImage image, VkImageLayout oldLayout, VkImageLayout newLayout)
+{
+	// Create buffer
+	//VkCommandBuffer commandBuffer = beginCommandBuffer(device, commandPool);
+
+	VkImageMemoryBarrier imageMemoryBarrier = {};
+	imageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+	imageMemoryBarrier.oldLayout = oldLayout;									// Layout to transition from
+	imageMemoryBarrier.newLayout = newLayout;									// Layout to transition to
+	imageMemoryBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;			// Queue family to transition from
+	imageMemoryBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;			// Queue family to transition to
+	imageMemoryBarrier.image = image;											// Image being accessed and modified as part of barrier
+	imageMemoryBarrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;	// Aspect of image being altered
+	imageMemoryBarrier.subresourceRange.baseMipLevel = 0;						// First mip level to start alterations on
+	imageMemoryBarrier.subresourceRange.levelCount = 1;							// Number of mip levels to alter starting from baseMipLevel
+	imageMemoryBarrier.subresourceRange.baseArrayLayer = 0;						// First Layer to start alterations on
+	imageMemoryBarrier.subresourceRange.layerCount = 1;							// Number of layers to alter starting from baseArrayLayer
+
+
+	VkPipelineStageFlags srcStage;
+	VkPipelineStageFlags dstStage;
+
+	// If transitioning from new image to image ready to receive data...
+	if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
+	{
+		imageMemoryBarrier.srcAccessMask = 0;									// Memory access stage transition must happen after...
+		imageMemoryBarrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;		// Memory access stage transition must happen before...
+
+		srcStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;		// pipeline stage transition must happen after
+		dstStage = VK_PIPELINE_STAGE_TRANSFER_BIT;			// pipeline stage transition must happen before
+
+	}
+	// If transitioning from transfer destination to shader readable
+	else if (oldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+	{
+		imageMemoryBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+		imageMemoryBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+		srcStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+		dstStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+	}
+	
+
+	vkCmdPipelineBarrier(
+		mHandle,
+		srcStage, dstStage,			// Pipeline stages (match to src and dst AccessMasks)
+		0,							// Dependency flags
+		0, nullptr,					// Memory Barrier count + data
+		0, nullptr,					// Buffer Memory Barrier count + data
+		1, &imageMemoryBarrier		// Image Memory Batrrier count + data
+	);
+
+	//endAndSubmitCommandBuffer(device, commandPool, queue, commandBuffer);
+}
+
+void CommandBuffer::end()
+{
+	// End command recording
+	VkResult result = vkEndCommandBuffer(mHandle);
+
+	if (result != VK_SUCCESS)
+	{
+		throw std::runtime_error("Failed to stop recording Command Buffer!");
+	}
+}
+
+// TODO: does a queue really need to be passed in here?
+// TODO : update to allow fences
+void CommandBuffer::submit(VkQueue queue)
+{
+	// Queue submission information
+	VkSubmitInfo submitInfo = {};
+	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+	submitInfo.commandBufferCount = 1;
+	submitInfo.pCommandBuffers = &mHandle;
+
+	// Submit transfer command to transfer queue and wait until it finishes
+	vkQueueSubmit(queue, 1, &submitInfo, VK_NULL_HANDLE);
+	//vkQueueWaitIdle(queue);			// Avoid submitting many command buffer
 }

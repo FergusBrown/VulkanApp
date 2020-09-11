@@ -41,7 +41,7 @@ Image::Image(Device& device,
 	mTiling(tiling), 
 	mSampleCount(sampleCount), 
 	mUsage(usage), 
-	mPropFlags(propFlags),
+	//mPropFlags(propFlags),
 	mSharingMode(VK_SHARING_MODE_EXCLUSIVE),
 	mLayout(initialLayout)
 {
@@ -49,7 +49,7 @@ Image::Image(Device& device,
 	createImage();
 
 	// CREATE DEVICE MEMORY
-	createMemory();
+	createMemory(propFlags);
 
 	// CREATE VIEW
 	createImageView();
@@ -74,7 +74,7 @@ Image::Image(Device& device,
 	mTiling(tiling),
 	mSampleCount(sampleCount),
 	mUsage(usage),
-	mPropFlags(propFlags),
+	//mPropFlags(propFlags),
 	mSharingMode(VK_SHARING_MODE_EXCLUSIVE),
 	mLayout(initialLayout)
 {
@@ -82,7 +82,7 @@ Image::Image(Device& device,
 	createImage();
 
 	// CREATE DEVICE MEMORY
-	createMemory();
+	createMemory(propFlags);
 
 	// CREATE VIEW
 	createImageView();
@@ -155,10 +155,10 @@ void Image::createImageView()
 
 	// Subresources allow the view to view only a part of a image
 	viewCreateInfo.subresourceRange.aspectMask = mSubresource.aspectMask;			// Which aspect of image to view (e.g. COLOR_BIT for viewing color)
-	viewCreateInfo.subresourceRange.baseMipLevel = 0;					// Start mipmap level to view from
-	viewCreateInfo.subresourceRange.levelCount = mSubresource.mipLevel;						// Number of mipmap levels to view
-	viewCreateInfo.subresourceRange.baseArrayLayer = 0;					// Starrt array level to view from
-	viewCreateInfo.subresourceRange.layerCount = mSubresource.arrayLayer;						// Number of array levels to view
+	viewCreateInfo.subresourceRange.baseMipLevel = 0;								// Start mipmap level to view from
+	viewCreateInfo.subresourceRange.levelCount = mSubresource.mipLevel;				// Number of mipmap levels to view
+	viewCreateInfo.subresourceRange.baseArrayLayer = 0;								// Starrt array level to view from
+	viewCreateInfo.subresourceRange.layerCount = mSubresource.arrayLayer;			// Number of array levels to view
 
 	// Create Image View
 	VkResult result = vkCreateImageView(mDevice.logicalDevice(), &viewCreateInfo, nullptr, &mImageView);
@@ -168,13 +168,13 @@ void Image::createImageView()
 	}
 }
 
-void Image::createMemory()
+void Image::createMemory(VkMemoryPropertyFlags propFlags)
 {
 	// Get memory requirements for a type of image
 	VkMemoryRequirements memoryRequirements;
 	vkGetImageMemoryRequirements(mDevice.logicalDevice(), mHandle, &memoryRequirements);
 
-	mMemory = std::make_unique<DeviceMemory>(mDevice, mPropFlags, memoryRequirements);
+	mMemory = std::make_unique<DeviceMemory>(mDevice, propFlags, memoryRequirements);
 
 	// Connect memory to image
 	vkBindImageMemory(mDevice.logicalDevice(), mHandle, mMemory->handle(), 0);

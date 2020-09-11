@@ -193,7 +193,7 @@ private:
 	//struct ThreadData {
 	//	VkCommandPool commandPool;
 	//	// One command buffer per task
-	//	std::vector<VkCommandBuffer> commandBuffer;
+	//	std::vector<VkCommandBuffer> handle;
 	//};
 	//std::vector<ThreadData> threadData;
 

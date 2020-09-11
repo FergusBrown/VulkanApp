@@ -60,6 +60,9 @@ public:
 	VkImageUsageFlags usage() const;
 	VkDeviceMemory memory() const;
 
+	// - Image Management
+	////
+
 private:
 	Device& mDevice;
 	VkImage mHandle{ VK_NULL_HANDLE };
@@ -71,7 +74,6 @@ private:
 	VkFormat				mFormat;
 	VkImageTiling			mTiling;
 	VkSampleCountFlagBits	mSampleCount;
-	VkMemoryPropertyFlags	mPropFlags;
 	VkImageUsageFlags		mUsage;
 	VkImageLayout			mLayout;
 	VkSharingMode			mSharingMode;
@@ -84,7 +86,7 @@ private:
 	void createImageView();
 
 	// - Memory management
-	void createMemory();
+	void createMemory(VkMemoryPropertyFlags propFlags);
 
 	void createImage();
 };
