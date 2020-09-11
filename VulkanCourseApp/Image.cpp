@@ -121,6 +121,11 @@ const VkExtent3D& Image::extent() const
 	return extent();
 }
 
+const VkImageSubresource& Image::subresource() const
+{
+	return mSubresource;
+}
+
 VkFormat Image::format() const
 {
 	return mFormat;

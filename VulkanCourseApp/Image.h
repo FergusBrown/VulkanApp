@@ -55,6 +55,7 @@ public:
 	const VkImage& handle() const;
 	const VkImageView& imageView() const;
 	const VkExtent3D& extent() const;
+	const VkImageSubresource& subresource() const;
 	VkFormat format() const;
 	VkSampleCountFlagBits sampleCount() const;
 	VkImageUsageFlags usage() const;

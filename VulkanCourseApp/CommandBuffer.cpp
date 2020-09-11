@@ -112,6 +112,25 @@ void CommandBuffer::transitionImageLayout(VkImage image, VkImageLayout oldLayout
 
 	//endAndSubmitCommandBuffer(device, commandPool, queue, commandBuffer);
 }
+// TODO : pass in required subresource values
+void CommandBuffer::copyImageBuffer(VkBuffer srcBuffer, Image& image)
+{
+	VkImageSubresource subresource = image.subresource();
+
+	VkBufferImageCopy imageRegion = {};
+	imageRegion.bufferOffset = 0;											// Offset into data
+	imageRegion.bufferRowLength = 0;										// Row length of data to calculate data spacing
+	imageRegion.bufferImageHeight = 0;										// Image height to calculate data spacing
+	imageRegion.imageSubresource.aspectMask = subresource.aspectMask;		// Which aspect of image to copy
+	imageRegion.imageSubresource.mipLevel = 0;								// Mipmap level to copy
+	imageRegion.imageSubresource.baseArrayLayer = 0;						// Starting array layer (if array)
+	imageRegion.imageSubresource.layerCount = 1;							// Number of layers to copy starting at baseArrayLayer
+	imageRegion.imageOffset = { 0, 0, 0 };									// Offset into image (as opposed to raw data in buffer offset)
+	imageRegion.imageExtent = image.extent();								// Size of region to copy as (x, y, z) values
+
+	// Copy buffer to given image
+	vkCmdCopyBufferToImage(mHandle, srcBuffer, image.handle(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &imageRegion);
+}
 
 void CommandBuffer::end()
 {

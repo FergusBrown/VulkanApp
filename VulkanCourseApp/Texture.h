@@ -29,6 +29,6 @@ private:
 
 	std::unique_ptr<Image> mImage;
 
-	void createImage(stbi_uc* textureData, int width, int height, VkDeviceSize imageSize);
+	void createTextureImage(stbi_uc* textureData, int width, int height, VkDeviceSize imageSize);
 };
 uint32_t Texture::ID = 0;

@@ -6,9 +6,7 @@
 Texture::Texture(Device& device, stbi_uc* textureData, int width, int height, VkDeviceSize imageSize) :
 	mDevice(device), mID(ID)
 {
-
-
-
+	createTextureImage(textureData, width, height, imageSize);
 
 	++ID;
 }
@@ -58,18 +56,18 @@ stbi_uc* Texture::loadTextureFile(std::string fileName, int* width, int* height,
 	return image;
 }
 
-void Texture::createImage(stbi_uc* textureData, int width, int height, VkDeviceSize imageSize)
+void Texture::createTextureImage(stbi_uc* textureData, int width, int height, VkDeviceSize imageSize)
 {
 	// Create staging buffer to hold loaded data, ready to copy to device
-	Buffer stagingBuffer(mDevice,
+	Buffer imageStagingBuffer(mDevice,
 		imageSize,
 		VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
 		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
 	// Copy image data to staging buffer
-	void* data = stagingBuffer.map();;
+	void* data = imageStagingBuffer.map();;
 	memcpy(data, textureData, static_cast<size_t>(imageSize));
-	stagingBuffer.unmap();
+	imageStagingBuffer.unmap();
 
 	// Free original image data
 	stbi_image_free(textureData);
@@ -90,20 +88,20 @@ void Texture::createImage(stbi_uc* textureData, int width, int height, VkDeviceS
 	commandBuffer->transitionImageLayout(mImage->handle(), VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 
 	// Copy image data
-	commandBuffer->copyImageBuffer(mDevice->logicalDevice(), mDevice->graphicsQueue(), graphicsCommandPool, imageStagingBuffer, texImage, width, height);
+	commandBuffer->copyImageBuffer(imageStagingBuffer.handle(), *mImage);
 
 	// Transition image to be shader readable for shader usage
 	commandBuffer->transitionImageLayout(mImage->handle(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
 	// Add texture data to vector for reference
-	textureImages.push_back(texImage);
-	textureImageMemory.push_back(texImageMemory);
+	//textureImages.push_back(texImage);
+	//textureImageMemory.push_back(texImageMemory);
 
 	// Destroy staging buffers
-	vkDestroyBuffer(mDevice->logicalDevice(), imageStagingBuffer, nullptr);
-	vkFreeMemory(mDevice->logicalDevice(), imageStagingBufferMemory, nullptr);
+	//vkDestroyBuffer(mDevice->logicalDevice(), imageStagingBuffer, nullptr);
+	//vkFreeMemory(mDevice->logicalDevice(), imageStagingBufferMemory, nullptr);
 
 	// Return index of new texture image
-	return textureImages.size() - 1;
+	//return textureImages.size() - 1;
 }
 

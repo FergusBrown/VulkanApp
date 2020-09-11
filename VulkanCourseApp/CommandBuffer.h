@@ -2,6 +2,7 @@
 #include "Common.h"
 
 #include "CommandPool.h"
+#include "Image.h"
 
 // Class handles all command buffer operations
 class CommandBuffer
@@ -18,6 +19,7 @@ public:
 	void begin(VkCommandBufferUsageFlags flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
 
 	void transitionImageLayout(VkImage image, VkImageLayout oldLayout, VkImageLayout newLayout);
+	void copyImageBuffer(VkBuffer srcBuffer, Image& image);
 
 	void end();
 	void submit(VkQueue queue);
