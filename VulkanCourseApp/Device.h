@@ -33,8 +33,8 @@ public:
 	CommandPool& primaryCommandPool();
 
 	// - Management
-	VkCommandBuffer createAndBeginTemporaryCommandBuffer(VkCommandBufferLevel level);
-	void endAndSubmitTemporaryCommandBuffer(VkCommandBuffer commandBuffer, VkQueue queue);
+	std::unique_ptr<CommandBuffer> createAndBeginTemporaryCommandBuffer(VkCommandBufferLevel level);
+	void endAndSubmitTemporaryCommandBuffer(std::unique_ptr<CommandBuffer> commandBuffer, VkQueue queue);
 
 private:
 	// Variables

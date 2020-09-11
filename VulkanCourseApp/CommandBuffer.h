@@ -15,7 +15,7 @@ public:
 	const VkCommandBufferLevel level() const;
 
 	// Command buffer operations
-	void begin(VkCommandBufferUsageFlags flags);
+	void begin(VkCommandBufferUsageFlags flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
 
 	void transitionImageLayout(VkImage image, VkImageLayout oldLayout, VkImageLayout newLayout);
 
