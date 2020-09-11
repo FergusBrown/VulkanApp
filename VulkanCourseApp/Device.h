@@ -34,7 +34,7 @@ public:
 
 	// - Management
 	std::unique_ptr<CommandBuffer> createAndBeginTemporaryCommandBuffer(VkCommandBufferLevel level);
-	void endAndSubmitTemporaryCommandBuffer(std::unique_ptr<CommandBuffer> commandBuffer, VkQueue queue);
+	void endAndSubmitTemporaryCommandBuffer(CommandBuffer commandBuffer, VkQueue queue);
 
 private:
 	// Variables

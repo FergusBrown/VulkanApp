@@ -273,7 +273,7 @@ private:
 
 	//int createTextureImage(std::string fileName);
 	int createTexture(std::string fileName);
-	int createTextureDescriptor(VkImageView textureImage);
+	int createTextureDescriptor(const Texture& texture);
 	
 
 	

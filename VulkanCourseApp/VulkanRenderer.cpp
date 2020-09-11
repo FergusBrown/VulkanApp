@@ -1975,24 +1975,30 @@ int VulkanRenderer::createTexture(std::string fileName)
 	int width, height;
 	VkDeviceSize imageSize;
 	stbi_uc* textureData = Texture::loadTextureFile(fileName, &width, &height, &imageSize);
+	// TODO : maybe it is cleaner to just create the texture object by passing it the file name
+	// TODO : but I don't want the texture to have to know the file name and I want to leave the opportunity in future to load image data using different libraries
 
-	std::unique_ptr<Texture>  texture = std::make_unique<Texture>(mDevice, textureData);
+	std::unique_ptr<Texture>  texture = std::make_unique<Texture>(mDevice, textureData, width, height, imageSize);
 
-	// Create Texture Image and get its location in array
-	int textureImageLoc = createTextureImage(fileName);
+	// Add texture to map of textures
+	int textureID = texture->textureID();;
 
-	// Create image view and add to list
-	VkImageView imageView = createImageView(textureImages[textureImageLoc], VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_ASPECT_COLOR_BIT);
-	textureImageViews.push_back(imageView);
+	// Create descriptor resource reference
+
 
 	// Create Texture Descriptor
-	int descriptorLoc = createTextureDescriptor(imageView);
+	int descriptorLoc = createTextureDescriptor(*texture);
+
+	mTextures[textureID] = std::move(texture);
+	assert(!texture); // just checking ownership of the texture ptr has moved to the map
+
+	
 
 	// Return location of set with texture
 	return descriptorLoc;
 }
 
-int VulkanRenderer::createTextureDescriptor(VkImageView textureImage)
+int VulkanRenderer::createTextureDescriptor(const Texture& texture)
 {
 	VkDescriptorSet descriptorSet;
 

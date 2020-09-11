@@ -62,18 +62,18 @@ std::unique_ptr<CommandBuffer> Device::createAndBeginTemporaryCommandBuffer(VkCo
 }
 
 // end buffer recording, submits to queue and frees the command buffer
-void Device::endAndSubmitTemporaryCommandBuffer(std::unique_ptr<CommandBuffer> commandBuffer, VkQueue queue)
+void Device::endAndSubmitTemporaryCommandBuffer(CommandBuffer commandBuffer, VkQueue queue)
 {
-	if (commandBuffer == VK_NULL_HANDLE)
+	if (commandBuffer.handle() == VK_NULL_HANDLE)
 	{
 		return;
 	}
 
 	// END RECORDING
-	commandBuffer->end();
+	commandBuffer.end();
 
 	// SUBMIT TO QUEUE
-	commandBuffer->submit(queue);
+	commandBuffer.submit(queue);
 
 	//vkQueueWaitIdle(queue);
 
