@@ -1983,16 +1983,12 @@ int VulkanRenderer::createTexture(std::string fileName)
 	// Add texture to map of textures
 	int textureID = texture->textureID();;
 
-	// Create descriptor resource reference
-
-
+	
 	// Create Texture Descriptor
 	int descriptorLoc = createTextureDescriptor(*texture);
 
 	mTextures[textureID] = std::move(texture);
 	assert(!texture); // just checking ownership of the texture ptr has moved to the map
-
-	
 
 	// Return location of set with texture
 	return descriptorLoc;
@@ -2000,46 +1996,61 @@ int VulkanRenderer::createTexture(std::string fileName)
 
 int VulkanRenderer::createTextureDescriptor(const Texture& texture)
 {
-	VkDescriptorSet descriptorSet;
-
-	// Descriptor Set Allocation Info
-	VkDescriptorSetAllocateInfo setAllocInfo = {};
-	setAllocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-	setAllocInfo.descriptorPool = samplerDescriptorPool;
-	setAllocInfo.descriptorSetCount = 1;
-	setAllocInfo.pSetLayouts = &samplerSetLayout;
-
-	// Allocate Descriptor Sets
-	VkResult result = vkAllocateDescriptorSets(mDevice->logicalDevice(), &setAllocInfo, &descriptorSet);
-	if (result != VK_SUCCESS)
-	{
-		throw std::runtime_error("Failed to create a Texture Descriptor Sets!");
-	}
-
-	// Texture Image Info
+	// Create descriptor resource reference
+	// TODO : make this a map?
+	mSamplerResources.push_back(std::make_unique<DescriptorResourceReference>());
+	mSamplerResources.back()->bindImage(texture.image(), *mTextureSampler, 0, 0);
+	
 	VkDescriptorImageInfo imageInfo = {};
-	imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;		// Image layout when in use
-	imageInfo.imageView = textureImage;										// Image to bind to set
-	imageInfo.sampler = textureSampler;										// Sampler to use for set
+	mSamplerResources.back()->generateDescriptorImageInfo(imageInfo, 0, 0);
+	std::vector<VkDescriptorImageInfo> imageInfos = { imageInfo };
 
-	// Descriptor Write info
-	VkWriteDescriptorSet descriptorWrite = {};
-	descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-	descriptorWrite.dstSet = descriptorSet;
-	descriptorWrite.dstBinding = 0;
-	descriptorWrite.dstArrayElement = 0;
-	descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-	descriptorWrite.descriptorCount = 1;
-	descriptorWrite.pImageInfo = &imageInfo;
+	mTextureDescriptorSets.push_back(std::make_unique<DescriptorSet>(mDevice, mSamplerDescriptorPool, imageInfos));
 
-	// Update new descriptor set
-	vkUpdateDescriptorSets(mDevice->logicalDevice(), 1, &descriptorWrite, 0, nullptr);
+	//VkDescriptorSet descriptorSet;
 
-	// Add descriptor set to list
-	samplerDescriptorSets.push_back(descriptorSet);
+	//// Descriptor Set Allocation Info
+	//VkDescriptorSetAllocateInfo setAllocInfo = {};
+	//setAllocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+	//setAllocInfo.descriptorPool = samplerDescriptorPool;
+	//setAllocInfo.descriptorSetCount = 1;
+	//setAllocInfo.pSetLayouts = &samplerSetLayout;
+
+	//// Allocate Descriptor Sets
+	//VkResult result = vkAllocateDescriptorSets(mDevice->logicalDevice(), &setAllocInfo, &descriptorSet);
+	//if (result != VK_SUCCESS)
+	//{
+	//	throw std::runtime_error("Failed to create a Texture Descriptor Sets!");
+	//}
+
+	//// Texture Image Info
+	//VkDescriptorImageInfo imageInfo = {};
+	//imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;		// Image layout when in use
+	//imageInfo.imageView = textureImage;										// Image to bind to set
+	//imageInfo.sampler = textureSampler;										// Sampler to use for set
+
+	//// Descriptor Write info
+	//VkWriteDescriptorSet descriptorWrite = {};
+	//descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+	//descriptorWrite.dstSet = descriptorSet;
+	//descriptorWrite.dstBinding = 0;
+	//descriptorWrite.dstArrayElement = 0;
+	//descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	//descriptorWrite.descriptorCount = 1;
+	//descriptorWrite.pImageInfo = &imageInfo;
+
+	// Update the descriptor sets with new buffer/binding info
+	std::vector<uint32_t> bindingsToUpdate = { 0 };
+	mTextureDescriptorSets.back()->update(bindingsToUpdate);
+
+	//// Update new descriptor set
+	//vkUpdateDescriptorSets(mDevice->logicalDevice(), 1, &descriptorWrite, 0, nullptr);
+
+	//// Add descriptor set to list
+	//samplerDescriptorSets.push_back(descriptorSet);
 
 	// Return descriptor set location
-	return samplerDescriptorSets.size() - 1;
+	return mTextureDescriptorSets.size() - 1;
 
 
 }

@@ -14,6 +14,13 @@ public:
 		DescriptorPool& descriptorPool,
 		const BindingMap<VkDescriptorImageInfo>& imageInfos = {},		// BindingMap image infos and corresponding binding index
 		const BindingMap<VkDescriptorBufferInfo>& bufferInfos = {});	// BindingMap with buffer info and corresponding binding index
+
+	// Alternate order
+	DescriptorSet(Device& device,
+		DescriptorSetLayout& descriptorSetLayout,
+		DescriptorPool& descriptorPool,
+		const BindingMap<VkDescriptorBufferInfo>& bufferInfos = {},	
+		const BindingMap<VkDescriptorImageInfo>& imageInfos = {});
 		
 	~DescriptorSet() = default;
 

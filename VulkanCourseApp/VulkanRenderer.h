@@ -134,7 +134,7 @@ private:
 	std::vector<std::unique_ptr<DescriptorResourceReference>> mAttachmentResources;
 	
 	std::vector<std::unique_ptr<DescriptorSet>> mUniformDescriptorSets;			// Descriptor set holding uniform data
-	std::vector<std::unique_ptr<DescriptorSet>> mSamplerDescriptorSets;		// Desctcriptor sets holding texture samplers
+	std::vector<std::unique_ptr<DescriptorSet>> mTextureDescriptorSets;		// Desctcriptor sets holding texture samplers
 	std::vector<std::unique_ptr<DescriptorSet>> mAttachmentDescriptorSets;		// Descriptor set holding colour/depth images (used for second subpass)
 
 	std::vector<std::unique_ptr<Buffer>> mUniformBuffers;

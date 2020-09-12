@@ -15,6 +15,21 @@ DescriptorSet::DescriptorSet(Device& device,
 	prepareWriteOperations();
 }
 
+DescriptorSet::DescriptorSet(Device& device,
+	DescriptorSetLayout& descriptorSetLayout,
+	DescriptorPool& descriptorPool,
+	const BindingMap<VkDescriptorBufferInfo>& bufferInfos,
+	const BindingMap<VkDescriptorImageInfo>& imageInfos) :
+	mDevice(device),
+	mDescriptorPool(descriptorPool),
+	mImageInfos(imageInfos),
+	mBufferInfos(bufferInfos),
+	mDescriptorSetLayout(descriptorSetLayout),
+	mHandle(descriptorPool.allocate())
+{
+	prepareWriteOperations();
+}
+
 Device& DescriptorSet::device() const
 {
 	return mDevice;

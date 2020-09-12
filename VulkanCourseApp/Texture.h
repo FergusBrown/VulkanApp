@@ -13,9 +13,10 @@ public:
 
 	// - Getters
 	const Device& device() const;
-	const VkImage& image() const;
+	const Image& image() const;
+	/*const VkImage& image() const;
 	const VkImageView& imageView() const;
-	VkDeviceMemory memory() const;
+	VkDeviceMemory memory() const;*/
 	uint32_t textureID() const;
 
 	//static void createTextureImage(std::string fileName);
