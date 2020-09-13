@@ -3,6 +3,7 @@
 #include "Common.h"
 
 #include "CommandPool.h"
+#include "Queue.h"
 
 	// Indicies of Queue Families (if they exist at all)
 struct QueueFamilyIndices {
@@ -41,9 +42,12 @@ private:
 	VkPhysicalDevice mPhysicalDevice;
 	VkDevice mLogicalDevice;
 	VkSurfaceKHR mSurface;
-	QueueFamilyIndices mQueueFamilyIndices;
-	VkQueue mGraphicsQueue;
-	VkQueue mPresentationQueue;
+
+	//QueueFamilyIndices mQueueFamilyIndices;
+	//VkQueue mGraphicsQueue;
+	//VkQueue mPresentationQueue;
+
+	std::vector<std::vector<std::unique_ptr<Queue>>> mQueues;
 
 	// Command pool associated with the primary queue
 	std::unique_ptr<CommandPool> mPrimaryCommandPool;
