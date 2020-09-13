@@ -271,7 +271,9 @@ void Device::createLogicalDevice(const std::vector<const char*>& deviceExtension
 	vkGetDeviceQueue(mLogicalDevice, indices.graphicsFamily, 0, &mGraphicsQueue);
 	vkGetDeviceQueue(mLogicalDevice, indices.presentationFamily, 0, &mPresentationQueue);
 }
-// TODO
+
 void Device::createCommandPool()
 {
+	// TODO : maybe update creation here to get queue index differently
+	mPrimaryCommandPool = std::make_unique<CommandPool>(*this, TODO);
 }

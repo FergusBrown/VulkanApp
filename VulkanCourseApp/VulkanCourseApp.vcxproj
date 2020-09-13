@@ -163,6 +163,7 @@
     <ClCompile Include="MeshModelData.cpp" />
     <ClCompile Include="MeshModel.cpp" />
     <ClCompile Include="Pawn.cpp" />
+    <ClCompile Include="Queue.cpp" />
     <ClCompile Include="RenderTarget.cpp" />
     <ClCompile Include="Sampler.cpp" />
     <ClCompile Include="Subpass.cpp" />
@@ -196,6 +197,7 @@
     <ClInclude Include="MeshModel.h" />
     <ClInclude Include="Pawn.h" />
     <ClInclude Include="PointLight.h" />
+    <ClInclude Include="Queue.h" />
     <ClInclude Include="RenderTarget.h" />
     <ClInclude Include="Sampler.h" />
     <ClInclude Include="Subpass.h" />

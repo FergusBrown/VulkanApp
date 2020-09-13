@@ -7,7 +7,6 @@
 class CommandPool
 {
 public:
-	// TODO: probably don't need this index
 	CommandPool(Device& device, uint32_t queueFamilyIndex);
 	~CommandPool();
 
