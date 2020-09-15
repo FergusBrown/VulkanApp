@@ -23,28 +23,28 @@ struct Vertex
 };
 
 // Indicies (locations) of Queue Families (if they exist at all)
-struct QueueFamilyIndices {
-	int graphicsFamily = -1;			// Location of Graphics Queue Family
-	int presentationFamily = -1;
-
-	// Check if queue failies are valid
-	bool isValid()
-	{
-		return graphicsFamily >= 0 && presentationFamily >= 0;
-	}
-};
+//struct QueueFamilyIndices {
+//	int graphicsFamily = -1;			// Location of Graphics Queue Family
+//	int presentationFamily = -1;
+//
+//	// Check if queue failies are valid
+//	bool isValid()
+//	{
+//		return graphicsFamily >= 0 && presentationFamily >= 0;
+//	}
+//};
 
 /* Swapchain*/
-struct SwapChainDetails {
-	VkSurfaceCapabilitiesKHR surfaceCapabilities;		// Surface properties e.g. image size/extent
-	std::vector<VkSurfaceFormatKHR> formats;			// Surface image formats e.g. RGBA and size of each
-	std::vector<VkPresentModeKHR> presentationModes;	// How images should be presented to screen
-};
+//struct SwapChainDetails {
+//	VkSurfaceCapabilitiesKHR surfaceCapabilities;		// Surface properties e.g. image size/extent
+//	std::vector<VkSurfaceFormatKHR> formats;			// Surface image formats e.g. RGBA and size of each
+//	std::vector<VkPresentModeKHR> presentationModes;	// How images should be presented to screen
+//};
 
-struct SwapchainImage {
-	VkImage image;
-	VkImageView imageView;
-};
+//struct SwapchainImage {
+//	VkImage image;
+//	VkImageView imageView;
+//};
 
 static std::vector<char> readFile(const std::string& filename)
 {

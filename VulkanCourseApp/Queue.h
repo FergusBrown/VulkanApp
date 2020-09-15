@@ -6,7 +6,7 @@
 class Queue
 {
 public:
-	Queue(Device& device, uint32_t familyIndex, uint32_t index, VkQueueFamilyProperties properties);
+	Queue(Device& device, uint32_t familyIndex, uint32_t index, VkQueueFamilyProperties properties, VkBool32 presentationSupport);
 	~Queue() = default;
 
 	// - Getters
@@ -14,6 +14,7 @@ public:
 	VkQueue handle() const;
 	uint32_t familyIndex() const;
 	uint32_t index() const;
+	VkBool32 presentationSupport() const;
 	const VkQueueFamilyProperties& properties() const;
 
 private:
@@ -24,6 +25,8 @@ private:
 	uint32_t mFamilyIndex;
 
 	uint32_t mIndex;
+
+	VkBool32 mPresentationSupport;
 
 	VkQueueFamilyProperties mProperties;
 };

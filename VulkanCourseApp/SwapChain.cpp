@@ -115,27 +115,28 @@ void Swapchain::createSwapchain(const VkExtent2D& newExtent)
 	swapChainCreateInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;						// How to handle blending images with external graphics (e.g. other windows)
 	swapChainCreateInfo.clipped = VK_TRUE;														// whether to clip part of images not in view (e.g. behind another window, off screen etc.)
 
-	// Get queue family indices
-	QueueFamilyIndices indices = mDevice.queueFamilyIndices();
+	// TODO:  Unlikely that this check is needed - readd this if it becomes necessary
+	// Get graphics queue family index
+	//QueueFamilyIndices indices = mDevice.queueFamilyIndices();
 
-	// If Graphics and Presentation families are different, then swapchain must let images be shared between families
-	if (indices.graphicsFamily != indices.presentationFamily)
-	{
-		// Queues to share between
-		uint32_t queueFamilyIndices[] = {
-			(uint32_t)indices.graphicsFamily,
-			(uint32_t)indices.presentationFamily
-		};
+	//// If Graphics and Presentation families are different, then swapchain must let images be shared between families
+	//if (indices.graphicsFamily != indices.presentationFamily)
+	//{
+	//	// Queues to share between
+	//	uint32_t queueFamilyIndices[] = {
+	//		(uint32_t)indices.graphicsFamily,
+	//		(uint32_t)indices.presentationFamily
+	//	};
 
-		swapChainCreateInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;	// Image share handling
-		swapChainCreateInfo.queueFamilyIndexCount = 2;						// Number of queues to share images between -- 2 in this case as must be shared between graphics and presentation queue
-		swapChainCreateInfo.pQueueFamilyIndices = queueFamilyIndices;		// Array of queues to share between
-	}
-	else
-	{
-		swapChainCreateInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
-		swapChainCreateInfo.pQueueFamilyIndices = nullptr;
-	}
+	//	swapChainCreateInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;	// Image share handling
+	//	swapChainCreateInfo.queueFamilyIndexCount = 2;						// Number of queues to share images between -- 2 in this case as must be shared between graphics and presentation queue
+	//	swapChainCreateInfo.pQueueFamilyIndices = queueFamilyIndices;		// Array of queues to share between
+	//}
+	//else
+	//{
+	swapChainCreateInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
+	swapChainCreateInfo.pQueueFamilyIndices = nullptr;
+	//}
 
 	// If old swapchain been destroyed and this one replaces it, then link old one to quickly hand over responsibilities
 	swapChainCreateInfo.oldSwapchain = VK_NULL_HANDLE;

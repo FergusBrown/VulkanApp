@@ -27,24 +27,29 @@ VkDevice Device::logicalDevice() const
     return mLogicalDevice;
 }
 
-QueueFamilyIndices Device::queueFamilyIndices() const
-{
-	return mQueueFamilyIndices;
-}
-
-VkQueue Device::graphicsQueue() const
-{
-	return mGraphicsQueue;
-}
-
-VkQueue Device::presentationQueue() const
-{
-	return mPresentationQueue;
-}
+//QueueFamilyIndices Device::queueFamilyIndices() const
+//{
+//	return mQueueFamilyIndices;
+//}
+//
+//VkQueue Device::graphicsQueue() const
+//{
+//	return mGraphicsQueue;
+//}
+//
+//VkQueue Device::presentationQueue() const
+//{
+//	return mPresentationQueue;
+//}
 
 CommandPool& Device::primaryCommandPool()
 {
 	return *mPrimaryCommandPool;
+}
+
+const Queue& Device::queue(uint32_t familyIndex, uint32_t index) const
+{
+	return mQueues[familyIndex][index];
 }
 
 // Allocates a buffer to the device's command pools without incrementing the pool's counter
@@ -82,10 +87,53 @@ void Device::endAndSubmitTemporaryCommandBuffer(CommandBuffer commandBuffer, VkQ
 	//vkFreeCommandBuffers(mLogicalDevice, mPrimaryCommandPool->handle(), 1, &commandBuffer);
 }
 
-QueueFamilyIndices Device::getQueueFamilies()
-{
-	QueueFamilyIndices indices;
+//QueueFamilyIndices Device::getQueueFamilies()
+//{
+//	QueueFamilyIndices indices;
+//
+//	// Get all Queue Family property info for the given device
+//	uint32_t queueFamilyCount = 0;
+//	vkGetPhysicalDeviceQueueFamilyProperties(mPhysicalDevice, &queueFamilyCount, nullptr);
+//
+//	std::vector<VkQueueFamilyProperties> queueFamilyList(queueFamilyCount);
+//	vkGetPhysicalDeviceQueueFamilyProperties(mPhysicalDevice, &queueFamilyCount, queueFamilyList.data());
+//
+//	// Go through each queue family and check if it has at least 1 of the required types of queue
+//	int i = 0;
+//	for (const auto& queueFamily : queueFamilyList)
+//	{
+//		// queue count indicates how many queus there are in the family
+//
+//
+//		// First check if queue family has at least 1 queue in that family (could have no queue)
+//		// Queue can be multiple types define through bitfield. Need tobitwise AND with VK_QUEUE_*_BIT to check if has required type
+//		if (queueFamily.queueCount > 0 && queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT)
+//		{
+//			indices.graphicsFamily = i;		// If queue family is valid then get index
+//		}
+//
+//		// Check if queue family supports presentation
+//		VkBool32 presentationSupport = false;
+//		vkGetPhysicalDeviceSurfaceSupportKHR(mPhysicalDevice, i, mSurface, &presentationSupport);
+//		// Check if queue is presentation type (can be both graphics and presentation)
+//		if (queueFamily.queueCount > 0 && presentationSupport)
+//		{
+//			indices.presentationFamily = i;
+//		}
+//
+//		if (indices.isValid())
+//		{
+//			break;
+//		}
+//
+//		++i;
+//	}
+//
+//	return indices;
+//}
 
+uint32_t Device::getQueueFamilyIndex(VkQueueFlagBits queueFlag)
+{
 	// Get all Queue Family property info for the given device
 	uint32_t queueFamilyCount = 0;
 	vkGetPhysicalDeviceQueueFamilyProperties(mPhysicalDevice, &queueFamilyCount, nullptr);
@@ -93,38 +141,49 @@ QueueFamilyIndices Device::getQueueFamilies()
 	std::vector<VkQueueFamilyProperties> queueFamilyList(queueFamilyCount);
 	vkGetPhysicalDeviceQueueFamilyProperties(mPhysicalDevice, &queueFamilyCount, queueFamilyList.data());
 
-	// Go through each queue family and check if it has at least 1 of the required types of queue
-	int i = 0;
-	for (const auto& queueFamily : queueFamilyList)
+	// If looking for compute or transfer then we want to check if 
+	// there is exclusively a compute or transfer queue
+
+	if (queueFlag == VK_QUEUE_COMPUTE_BIT)
 	{
-		// queue count indicates how many queus there are in the family
-
-
-		// First check if queue family has at least 1 queue in that family (could have no queue)
-		// Queue can be multiple types define through bitfield. Need tobitwise AND with VK_QUEUE_*_BIT to check if has required type
-		if (queueFamily.queueCount > 0 && queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT)
+		for (uint32_t i = 0; i < queueFamilyCount; ++i)
 		{
-			indices.graphicsFamily = i;		// If queue family is valid then get index
+			if (queueFamilyList[i].queueFlags & queueFlag == VK_QUEUE_COMPUTE_BIT)
+			{
+				return i;
+			}
 		}
-
-		// Check if queue family supports presentation
-		VkBool32 presentationSupport = false;
-		vkGetPhysicalDeviceSurfaceSupportKHR(mPhysicalDevice, i, mSurface, &presentationSupport);
-		// Check if queue is presentation type (can be both graphics and presentation)
-		if (queueFamily.queueCount > 0 && presentationSupport)
-		{
-			indices.presentationFamily = i;
-		}
-
-		if (indices.isValid())
-		{
-			break;
-		}
-
-		++i;
 	}
 
-	return indices;
+	if (queueFlag == VK_QUEUE_TRANSFER_BIT)
+	{
+		for (uint32_t i = 0; i < queueFamilyCount; ++i)
+		{
+			if (queueFamilyList[i].queueFlags & queueFlag == VK_QUEUE_TRANSFER_BIT)
+			{
+				return i;
+			}
+		}
+	}
+
+	// Otherwise check if another queue is suitable
+	for (uint32_t i = 0; i < queueFamilyCount; ++i)
+	{
+		if (queueFamilyList[i].queueFlags & queueFlag)
+		{
+			return i;
+		}
+	}
+
+	throw std::runtime_error("Could not find an index for the requested queue family!");
+}
+
+VkBool32 Device::checkPresentationSupport(uint32_t queueFamilyIndex)
+{
+	VkBool32 presentationSupport = false;
+	vkGetPhysicalDeviceSurfaceSupportKHR(mPhysicalDevice, queueFamilyIndex, mSurface, &presentationSupport);
+
+	return presentationSupport;
 }
 
 // TODO: remove the samplerAnisotropy flag and pass to this function a list of features we want the device to support
@@ -135,7 +194,9 @@ bool Device::checkDeviceSuitable(const std::vector<const char*>& deviceExtension
 	vkGetPhysicalDeviceFeatures(mPhysicalDevice, &deviceFeatures);
 
 
-	QueueFamilyIndices indices = getQueueFamilies();
+	//QueueFamilyIndices indices = getQueueFamilies();
+
+	uint32_t graphicsIndex = getQueueFamilyIndex(VK_QUEUE_GRAPHICS_BIT);
 
 	bool extensionsSupported = checkDeviceExtensionSupport(deviceExtensions);
 
@@ -150,7 +211,8 @@ bool Device::checkDeviceSuitable(const std::vector<const char*>& deviceExtension
 
 
 	//return indices.isValid() && extensionsSupported && swapChainValid && deviceFeatures.samplerAnisotropy;
-	return indices.isValid() && extensionsSupported && deviceFeatures.samplerAnisotropy;
+	//return indices.isValid() && extensionsSupported && deviceFeatures.samplerAnisotropy;
+	return checkPresentationSupport(graphicsIndex) && extensionsSupported && deviceFeatures.samplerAnisotropy;
 }
 
 bool Device::checkDeviceExtensionSupport(const std::vector<const char*>& deviceExtensions)
@@ -223,22 +285,25 @@ void Device::getPhysicalDevice(VkInstance instance, const std::vector<const char
 
 void Device::createLogicalDevice(const std::vector<const char*>& deviceExtensions)
 {
-	// Get the queue family indices for the chosen physical device
-	QueueFamilyIndices indices = getQueueFamilies();
+	// Get number of queue families
+	uint32_t queueFamilyCount = 0;
+	vkGetPhysicalDeviceQueueFamilyProperties(mPhysicalDevice, &queueFamilyCount, nullptr);
 
-	// Vector for queue creation information, and set for family indices
+	std::vector<VkQueueFamilyProperties> queueFamilyList(queueFamilyCount);
+	vkGetPhysicalDeviceQueueFamilyProperties(mPhysicalDevice, &queueFamilyCount, queueFamilyList.data());
+
+	// Create infos for all queue families
 	std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
-	std::set<int> queueFamilyIndices = { indices.graphicsFamily, indices.presentationFamily };
 
-	// Queue the logical device needs to create and info to do so (Only 1 for now)
-	for (int queueFamilyIndex : queueFamilyIndices)
+	std::vector<std::vector<float>>      queuePriorities(queueFamilyCount);
+	for (uint32_t queueFamilyIndex = 0; queueFamilyIndex < queueFamilyCount; ++queueFamilyIndex)
 	{
 		VkDeviceQueueCreateInfo queueCreateInfo = {};
 		queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-		queueCreateInfo.queueFamilyIndex = queueFamilyIndex;				// The index of the family to create a queue from
-		queueCreateInfo.queueCount = 1;											// Number of queues to create
-		float priority = 1.0f;													//
-		queueCreateInfo.pQueuePriorities = &priority;							// Vulkan needs to know how to handle multiple queues, so decide priority (1 is highest priority)
+		queueCreateInfo.queueFamilyIndex = queueFamilyIndex;							// The index of the family to create a queue from
+		queueCreateInfo.queueCount = queueFamilyList[queueFamilyIndex].queueCount;		// Number of queues to create
+		queuePriorities[queueFamilyIndex].resize(queueFamilyCount, 1.0f);				//
+		queueCreateInfo.pQueuePriorities = queuePriorities[queueFamilyIndex].data();	// Give all queues priority of 1 (1 is highest priority)
 
 		queueCreateInfos.push_back(queueCreateInfo);
 	}
@@ -265,15 +330,23 @@ void Device::createLogicalDevice(const std::vector<const char*>& deviceExtension
 		throw std::runtime_error("Failed to create a Logical Device!");
 	}
 
-	// Queues are created at the same time as the device...
-	// So we want to handle queues
-	// From given logical device, of given Queue Family, of given Queue Index (0 since only one queue), place reference in given Vkqueue
-	vkGetDeviceQueue(mLogicalDevice, indices.graphicsFamily, 0, &mGraphicsQueue);
-	vkGetDeviceQueue(mLogicalDevice, indices.presentationFamily, 0, &mPresentationQueue);
+	// Create queue objects
+	mQueues.resize(queueFamilyCount);
+
+	for (uint32_t i = 0; i < queueFamilyCount; ++i)
+	{
+		VkBool32 presentationSupport = checkPresentationSupport(i);
+
+		for (uint32_t j = 0; j < queueFamilyList[i].queueCount; ++j)
+		{
+			// NOTE: emplace back allows use of custom constructor
+			mQueues[i].emplace_back(*this, i, j, queueFamilyList[i], presentationSupport);
+		}
+	}
 }
+
 
 void Device::createCommandPool()
 {
-	// TODO : maybe update creation here to get queue index differently
-	mPrimaryCommandPool = std::make_unique<CommandPool>(*this, TODO);
+	mPrimaryCommandPool = std::make_unique<CommandPool>(*this, getQueueFamilyIndex(VK_QUEUE_GRAPHICS_BIT));
 }

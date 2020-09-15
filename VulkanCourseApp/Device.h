@@ -5,17 +5,17 @@
 #include "CommandPool.h"
 #include "Queue.h"
 
-	// Indicies of Queue Families (if they exist at all)
-struct QueueFamilyIndices {
-	int graphicsFamily = -1;
-	int presentationFamily = -1;
-
-	// Check if queue failies are valid
-	bool isValid()
-	{
-		return graphicsFamily >= 0 && presentationFamily >= 0;
-	}
-};
+//	// Indicies of Queue Families (if they exist at all)
+//struct QueueFamilyIndices {
+//	int graphicsFamily = -1;
+//	int presentationFamily = -1;
+//
+//	// Check if queue failies are valid
+//	bool isValid()
+//	{
+//		return graphicsFamily >= 0 && presentationFamily >= 0;
+//	}
+//};
 
 // Container for logical and physical device
 class Device
@@ -28,10 +28,8 @@ public:
 	// - Getters
 	VkPhysicalDevice physicalDevice() const;
 	VkDevice logicalDevice() const;
-	QueueFamilyIndices queueFamilyIndices() const;
-	VkQueue graphicsQueue() const;
-	VkQueue presentationQueue() const;
 	CommandPool& primaryCommandPool();
+	const Queue& queue(uint32_t familyIndex, uint32_t index) const;
 
 	// - Management
 	std::unique_ptr<CommandBuffer> createAndBeginTemporaryCommandBuffer(VkCommandBufferLevel level);
@@ -47,7 +45,7 @@ private:
 	//VkQueue mGraphicsQueue;
 	//VkQueue mPresentationQueue;
 
-	std::vector<std::vector<std::unique_ptr<Queue>>> mQueues;
+	std::vector<std::vector<Queue>> mQueues;
 
 	// Command pool associated with the primary queue
 	std::unique_ptr<CommandPool> mPrimaryCommandPool;
@@ -56,7 +54,9 @@ private:
 	// - Get Physical Device referece
 	void getPhysicalDevice(VkInstance instance, const std::vector<const char*>& deviceExtensions);
 	// -- Support
-	QueueFamilyIndices getQueueFamilies();
+	/*QueueFamilyIndices getQueueFamilies();*/
+	uint32_t getQueueFamilyIndex(VkQueueFlagBits queueFlags);
+	VkBool32 checkPresentationSupport(uint32_t queueFamilyIndex);
 	bool checkDeviceSuitable(const std::vector<const char*>& deviceExtensions);
 	bool checkDeviceExtensionSupport(const std::vector<const char*>& deviceExtensions);
 
@@ -65,4 +65,3 @@ private:
 	void createCommandPool();
 	
 };
-
