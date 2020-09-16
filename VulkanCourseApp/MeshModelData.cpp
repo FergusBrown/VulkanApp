@@ -62,27 +62,27 @@ std::vector<std::string> MeshModelData::LoadMaterials(const aiScene* scene)
 	return textureList;
 }
 
-std::vector<Mesh*> MeshModelData::LoadNode(VkPhysicalDevice newPhysicalDevice, VkDevice newDevice, VkQueue transferQueue, VkCommandPool transferCommandPool, aiNode* node, const aiScene* scene, std::vector<int> matToTex)
+std::vector<Mesh*> MeshModelData::LoadNode(Device& device, aiNode* node, const aiScene* scene, std::vector<int> matToTex)
 {
 	std::vector<Mesh*> meshList;
 
 	// Go through mesh at this node and create it, then add it to out meshList;
 	for (size_t i = 0; i < node->mNumMeshes; ++i)
 	{
-		meshList.push_back(LoadMesh(newPhysicalDevice, newDevice, transferQueue, transferCommandPool, scene->mMeshes[node->mMeshes[i]], scene, matToTex));
+		meshList.push_back(LoadMesh(device, scene->mMeshes[node->mMeshes[i]], scene, matToTex));
 	}
 
 	// Go through each node attached to this node and load it, then append their meshes to this node's mesh list
 	for (size_t i = 0; i < node->mNumChildren; ++i)
 	{
-		std::vector<Mesh*> newList = LoadNode(newPhysicalDevice, newDevice, transferQueue, transferCommandPool, node->mChildren[i], scene, matToTex);
+		std::vector<Mesh*> newList = LoadNode(device, node->mChildren[i], scene, matToTex);
 		meshList.insert(meshList.end(), newList.begin(), newList.end());
 	}
 
 	return meshList;
 }
 
-Mesh* MeshModelData::LoadMesh(VkPhysicalDevice newPhysicalDevice, VkDevice newDevice, VkQueue transferQueue, VkCommandPool transferCommandPool, aiMesh* mesh, const aiScene* scene, std::vector<int> matToTex)
+Mesh* MeshModelData::LoadMesh(Device& device, aiMesh* mesh, const aiScene* scene, std::vector<int> matToTex)
 {
 	std::vector<Vertex> vertices;
 	std::vector<uint32_t> indices;
@@ -116,7 +116,7 @@ Mesh* MeshModelData::LoadMesh(VkPhysicalDevice newPhysicalDevice, VkDevice newDe
 		// Get a face
 		aiFace face = mesh->mFaces[i];
 
-		// For through face's indices and add to lisr
+		// For through face's indices and add to list
 		for (size_t j = 0; j < face.mNumIndices; ++j)
 		{
 			indices.push_back(face.mIndices[j]);
@@ -124,7 +124,7 @@ Mesh* MeshModelData::LoadMesh(VkPhysicalDevice newPhysicalDevice, VkDevice newDe
 	}
 
 	// Create new mesh with details and return it
-	Mesh* newMesh = new Mesh(newPhysicalDevice, newDevice, transferQueue, transferCommandPool, &vertices, &indices, matToTex[mesh->mMaterialIndex]);
+	Mesh* newMesh = new Mesh(device, &vertices, &indices, matToTex[mesh->mMaterialIndex]);
 
 	return newMesh;
 }

@@ -41,6 +41,7 @@ uint32_t Texture::textureID() const
 	return mID;
 }
 
+// TODO : consider move this out of this class and back to vulkan renderer
 stbi_uc* Texture::loadTextureFile(std::string fileName, int* width, int* height, VkDeviceSize* imageSize)
 {
 	// Number of channels image uses

@@ -83,7 +83,7 @@ void VulkanRenderer::draw()
 
 	// Get index of next image to be drawn to and signal semapphore when ready to be drawn to
 	uint32_t imageIndex;
-	vkAcquireNextImageKHR(mDevice->logicalDevice(), mSwapchain->swapchain(), std::numeric_limits<uint64_t>::max(), imageAvailable[currentFrame], VK_NULL_HANDLE, &imageIndex);
+	vkAcquireNextImageKHR(mDevice->logicalDevice(), mSwapchain->handle(), std::numeric_limits<uint64_t>::max(), imageAvailable[currentFrame], VK_NULL_HANDLE, &imageIndex);
 	/* END ABSTRACT */
 
 	recordCommands(imageIndex);		// Only record commands once the image at imageIndex is available (not being used by the queue)
@@ -118,7 +118,7 @@ void VulkanRenderer::draw()
 	presentInfo.waitSemaphoreCount = 1;						// Number of semaphores to wait on
 	presentInfo.pWaitSemaphores = &renderFinished[currentFrame];			// Semaphroes to wait on
 	presentInfo.swapchainCount = 1;							// Number of swapchains to present to
-	presentInfo.pSwapchains = &mSwapchain->swapchain();					// Swapchains to present images to
+	presentInfo.pSwapchains = mSwapchain->handle();					// Swapchains to present images to
 	presentInfo.pImageIndices = &imageIndex;				// Index of images in swapchains to present
 
 	// Present image
@@ -1316,21 +1316,21 @@ VkCommandBuffer* VulkanRenderer::recordSecondaryCommandBuffers(VkCommandBufferBe
 		{
 			Mesh* thisMesh = thisData->getMesh(j);
 
-			VkBuffer vertexBuffers[] = { thisMesh->getVertexBuffer() };				// Buffers to bind
+			VkBuffer vertexBuffers[] = { thisMesh->vertexBuffer() };				// Buffers to bind
 			VkDeviceSize offsets[] = { 0 };											// Offsets into buffers being bound
 			vkCmdBindVertexBuffers(cmdBuffer, 0, 1, vertexBuffers, offsets);	// Command to bind vertex buffer before drawing with them
 
-			vkCmdBindIndexBuffer(cmdBuffer, thisMesh->getIndexBuffer(), 0, VK_INDEX_TYPE_UINT32);
+			vkCmdBindIndexBuffer(cmdBuffer, thisMesh->indexBuffer(), 0, VK_INDEX_TYPE_UINT32);
 
 			std::array<VkDescriptorSet, 2> descriptorSetGroup = { descriptorSets[currentImage],
-				samplerDescriptorSets[thisMesh->getTexId()] };
+				samplerDescriptorSets[thisMesh->texId()] };
 
 			// Bind descriptor sets
 			vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout,
 				0, static_cast<uint32_t>(descriptorSetGroup.size()), descriptorSetGroup.data(), 0, nullptr);
 
 			// Execute pipeline
-			vkCmdDrawIndexed(cmdBuffer, thisMesh->getIndexCount(), 1, 0, 0, 0);
+			vkCmdDrawIndexed(cmdBuffer, thisMesh->indexCount(), 1, 0, 0, 0);
 
 		}
 	}
@@ -1516,8 +1516,7 @@ int VulkanRenderer::loadMeshModelData(std::string modelFile)
 	}
 
 	// Load in all our meshes
-	std::vector<Mesh*> modelMeshes = MeshModelData::LoadNode(mDevice->physicalDevice(), mDevice->logicalDevice(), mDevice->graphicsQueue(), graphicsCommandPool,
-		scene->mRootNode, scene, matToTex);
+	std::vector<Mesh*> modelMeshes = MeshModelData::LoadNode(*mDevice, scene->mRootNode, scene, matToTex);
 
 	// Create mesh model and add to list
 	MeshModelData meshModelData = MeshModelData(modelMeshes);

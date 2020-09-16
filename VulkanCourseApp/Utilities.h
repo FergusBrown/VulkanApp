@@ -15,12 +15,12 @@ const std::vector<const char*> deviceExtensions = {
 	VK_KHR_SWAPCHAIN_EXTENSION_NAME
 };
 
-struct Vertex
-{
-	glm::vec3 pos;	// Vertex Position (x,y,z)
-	glm::vec3 col;	// Vertex Colour
-	glm::vec2 tex; // Texture Coords (u, v)
-};
+//struct Vertex
+//{
+//	glm::vec3 pos;	// Vertex Position (x,y,z)
+//	glm::vec3 col;	// Vertex Colour
+//	glm::vec2 tex; // Texture Coords (u, v)
+//};
 
 // Indicies (locations) of Queue Families (if they exist at all)
 //struct QueueFamilyIndices {

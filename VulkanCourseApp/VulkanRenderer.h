@@ -166,7 +166,7 @@ private:
 	VkRenderPass mRenderPass;
 
 	// - Pools
-	VkCommandPool graphicsCommandPool;
+	//VkCommandPool graphicsCommandPool;
 	//std::vector<VkCommandPool> secondaryCommandPools;
 
 	// - Utility

@@ -55,38 +55,38 @@ Image::Image(Device& device,
 	createImageView();
 }
 
-Image::Image(Device& device, 
-	const VkExtent2D& extent, 
-	VkFormat format, 
-	VkImageUsageFlags usage, 
-	VkMemoryPropertyFlags propFlags, 
-	VkImageAspectFlags aspectMask, VkImageLayout initialLayout, 
-	VkSampleCountFlagBits sampleCount, 
-	uint32_t mipLevels, 
-	uint32_t arrayLayerCount, 
-	VkImageTiling tiling) :
-
-	mDevice(device),
-	mType(VK_IMAGE_TYPE_2D),
-	mExtent({ extent.width, extent.height, 1 }),
-	mSubresource({ aspectMask, mipLevels, arrayLayerCount }),
-	mFormat(format),
-	mTiling(tiling),
-	mSampleCount(sampleCount),
-	mUsage(usage),
-	//mPropFlags(propFlags),
-	mSharingMode(VK_SHARING_MODE_EXCLUSIVE),
-	mLayout(initialLayout)
-{
-	// CREATE IMAGE
-	createImage();
-
-	// CREATE DEVICE MEMORY
-	createMemory(propFlags);
-
-	// CREATE VIEW
-	createImageView();
-}
+//Image::Image(Device& device, 
+//	const VkExtent2D& extent, 
+//	VkFormat format, 
+//	VkImageUsageFlags usage, 
+//	VkMemoryPropertyFlags propFlags, 
+//	VkImageAspectFlags aspectMask, VkImageLayout initialLayout, 
+//	VkSampleCountFlagBits sampleCount, 
+//	uint32_t mipLevels, 
+//	uint32_t arrayLayerCount, 
+//	VkImageTiling tiling) :
+//
+//	mDevice(device),
+//	mType(VK_IMAGE_TYPE_2D),
+//	mExtent({ extent.width, extent.height, 1 }),
+//	mSubresource({ aspectMask, mipLevels, arrayLayerCount }),
+//	mFormat(format),
+//	mTiling(tiling),
+//	mSampleCount(sampleCount),
+//	mUsage(usage),
+//	//mPropFlags(propFlags),
+//	mSharingMode(VK_SHARING_MODE_EXCLUSIVE),
+//	mLayout(initialLayout)
+//{
+//	// CREATE IMAGE
+//	createImage();
+//
+//	// CREATE DEVICE MEMORY
+//	createMemory(propFlags);
+//
+//	// CREATE VIEW
+//	createImageView();
+//}
 
 Image::~Image()
 {

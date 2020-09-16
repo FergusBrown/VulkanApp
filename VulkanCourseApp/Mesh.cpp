@@ -2,74 +2,63 @@
 
 
 // TODO : Use initialiser list
-Mesh::Mesh(VkPhysicalDevice newPhysicalDevice, VkDevice newDevice,
-	VkQueue transferQueue, VkCommandPool transferCommandPool,
+Mesh::Mesh(Device& device,
 	std::vector<Vertex>* vertices, std::vector<uint32_t> * indices,
-	int newTexId)
+	int newTexId) :
+	mVertexCount(vertices->size()), mIndexCount(indices->size())
 {
 	
-	vertexCount = vertices->size();
-	indexCount = indices->size();
-	physicalDevice = newPhysicalDevice;
-	device = newDevice;
-	createVertexBuffer(transferQueue, transferCommandPool, vertices);
-	createIndexBuffer(transferQueue, transferCommandPool, indices);
+	mVertexCount = vertices->size();
+	mIndexCount = indices->size();
+	//physicalDevice = newPhysicalDevice;
+	//device = newDevice;
+	createVertexBuffer(device, vertices);
+	createIndexBuffer(device, indices);
 	
-	model.model = glm::mat4(1.0f);
-	texId = newTexId;
+	mModel = glm::mat4(1.0f);
+	mTexId = newTexId;
 }
 
 void Mesh::setModel(glm::mat4 newModel)
 {
-	model.model = newModel;
+	mModel = newModel;
 }
 
-Model Mesh::getModel() const
+glm::mat4 Mesh::model() const
 {
-	return model;
+	return mModel;
 }
 
-int Mesh::getTexId() const
+int Mesh::texId() const
 {
-	return texId;
+	return mTexId;
 }
 
-int Mesh::getVertexCount()
+int Mesh::vertexCount() const
 {
-	return vertexCount;
+	return mVertexCount;
 }
 
-VkBuffer Mesh::getVertexBuffer()
+const Buffer& Mesh::vertexBuffer()
 {
-	std::lock_guard<std::mutex> lock(vertexMutex);
-	return vertexBuffer;
+	std::lock_guard<std::mutex> lock(mVertexMutex);
+	return *mVertexBuffer;
 }
 
-int Mesh::getIndexCount()
+int Mesh::indexCount() const
 {
-	return indexCount;
+	return mIndexCount;
 }
 
-VkBuffer Mesh::getIndexBuffer()
+const Buffer& Mesh::indexBuffer()
 {
-	std::lock_guard<std::mutex> lock(indexMutex);
-	return indexBuffer;
+	std::lock_guard<std::mutex> lock(mIndexMutex);
+	return *mIndexBuffer;
 }
 
-void Mesh::destroyBuffers()
-{
-	vkDestroyBuffer(device, vertexBuffer, nullptr);
-	vkFreeMemory(device, vertexBufferMemory, nullptr);
-	vkDestroyBuffer(device, indexBuffer, nullptr);
-	vkFreeMemory(device, indexBufferMemory, nullptr);
 
-}
 
-Mesh::~Mesh()
-{
-}
-
-void Mesh::createVertexBuffer(VkQueue transferQueue, VkCommandPool transferCommandPool, std::vector<Vertex>* vertices)
+void Mesh::createVertexBuffer(Device& device, std::vector<Vertex>* vertices)
 {
 	VkDeviceSize bufferSize = sizeof(Vertex) * vertices->size();
 
@@ -101,7 +90,7 @@ void Mesh::createVertexBuffer(VkQueue transferQueue, VkCommandPool transferComma
 	vkFreeMemory(device, stagingBufferMemory, nullptr);
 }
 
-void Mesh::createIndexBuffer(VkQueue transferQueue, VkCommandPool transferCommandPool, std::vector<uint32_t>* indices)
+void Mesh::createIndexBuffer(Device& device, std::vector<uint32_t>* indices)
 {
 	// Get size of buffer needed for indices
 	VkDeviceSize bufferSize = sizeof(uint32_t) * indices->size();

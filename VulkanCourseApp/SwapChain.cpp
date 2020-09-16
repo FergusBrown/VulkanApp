@@ -10,7 +10,7 @@ Swapchain::Swapchain(Device& device, const VkExtent2D& newExtent, VkImageUsageFl
 
 Swapchain::~Swapchain()
 {
-	vkDestroySwapchainKHR(mDevice.logicalDevice(), mSwapchain, nullptr);
+	vkDestroySwapchainKHR(mDevice.logicalDevice(), mHandle, nullptr);
 }
 
 Device& Swapchain::device() const
@@ -18,9 +18,9 @@ Device& Swapchain::device() const
 	return mDevice;
 }
 
-VkSwapchainKHR Swapchain::swapchain() const
+VkSwapchainKHR Swapchain::handle() const
 {
-	return mSwapchain;
+	return mHandle;
 }
 
 const SwapchainDetails& Swapchain::details() const
@@ -72,7 +72,7 @@ VkResult Swapchain::acquireNextImage(VkFence drawFence, VkSemaphore imageAvailab
 	// Manually reset (close) fences
 	vkResetFences(mDevice.logicalDevice(), 1, &drawFence);
 
-	return vkAcquireNextImageKHR(mDevice.logicalDevice(), mSwapchain, std::numeric_limits<uint64_t>::max(), imageAvailable, VK_NULL_HANDLE, &imageIndex);;
+	return vkAcquireNextImageKHR(mDevice.logicalDevice(), mHandle, std::numeric_limits<uint64_t>::max(), imageAvailable, VK_NULL_HANDLE, &imageIndex);;
 }
 
 void Swapchain::createSwapchain(const VkExtent2D& newExtent)
@@ -142,7 +142,7 @@ void Swapchain::createSwapchain(const VkExtent2D& newExtent)
 	swapChainCreateInfo.oldSwapchain = VK_NULL_HANDLE;
 
 	// Create Swapchain
-	VkResult result = vkCreateSwapchainKHR(mDevice.logicalDevice(), &swapChainCreateInfo, nullptr, &mSwapchain);
+	VkResult result = vkCreateSwapchainKHR(mDevice.logicalDevice(), &swapChainCreateInfo, nullptr, &mHandle);
 	if (result != VK_SUCCESS)
 	{
 		throw std::runtime_error("Failed to create a Swapchain!");
@@ -150,9 +150,9 @@ void Swapchain::createSwapchain(const VkExtent2D& newExtent)
 
 	// get Swapchain images (first count, then values)
 	uint32_t swapChainImageCount;
-	vkGetSwapchainImagesKHR(mDevice.logicalDevice(), mSwapchain, &swapChainImageCount, nullptr);
+	vkGetSwapchainImagesKHR(mDevice.logicalDevice(), mHandle, &swapChainImageCount, nullptr);
 	mImages.resize(swapChainImageCount);
-	vkGetSwapchainImagesKHR(mDevice.logicalDevice(), mSwapchain, &swapChainImageCount, mImages.data());
+	vkGetSwapchainImagesKHR(mDevice.logicalDevice(), mHandle, &swapChainImageCount, mImages.data());
 
 	// TODO: move swap chain image views to render target
 	/*for (VkImage image : images)

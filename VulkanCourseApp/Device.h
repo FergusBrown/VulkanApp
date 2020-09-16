@@ -30,6 +30,7 @@ public:
 	VkDevice logicalDevice() const;
 	CommandPool& primaryCommandPool();
 	const Queue& queue(uint32_t familyIndex, uint32_t index) const;
+	const Queue& getQueueByFlag(VkQueueFlagBits queueFlag, uint32_t index);
 
 	// - Management
 	std::unique_ptr<CommandBuffer> createAndBeginTemporaryCommandBuffer(VkCommandBufferLevel level);
@@ -55,7 +56,7 @@ private:
 	void getPhysicalDevice(VkInstance instance, const std::vector<const char*>& deviceExtensions);
 	// -- Support
 	/*QueueFamilyIndices getQueueFamilies();*/
-	uint32_t getQueueFamilyIndex(VkQueueFlagBits queueFlags);
+	uint32_t getQueueFamilyIndex(VkQueueFlagBits queueFlag);
 	VkBool32 checkPresentationSupport(uint32_t queueFamilyIndex);
 	bool checkDeviceSuitable(const std::vector<const char*>& deviceExtensions);
 	bool checkDeviceExtensionSupport(const std::vector<const char*>& deviceExtensions);

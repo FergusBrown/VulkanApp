@@ -52,6 +52,22 @@ const Queue& Device::queue(uint32_t familyIndex, uint32_t index) const
 	return mQueues[familyIndex][index];
 }
 
+const Queue& Device::getQueueByFlag(VkQueueFlagBits queueFlag, uint32_t index)
+{
+	for (auto& queueFamily : mQueues)
+	{
+		auto& firstQueue = queueFamily[0];
+		auto& queueProperties = firstQueue.properties();
+
+		if (((queueProperties.queueFlags & queueFlag) == queueFlag) && index < queueProperties.queueCount)
+		{
+			return queueFamily[index];
+		}
+	}
+
+	throw std::runtime_error("Could not find the requested queue!");
+}
+
 // Allocates a buffer to the device's command pools without incrementing the pool's counter
 // This must be submitted and freed with the submitTemporaryCommandBuffer() function
 // Use this for one-off copy commands etc.

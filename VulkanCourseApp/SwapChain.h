@@ -29,7 +29,7 @@ public:
 
 	// - Getters
 	Device& device() const;
-	VkSwapchainKHR swapchain() const;
+	VkSwapchainKHR handle() const;
 	const SwapchainDetails& details() const;
 	const VkExtent2D& extent() const;
 	VkFormat format() const;
@@ -50,7 +50,7 @@ private:
 
 
 	VkSurfaceKHR mSurface;
-	VkSwapchainKHR mSwapchain{VK_NULL_HANDLE};
+	VkSwapchainKHR mHandle{VK_NULL_HANDLE};
 	SwapchainDetails mDetails;
 	
 	std::vector<VkImage> mImages;

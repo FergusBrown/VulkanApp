@@ -1,64 +1,72 @@
 #pragma once
-
-#define GLFW_INCLUDE_VULKAN
-#include <GLFW/glfw3.h>
-
-#include <vector>
-
 #include "Common.h"
 
-#include "Utilities.h"
+//#include "Utilities.h" // was used for vertex struct def. That has since been moved here
 
-struct Model {
-	glm::mat4 model;
+#include "Device.h"
+#include "Buffer.h"
+
+// This struct is bad!!
+//struct Model {
+//	glm::mat4 model;
+//};
+
+struct Vertex
+{
+	glm::vec3 pos;	// Vertex Position (x,y,z)
+	glm::vec3 col;	// Vertex Colour
+	glm::vec2 tex; // Texture Coords (u, v)
 };
 
 class Mesh
 {
 public:
 	Mesh() = delete;
-	Mesh(VkPhysicalDevice newPhysicalDevice, VkDevice newDevice,
+	/*Mesh(VkPhysicalDevice newPhysicalDevice, VkDevice newDevice,
 		VkQueue transferQueue, VkCommandPool transferCommandPool,
 		std::vector<Vertex>* vertices, std::vector<uint32_t> * indices,
+		int newTexId);*/
+	Mesh(Device& device, std::vector<Vertex>* vertices, std::vector<uint32_t> * indices,
 		int newTexId);
-
+	~Mesh() = default;
 	
 
 	void setModel(glm::mat4 newModel);
-	Model getModel() const;
+	glm::mat4 model() const;
 
-	int getTexId() const;
+	int texId() const;
 
-	int getVertexCount();
-	VkBuffer getVertexBuffer();
+	int vertexCount() const;
+	const Buffer& vertexBuffer();
 	
-	int getIndexCount();
-	VkBuffer getIndexBuffer();
+	int indexCount() const;
+	const Buffer& indexBuffer();
 
-	void destroyBuffers();
-
-	~Mesh();
+	
 
 private:
-	Model model;
+	glm::mat4 mModel;
 
-	int texId;
+	int mTexId;
 
-	int vertexCount;
-	VkBuffer vertexBuffer;
-	VkDeviceMemory vertexBufferMemory;
-	std::mutex vertexMutex;
+	int mVertexCount;
+	//VkBuffer vertexBuffer;
+	//VkDeviceMemory vertexBufferMemory;
+	std::unique_ptr<Buffer> mVertexBuffer;
+	std::mutex mVertexMutex;
+	
 
-	int indexCount;
-	VkBuffer indexBuffer;
-	VkDeviceMemory indexBufferMemory;
+	int mIndexCount;
+	/*VkBuffer indexBuffer;
+	VkDeviceMemory indexBufferMemory;*/
+	std::unique_ptr<Buffer> mIndexBuffer;
+	std::mutex mIndexMutex;
+	//VkPhysicalDevice physicalDevice;
+	//VkDevice device;
+	
 
-	VkPhysicalDevice physicalDevice;
-	VkDevice device;
-	std::mutex indexMutex;
-
-	void createVertexBuffer(VkQueue transferQueue, VkCommandPool transferCommandPool, std::vector<Vertex>* vertices);
-	void createIndexBuffer(VkQueue transferQueue, VkCommandPool transferCommandPool, std::vector<uint32_t>* indices);
+	void createVertexBuffer(Device& device, std::vector<Vertex>* vertices);
+	void createIndexBuffer(Device& device, std::vector<uint32_t>* indices);
 
 	
 };
