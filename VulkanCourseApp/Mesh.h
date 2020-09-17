@@ -67,7 +67,7 @@ private:
 
 	void createVertexBuffer(Device& device, std::vector<Vertex>* vertices);
 	void createIndexBuffer(Device& device, std::vector<uint32_t>* indices);
-
+	void copyBuffer(Device& device, Buffer& srcBuffer, Buffer& dstBuffer);
 	
 };
 

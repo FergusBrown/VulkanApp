@@ -56,65 +56,67 @@ const Buffer& Mesh::indexBuffer()
 	return *mIndexBuffer;
 }
 
-
-
+// TODO : could abstract this and the vertex buffer creation to a template function
 void Mesh::createVertexBuffer(Device& device, std::vector<Vertex>* vertices)
 {
 	VkDeviceSize bufferSize = sizeof(Vertex) * vertices->size();
 
-	// Temporary buffer to "stage" vertex data before transferring to GPU
-	VkBuffer stagingBuffer;
-	VkDeviceMemory stagingBufferMemory;
-
-	// Create buffer and allocate memory to it
-	createBuffer(physicalDevice, device, bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-		&stagingBuffer, &stagingBufferMemory);
+	// Create staging buffer to hold loaded data, ready to copy to device
+	Buffer stagingBuffer(device,
+		bufferSize,
+		VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 	
-	// MAP MEMORY TO VERTEX BUFFER
-	void* data;																// 1. create pointer to a point in normal memory
-	vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, &data);		// 2. "Map" the vertex buffer memory to that point
-	memcpy(data, vertices->data(), (size_t)bufferSize);						// 3. Copy Memory from vertices data to the point
-	vkUnmapMemory(device, stagingBufferMemory);								// 4. Unmap the vertex buffer memory
+	// Copy vertex data to staging buffer
+	void* data;											// 1. create pointer to a point in normal memory
+	data = stagingBuffer.map();							// 2. "Map" the vertex buffer memory to that point												
+	memcpy(data, vertices->data(), (size_t)bufferSize);	// 3. Copy Memory from vertices data to the point
+	stagingBuffer.unmap();								// 4. Unmap the vertex buffer memory
 
 	// Create buffer with TRANSFER_DST_BIT to mark as a recipient of transfer data
 	// Buffer memory is to be DEVICE_LOCAL_BIT meabning memory is on the GPU and only accessible by it and not CPU (host)
-	createBuffer(physicalDevice, device, bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &vertexBuffer, &vertexBufferMemory);
+	mVertexBuffer = std::make_unique<Buffer>(device,
+		bufferSize,
+		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+		VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
 
 	// Copy staging buffer to vertex buffer on GPU
-	copyBuffer(device, transferQueue, transferCommandPool, stagingBuffer, vertexBuffer, bufferSize);
-
-	// Clean up stagin buffer parts
-	vkDestroyBuffer(device, stagingBuffer, nullptr);
-	vkFreeMemory(device, stagingBufferMemory, nullptr);
+	copyBuffer(device, stagingBuffer, *mVertexBuffer);
 }
 
+// TODO : could abstract this and the vertex buffer creation to a template function
 void Mesh::createIndexBuffer(Device& device, std::vector<uint32_t>* indices)
 {
-	// Get size of buffer needed for indices
 	VkDeviceSize bufferSize = sizeof(uint32_t) * indices->size();
 
-	// Temporary to "stage" vertex data before transferring to GPU
-	VkBuffer stagingBuffer;
-	VkDeviceMemory stagingBufferMemory;
-	createBuffer(physicalDevice, device, bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &stagingBuffer, &stagingBufferMemory);
+	// Create staging buffer to hold loaded data, ready to copy to device
+	Buffer stagingBuffer(device,
+		bufferSize,
+		VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
-	// MAP MEMORY TO INDEX BUFFER
-	void* data;																
-	vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, &data);		
-	memcpy(data, indices->data(), (size_t)bufferSize);						
-	vkUnmapMemory(device, stagingBufferMemory);			
+	// Copy vertex data to staging buffer
+	void* data;											// 1. create pointer to a point in normal memory
+	data = stagingBuffer.map();							// 2. "Map" the vertex buffer memory to that point												
+	memcpy(data, indices->data(), (size_t)bufferSize);	// 3. Copy Memory from vertices data to the point
+	stagingBuffer.unmap();								// 4. Unmap the vertex buffer memory
 
-	// Create buffer for INDEX data on GPU access only area
-	createBuffer(physicalDevice, device, bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
-		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &indexBuffer, &indexBufferMemory);
+	// Create buffer with TRANSFER_DST_BIT to mark as a recipient of transfer data
+	// Buffer memory is to be DEVICE_LOCAL_BIT meabning memory is on the GPU and only accessible by it and not CPU (host)
+	mVertexBuffer = std::make_unique<Buffer>(device,
+		bufferSize,
+		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+		VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
 
-	// Copy from staging buffer to GPU access buffer
-	copyBuffer(device, transferQueue, transferCommandPool, stagingBuffer, indexBuffer, bufferSize);
+	// Copy staging buffer to vertex buffer on GPU
+	copyBuffer(device, stagingBuffer, *mIndexBuffer);
+}
 
-	// Destroy + Release Staging buffer resources
-	vkDestroyBuffer(device, stagingBuffer, nullptr);
-	vkFreeMemory(device, stagingBufferMemory, nullptr);
+void Mesh::copyBuffer(Device& device, Buffer& srcBuffer, Buffer& dstBuffer)
+{
+	std::unique_ptr<CommandBuffer> commandBuffer = device.createAndBeginTemporaryCommandBuffer(VK_COMMAND_BUFFER_LEVEL_PRIMARY);
+
+	commandBuffer->copyBuffer(srcBuffer, dstBuffer);
+
+	device.endAndSubmitTemporaryCommandBuffer(*commandBuffer);
 }

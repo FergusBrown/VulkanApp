@@ -35,3 +35,13 @@ const VkQueueFamilyProperties& Queue::properties() const
 {
     return mProperties;
 }
+
+void Queue::submit(CommandBuffer& commandBuffer, VkFence fence)
+{
+    VkSubmitInfo submitInfo = {};
+    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    submitInfo.commandBufferCount = 1;
+    submitInfo.pCommandBuffers = &commandBuffer.handle();
+
+    VkResult result = vkQueueSubmit(mHandle, 1, &submitInfo, fence);
+}

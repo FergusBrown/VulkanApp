@@ -38,8 +38,13 @@ const VkCommandBufferLevel CommandBuffer::level() const
 	return mLevel;
 }
 
+uint32_t CommandBuffer::queueFamilyIndex() const
+{
+	return mCommandPool.queueFamilyIndex();
+}
+
 // TODO : update to work with secondary command buffers
-void CommandBuffer::begin(VkCommandBufferUsageFlags flags)
+void CommandBuffer::beginRecording(VkCommandBufferUsageFlags flags)
 {
 	// Information to begin the command buffer record
 	VkCommandBufferBeginInfo beginInfo = {};
@@ -113,7 +118,7 @@ void CommandBuffer::transitionImageLayout(VkImage image, VkImageLayout oldLayout
 	//endAndSubmitCommandBuffer(device, commandPool, queue, commandBuffer);
 }
 // TODO : pass in required subresource values
-void CommandBuffer::copyImageBuffer(VkBuffer srcBuffer, Image& image)
+void CommandBuffer::copyBufferToImage(Buffer& srcBuffer, Image& image)
 {
 	VkImageSubresource subresource = image.subresource();
 
@@ -129,10 +134,22 @@ void CommandBuffer::copyImageBuffer(VkBuffer srcBuffer, Image& image)
 	imageRegion.imageExtent = image.extent();								// Size of region to copy as (x, y, z) values
 
 	// Copy buffer to given image
-	vkCmdCopyBufferToImage(mHandle, srcBuffer, image.handle(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &imageRegion);
+	vkCmdCopyBufferToImage(mHandle, srcBuffer.handle(), image.handle(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &imageRegion);
 }
 
-void CommandBuffer::end()
+void CommandBuffer::copyBuffer(Buffer& srcBuffer, Buffer& dstBuffer)
+{
+	// Region of data to copy from and to
+	VkBufferCopy bufferCopyRegion = {};
+	bufferCopyRegion.srcOffset = 0;				// Copy from start of buffer
+	bufferCopyRegion.dstOffset = 0;				// To end of buffer :: This setup directs to copy all of buffer
+	bufferCopyRegion.size = srcBuffer.size();
+
+	vkCmdCopyBuffer(mHandle, srcBuffer.handle(), dstBuffer.handle(), 1, &bufferCopyRegion);
+
+}
+
+void CommandBuffer::endRecording()
 {
 	// End command recording
 	VkResult result = vkEndCommandBuffer(mHandle);
@@ -143,17 +160,20 @@ void CommandBuffer::end()
 	}
 }
 
-// TODO: does a queue really need to be passed in here?
+// TODO: MOVE TO QUEUE CLASS\?
 // TODO : update to allow fences
-void CommandBuffer::submit(VkQueue queue)
-{
-	// Queue submission information
-	VkSubmitInfo submitInfo = {};
-	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-	submitInfo.commandBufferCount = 1;
-	submitInfo.pCommandBuffers = &mHandle;
-
-	// Submit transfer command to transfer queue and wait until it finishes
-	vkQueueSubmit(queue, 1, &submitInfo, VK_NULL_HANDLE);
-	//vkQueueWaitIdle(queue);			// Avoid submitting many command buffer
-}
+//void CommandBuffer::submit()
+//{
+//	// Queue submission information
+//	VkSubmitInfo submitInfo = {};
+//	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+//	submitInfo.commandBufferCount = 1;
+//	submitInfo.pCommandBuffers = &mHandle;
+//
+//	uint32_t queueFamilyIndex = mCommandPool.queueFamilyIndex();
+//
+//
+//	// Submit transfer command to transfer queue and wait until it finishes
+//	vkQueueSubmit(queue, 1, &submitInfo, VK_NULL_HANDLE);
+//	//vkQueueWaitIdle(queue);			// Avoid submitting many command buffer
+//}

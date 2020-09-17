@@ -77,13 +77,13 @@ std::unique_ptr<CommandBuffer> Device::createAndBeginTemporaryCommandBuffer(VkCo
 	std::unique_ptr<CommandBuffer> commandBuffer = std::make_unique<CommandBuffer>(mPrimaryCommandPool->handle(), level);
 
 	// BEGIN RECORDING
-	commandBuffer->begin();
+	commandBuffer->beginRecording();
 
 	return commandBuffer;
 }
 
 // end buffer recording, submits to queue and frees the command buffer
-void Device::endAndSubmitTemporaryCommandBuffer(CommandBuffer commandBuffer, VkQueue queue)
+void Device::endAndSubmitTemporaryCommandBuffer(CommandBuffer& commandBuffer)
 {
 	if (commandBuffer.handle() == VK_NULL_HANDLE)
 	{
@@ -91,17 +91,19 @@ void Device::endAndSubmitTemporaryCommandBuffer(CommandBuffer commandBuffer, VkQ
 	}
 
 	// END RECORDING
-	commandBuffer.end();
+	commandBuffer.endRecording();
 
 	// SUBMIT TO QUEUE
-	commandBuffer.submit(queue);
+	auto& queue = mQueues[commandBuffer.queueFamilyIndex()][0];		// get first queue with appropriate family index
 
-	//vkQueueWaitIdle(queue);
+	queue.submit(commandBuffer);
+	vkQueueWaitIdle(queue.handle()); // TODO : need to abstract this out by requesting fences on submit
 
 	// CHECK : command buffer should now leave scope and be automatically freed
 	// FREE COMMAND BUFFER
 	//vkFreeCommandBuffers(mLogicalDevice, mPrimaryCommandPool->handle(), 1, &commandBuffer);
 }
+
 
 //QueueFamilyIndices Device::getQueueFamilies()
 //{

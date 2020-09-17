@@ -3,6 +3,7 @@
 
 #include "CommandPool.h"
 #include "Image.h"
+#include "Buffer.h"
 
 // Class handles all command buffer operations
 class CommandBuffer
@@ -14,15 +15,18 @@ public:
 	// - Getters
 	const VkCommandBuffer& handle() const;
 	const VkCommandBufferLevel level() const;
+	uint32_t queueFamilyIndex() const;
 
-	// Command buffer operations
-	void begin(VkCommandBufferUsageFlags flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
+	// - Command buffer operations
+	void beginRecording(VkCommandBufferUsageFlags flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
 
+	// -- Transition and copy operations
 	void transitionImageLayout(VkImage image, VkImageLayout oldLayout, VkImageLayout newLayout);
-	void copyImageBuffer(VkBuffer srcBuffer, Image& image);
+	void copyBufferToImage(Buffer& srcBuffer, Image& image);
+	void copyBuffer(Buffer& srcBuffer, Buffer& dstBuffer);
 
-	void end();
-	void submit(VkQueue queue);
+	void endRecording();
+	//void submit();
 
 private:
 	CommandPool& mCommandPool;

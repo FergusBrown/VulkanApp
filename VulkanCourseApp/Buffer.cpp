@@ -45,6 +45,11 @@ VkDeviceMemory Buffer::memory() const
     return mMemory->handle();
 }
 
+VkDeviceSize Buffer::size() const
+{
+	return mSize;
+}
+
 void* Buffer::map()
 {
 	void* data;

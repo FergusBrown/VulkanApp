@@ -17,6 +17,9 @@ public:
 	VkBool32 presentationSupport() const;
 	const VkQueueFamilyProperties& properties() const;
 
+	// - Management
+	void submit(CommandBuffer& commandBuffer, VkFence fence = VK_NULL_HANDLE); // TODO : need to add fence functionality here
+
 private:
 	Device& mDevice;
 

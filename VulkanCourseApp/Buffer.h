@@ -17,6 +17,7 @@ public:
 	// - Getters
 	VkBuffer handle() const;
 	VkDeviceMemory memory() const;
+	VkDeviceSize size() const;
 
 	// Maps and returns a pointer to the buffer memory (allowing for operations on the memory e.g. memcpy)
 	void* map();
