@@ -1,7 +1,5 @@
 #include "Mesh.h"
 
-
-// TODO : Use initialiser list
 Mesh::Mesh(Device& device,
 	std::vector<Vertex>* vertices, std::vector<uint32_t> * indices,
 	int newTexId) :
@@ -10,8 +8,6 @@ Mesh::Mesh(Device& device,
 	
 	mVertexCount = vertices->size();
 	mIndexCount = indices->size();
-	//physicalDevice = newPhysicalDevice;
-	//device = newDevice;
 	createVertexBuffer(device, vertices);
 	createIndexBuffer(device, indices);
 	
@@ -97,9 +93,9 @@ void Mesh::createIndexBuffer(Device& device, std::vector<uint32_t>* indices)
 
 	// Copy vertex data to staging buffer
 	void* data;											// 1. create pointer to a point in normal memory
-	data = stagingBuffer.map();							// 2. "Map" the vertex buffer memory to that point												
+	data = stagingBuffer.map();							// 2. "Map" the index buffer memory to that point												
 	memcpy(data, indices->data(), (size_t)bufferSize);	// 3. Copy Memory from vertices data to the point
-	stagingBuffer.unmap();								// 4. Unmap the vertex buffer memory
+	stagingBuffer.unmap();								// 4. Unmap the index buffer memory
 
 	// Create buffer with TRANSFER_DST_BIT to mark as a recipient of transfer data
 	// Buffer memory is to be DEVICE_LOCAL_BIT meabning memory is on the GPU and only accessible by it and not CPU (host)

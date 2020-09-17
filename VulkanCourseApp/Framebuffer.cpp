@@ -12,7 +12,7 @@ Framebuffer::Framebuffer(Device& device, const VkExtent2D& extent, const std::ve
 	framebufferCreateInfo.height = extent.height;											// Framebuffer height
 	framebufferCreateInfo.layers = 1;														// Framebuffer layers
 
-	VkResult result = vkCreateFramebuffer(mDevice.logicalDevice(), &framebufferCreateInfo, nullptr, &mFramebuffer);
+	VkResult result = vkCreateFramebuffer(mDevice.logicalDevice(), &framebufferCreateInfo, nullptr, &mHandle);
 	if (result != VK_SUCCESS)
 	{
 		throw std::runtime_error("Failed to create a Framebuffer");
@@ -21,9 +21,14 @@ Framebuffer::Framebuffer(Device& device, const VkExtent2D& extent, const std::ve
 
 Framebuffer::~Framebuffer()
 {
-	if (mFramebuffer != VK_NULL_HANDLE)
+	if (mHandle != VK_NULL_HANDLE)
 	{
-		vkDestroyFramebuffer(mDevice.logicalDevice(), mFramebuffer, nullptr);
+		vkDestroyFramebuffer(mDevice.logicalDevice(), mHandle, nullptr);
 	}
 	
+}
+
+VkFramebuffer Framebuffer::handle() const
+{
+	return mHandle;
 }

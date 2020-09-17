@@ -22,10 +22,6 @@ class Mesh
 {
 public:
 	Mesh() = delete;
-	/*Mesh(VkPhysicalDevice newPhysicalDevice, VkDevice newDevice,
-		VkQueue transferQueue, VkCommandPool transferCommandPool,
-		std::vector<Vertex>* vertices, std::vector<uint32_t> * indices,
-		int newTexId);*/
 	Mesh(Device& device, std::vector<Vertex>* vertices, std::vector<uint32_t> * indices,
 		int newTexId);
 	~Mesh() = default;

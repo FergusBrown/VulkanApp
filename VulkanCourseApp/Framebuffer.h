@@ -10,10 +10,13 @@ public:
 	Framebuffer(Device& device, const VkExtent2D& extent, const std::vector<VkImageView>& imageViews, VkRenderPass renderPass);
 	~Framebuffer();
 
+	// - Getters
+	VkFramebuffer handle() const;
+
 private:
 	Device& mDevice;
 
-	VkFramebuffer mFramebuffer;
+	VkFramebuffer mHandle;
 
 };
 

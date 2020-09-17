@@ -601,7 +601,7 @@ void VulkanRenderer::createPushConstantRange()
 {
 	pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;	// Shader stage push constant will go to
 	pushConstantRange.offset = 0;								// Offset into given data to pass to push constant
-	pushConstantRange.size = sizeof(Model);						// Size of data being passed
+	pushConstantRange.size = sizeof(glm::mat4);					// Size of data being passed
 }
 
 void VulkanRenderer::createGraphicsPipeline()
@@ -762,7 +762,7 @@ void VulkanRenderer::createGraphicsPipeline()
 	colourBlendingCreateInfo.pAttachments = &colourState;
 
 	// -- PIPELINE LAYOUT --
-	std::array<VkDescriptorSetLayout, 2> descriptorSetLayouts = { mUniformSetLayout[0]->handle(), mSamplerSetLayout[0]->handle() };
+	std::array<VkDescriptorSetLayout, 2> descriptorSetLayouts = { mUniformSetLayout->handle(), mSamplerSetLayout->handle() };
 	VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo = {};
 	pipelineLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 	pipelineLayoutCreateInfo.setLayoutCount = static_cast<uint32_t>(descriptorSetLayouts.size());
@@ -842,11 +842,11 @@ void VulkanRenderer::createGraphicsPipeline()
 	depthStencilCreateInfo.depthWriteEnable = VK_FALSE;
 
 
-
+	VkDescriptorSetLayout descriptorSetLayout = mAttachmentSetLayout->handle();
 	VkPipelineLayoutCreateInfo secondPipelineLayoutCreateInfo = {};
 	secondPipelineLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 	secondPipelineLayoutCreateInfo.setLayoutCount = 1;
-	secondPipelineLayoutCreateInfo.pSetLayouts = &mAttachmentSetLayout[0]->handle();	// TODO: ??
+	secondPipelineLayoutCreateInfo.pSetLayouts = &descriptorSetLayout;
 	secondPipelineLayoutCreateInfo.pushConstantRangeCount = 0;
 	secondPipelineLayoutCreateInfo.pPushConstantRanges = nullptr;
 
@@ -871,40 +871,6 @@ void VulkanRenderer::createGraphicsPipeline()
 	vkDestroyShaderModule(mDevice->logicalDevice(), secondFragmentShaderModule, nullptr);
 	vkDestroyShaderModule(mDevice->logicalDevice(), secondVertexShaderModule, nullptr);
 }
-
-
-//void VulkanRenderer::createFrameBuffers()
-//{
-//	// Resize framebuffer count to equal swapchain image count
-//	swapChainFramebuffers.resize(mSwapchain->details().imageCount);
-//
-//	// Create a framebuffer for each swapchain image
-//	for (size_t i = 0; i < swapChainFramebuffers.size(); ++i)
-//	{
-//		std::array<VkImageView, 3> attachments = {
-//			swapChainImages[i].imageView,
-//			colourBufferImageView[i],
-//			depthBufferImageView[i]
-//		};
-//
-//		VkFramebufferCreateInfo framebufferCreateInfo = {};
-//		framebufferCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-//		framebufferCreateInfo.mRenderPass = mRenderPass;											// Render pass layout the framebuffer will be used with
-//		framebufferCreateInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
-//		framebufferCreateInfo.pAttachments = attachments.data();								// List of attachments (1:1 with Render Pass)
-//		framebufferCreateInfo.width = swapChainExtent.width;									// Framebuffer width
-//		framebufferCreateInfo.height = swapChainExtent.height;									// Framebuffer height
-//		framebufferCreateInfo.layers = 1;														// Framebuffer layers
-//
-//		VkResult result = vkCreateFramebuffer(mDevice->logicalDevice(), &framebufferCreateInfo, nullptr, &swapChainFramebuffers[i]);
-//		if (result != VK_SUCCESS)
-//		{
-//			throw std::runtime_error("Failed to create a Framebuffer");
-//		}
-//	}
-//
-//
-//}
 
 /* abstracted to frames*/
 //void VulkanRenderer::createCommandPools()
@@ -1020,11 +986,6 @@ void VulkanRenderer::createSynchronation()
 	}
 
 }
-
-//void VulkanRenderer::createFramebuffer()
-//{
-//
-//}
 
 void VulkanRenderer::createFramebuffers()
 {
@@ -1177,7 +1138,7 @@ void VulkanRenderer::recordCommands(uint32_t currentImage) // Current image is s
 	renderPassBeginInfo.pClearValues = clearValues.data();							// List of clear values 
 	renderPassBeginInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
 
-	renderPassBeginInfo.framebuffer = swapChainFramebuffers[currentImage];
+	renderPassBeginInfo.framebuffer = mFramebuffers[currentImage]->handle();
 
 	// Start recording commands to command buffer
 	VkResult result = vkBeginCommandBuffer(primaryCommandBuffers[currentImage], &bufferBeginInfo);
@@ -1191,7 +1152,7 @@ void VulkanRenderer::recordCommands(uint32_t currentImage) // Current image is s
 	VkCommandBufferInheritanceInfo inheritanceInfo = {};
 	inheritanceInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO;
 	inheritanceInfo.renderPass = mRenderPass;
-	inheritanceInfo.framebuffer = swapChainFramebuffers[currentImage];
+	inheritanceInfo.framebuffer = mFramebuffers[currentImage]->handle();
 	inheritanceInfo.subpass = 0;
 
 	VkCommandBufferBeginInfo secondaryBeginInfo = {};
@@ -1309,14 +1270,14 @@ VkCommandBuffer* VulkanRenderer::recordSecondaryCommandBuffers(VkCommandBufferBe
 			pipelineLayout,
 			VK_SHADER_STAGE_VERTEX_BIT,		// Stage to push constants to
 			0,								// Offset of push constants to update
-			sizeof(Model),					// Size of data being pushed
+			sizeof(glm::mat4),					// Size of data being pushed
 			&thisModel->getModel());		// Actual data being pushed (can be array)
 
 		for (size_t j = 0; j < thisData->getMeshCount(); ++j)
 		{
 			Mesh* thisMesh = thisData->getMesh(j);
 
-			VkBuffer vertexBuffers[] = { thisMesh->vertexBuffer() };				// Buffers to bind
+			VkBuffer vertexBuffers[] = { thisMesh->vertexBuffer().handle() };				// Buffers to bind
 			VkDeviceSize offsets[] = { 0 };											// Offsets into buffers being bound
 			vkCmdBindVertexBuffers(cmdBuffer, 0, 1, vertexBuffers, offsets);	// Command to bind vertex buffer before drawing with them
 
