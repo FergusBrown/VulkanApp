@@ -19,13 +19,13 @@ public:
 
 	// - Getters
 	Device& device() const;
-	CommandPool& commandPool(uint32_t threadIndex = 0);
+	//CommandPool& commandPool(uint32_t threadIndex = 0);
 
 	// - Frame management
 	void reset();
 
-	// Request a command buffer to perform operations on
-
+	// - Command Buffer management
+	//CommandBuffer& requestCommandBuffer()
 
 private:
 	// Variables
@@ -46,7 +46,7 @@ private:
 	ctpl::thread_pool mThreadPool;
 
 	struct ThreadData {
-		std::unique_ptr<CommandPool> commandPool;
+		std::vector<std::unique_ptr<CommandPool>> commandPools;			// per thread vector of command pools: Each index holds a pool for a different queue type
 		//std::vector<std::unique_ptr<DescriptorPool>> descriptorPools;
 		//std::vector<std::unique_ptr<DescriptorSet>> descriptorSets;
 	};
@@ -60,8 +60,11 @@ private:
 	std::vector<std::unique_ptr<DescriptorPool>> descriptorPools;
 	std::vector<std::unique_ptr<DescriptorSet>> descriptorSets;
 
-	// - Thread pool management
-	void createThreadData();
+	// - Thread Pool
+	//void createThreadData();
+
+	// - Command Pool
+	std::unique_ptr<CommandPool>& commandPool(const Queue& queue, uint32_t threadIndex = 0);
 
 	// - Synchronisation
 	//void createSynchronisation();

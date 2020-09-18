@@ -87,7 +87,7 @@ private:
 	VkSurfaceKHR mSurface;
 	std::unique_ptr<Device> mDevice;
 	std::unique_ptr<Swapchain> mSwapchain;
-	std::vector<std::unique_ptr<RenderTarget>> mRenderTargets;
+	//std::vector<std::unique_ptr<RenderTarget>> mRenderTargets; ----> RENDER TARGETS ARE OWNED BY THE FRAME OBJECTS
 	std::vector<std::unique_ptr<Framebuffer>> mFramebuffers;
 	std::vector<std::unique_ptr<Frame>> mFrames;
 

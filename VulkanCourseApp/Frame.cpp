@@ -7,8 +7,7 @@ Frame::Frame(Device& device, std::unique_ptr<RenderTarget>&& renderTarget, uint3
 	mThreadData.resize(mThreadCount);
 
 	// THREAD SPECIFIC DATA : COMMAND + DESCRIPTOR POOLS
-	createThreadData();
-
+	//createThreadData();
 
 }
 
@@ -21,10 +20,10 @@ Device& Frame::device() const
 	return mDevice;
 }
 
-CommandPool& Frame::commandPool(uint32_t threadIndex)
-{
-	return *mThreadData[threadIndex].commandPool;
-}
+//CommandPool& Frame::commandPool(uint32_t threadIndex)
+//{
+//	return *mThreadData[threadIndex].commandPools;
+//}
 
 void Frame::reset()
 {
@@ -35,13 +34,26 @@ void Frame::reset()
 }
 
 
-void Frame::createThreadData()
+//void Frame::createThreadData()
+//{
+//
+//	// TODO : only create command pool when requested
+//	for (auto& thread : mThreadData)
+//	{
+//		//thread.commandPool = std::make_unique<CommandPool>(mDevice, mDevice.queueFamilyIndices().graphicsFamily);
+//	}
+//}
+
+// Check if a pool for the requested queue exists
+// If it does exist then return it
+// Otherwise create the rquested pool
+std::unique_ptr<CommandPool>& Frame::commandPool(const Queue& queue, uint32_t threadIndex)
 {
+	auto& commandPools = mThreadData[threadIndex].commandPools;
 
-
-	for (auto& thread : mThreadData)
+	for (auto& pool : commandPools)
 	{
-		thread.commandPool = std::make_unique<CommandPool>(mDevice, mDevice.queueFamilyIndices().graphicsFamily);
+
 	}
 }
 

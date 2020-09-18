@@ -397,10 +397,8 @@ void VulkanRenderer::createPerFrameObjects()
 		renderTargetImages.push_back(depthImage);
 
 
-
-		mRenderTargets.push_back(std::make_unique<RenderTarget>(renderTargetImages));
-
-		mFrames.push_back(std::make_unique<Frame>(mDevice, mRenderTargets.back(), mThreadCount));
+		std::unique_ptr<RenderTarget> renderTarget = std::make_unique<RenderTarget>(renderTargetImages);
+		mFrames.push_back(std::make_unique<Frame>(mDevice, renderTarget, mThreadCount));
 	}
 }
 
