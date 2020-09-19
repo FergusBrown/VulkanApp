@@ -51,6 +51,17 @@ void CommandBuffer::beginRecording(VkCommandBufferUsageFlags flags)
 	beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 	beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;		// We're only using the command buffer once so set up for one time submit
 
+	if (mLevel == VK_COMMAND_BUFFER_LEVEL_SECONDARY)
+	{
+		// Inheritance create info allows secondary buffers to inherit render pass state
+		VkCommandBufferInheritanceInfo inheritanceInfo = {};
+		inheritanceInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO;
+		inheritanceInfo.renderPass = mRenderPass;
+		inheritanceInfo.framebuffer = mFramebuffers[currentImage]->handle();
+		inheritanceInfo.subpass = 0;
+		beginInfo.pInheritanceInfo = &inheritanceInfo;
+	}
+
 	// Begin recording transfer commands
 	VkResult result = vkBeginCommandBuffer(mHandle, &beginInfo);
 

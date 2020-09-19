@@ -11,7 +11,7 @@ int VulkanRenderer::init(GLFWwindow* newWindow)
 	window = newWindow;
 
 	try {
-		mThreadCount = std::thread::hardware_concurrency();
+		setupThreadPool();
 		/*createThreadData();*/
 		createInstance();				// LEAVE
 		setupDebugMessenger();			// LEAVE
@@ -229,6 +229,12 @@ VulkanRenderer::~VulkanRenderer()
 {
 	vkDestroySurfaceKHR(mInstance, mSurface, nullptr);
 	vkDestroyInstance(mInstance, nullptr);
+}
+
+void VulkanRenderer::setupThreadPool()
+{
+	mThreadCount = std::thread::hardware_concurrency();
+	mThreadPool.resize(mThreadCount);
 }
 
 void VulkanRenderer::createInstance()
@@ -1112,14 +1118,153 @@ void VulkanRenderer::updateUniformBuffers(uint32_t imageIndex)
 
 }
 
+//// TODO: changes threads to split load for number of meshes rather than models
+//void VulkanRenderer::recordCommands(uint32_t currentImage) // Current image is swapchain index
+//{
+//	// Information about how to begin each command buffer
+//	VkCommandBufferBeginInfo bufferBeginInfo = {};
+//	bufferBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+//	bufferBeginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+//
+//	// Information about how to begin a render pass (only needed for graphical applications)
+//	VkRenderPassBeginInfo renderPassBeginInfo = {};
+//	renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+//	renderPassBeginInfo.renderPass = mRenderPass;							// Render pass to begin
+//	renderPassBeginInfo.renderArea.offset = { 0, 0 };						// Start point of render pass in pixels
+//	renderPassBeginInfo.renderArea.extent = swapChainExtent;				// Size of region to run render pass on (starting at offset)
+//
+//	std::array<VkClearValue, 3> clearValues = {};
+//	clearValues[0].color = { 0.0f, 0.0f, 0.0f, 1.0f };				// Clear values for attachment 1 (colour)
+//	clearValues[1].color = { 0.6f, 0.65f, 0.4f, 1.0f };				// Clear values for attachment 1 (colour)
+//	clearValues[2].depthStencil.depth = 1.0f;						// Clear values for attachment 2 (depth)
+//
+//
+//	renderPassBeginInfo.pClearValues = clearValues.data();							// List of clear values 
+//	renderPassBeginInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
+//
+//	renderPassBeginInfo.framebuffer = mFramebuffers[currentImage]->handle();
+//
+//	// Start recording commands to command buffer
+//	VkResult result = vkBeginCommandBuffer(primaryCommandBuffers[currentImage], &bufferBeginInfo);
+//
+//	if (result != VK_SUCCESS)
+//	{
+//		throw std::runtime_error("Failed to start recording a Primary Command Buffer!");
+//	}
+//
+//	// Inheritance create info allows secondary buffers to inherit render pass state
+//	VkCommandBufferInheritanceInfo inheritanceInfo = {};
+//	inheritanceInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO;
+//	inheritanceInfo.renderPass = mRenderPass;
+//	inheritanceInfo.framebuffer = mFramebuffers[currentImage]->handle();
+//	inheritanceInfo.subpass = 0;
+//
+//	VkCommandBufferBeginInfo secondaryBeginInfo = {};
+//	secondaryBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+//	secondaryBeginInfo.flags =
+//		VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT | VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT;
+//	secondaryBeginInfo.pInheritanceInfo = &inheritanceInfo;
+//
+//	// Below is indented to indicate that the commands are being recorded in the command buffer
+//
+//		// Begin Render Pass (Use secondary command buffers to allow for multithreading)
+//	vkCmdBeginRenderPass(primaryCommandBuffers[currentImage], &renderPassBeginInfo, VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFERS);
+//	//vkCmdBeginRenderPass(primaryCommandBuffers[currentImage], &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+//
+//
+//
+//		// Split objects to draw equally between threads
+//	uint32_t numModels = modelList.size();
+//
+//	float avgObjectsPerBuffer = static_cast<float>(numModels) / mThreadCount;
+//
+//	uint32_t objectsPerBuffer = static_cast<uint32_t> (std::floor(avgObjectsPerBuffer));
+//	uint32_t remainderObjects = numModels % objectsPerBuffer;
+//	uint32_t objectStart = 0;
+//
+//	// Vector for results of tasks pushed to threadpool
+//	std::vector<std::future<VkCommandBuffer*>> futureSecondaryCommandBuffers;
+//
+//	for (uint32_t i = 0; i < numSecondaryBuffers; ++i)
+//	{
+//		// Get the end index for the last mesh which will be handled by this buffer
+//		uint32_t objectEnd = std::min(numModels, objectStart + objectsPerBuffer);
+//
+//		// If there are still remainder draws then add a draw to this command buffer
+//		// Latter command buffers may contain fewer draws
+//		if (remainderObjects > 0)
+//		{
+//			objectEnd++;
+//			remainderObjects--;
+//		}
+//
+//
+//		// Push lambda function to threadpool for running
+//		auto futureResult = mThreadPool.push([=](size_t threadID) {
+//			return recordSecondaryCommandBuffers(secondaryBeginInfo, objectStart, objectEnd, currentImage, i, threadID);
+//			});
+//
+//		futureSecondaryCommandBuffers.push_back(std::move(futureResult));
+//
+//		objectStart = objectEnd;
+//	}
+//
+//	std::vector<VkCommandBuffer* > secondaryCommandBufferPtrs;
+//
+//	for (auto& fut : futureSecondaryCommandBuffers)
+//	{
+//		secondaryCommandBufferPtrs.push_back(fut.get());
+//	}
+//
+//
+//	std::vector<VkCommandBuffer> secondaryCommandBuffers(secondaryCommandBufferPtrs.size(), VK_NULL_HANDLE);
+//	// transform to a vector of commandbuffers
+//	std::transform(secondaryCommandBufferPtrs.begin(), secondaryCommandBufferPtrs.end(),
+//		secondaryCommandBuffers.begin(), [](VkCommandBuffer* item) {return *item; });
+//
+//	// Submit the secondary command buffers to the primary command buffer.
+//	vkCmdExecuteCommands(primaryCommandBuffers[currentImage], secondaryCommandBuffers.size(), secondaryCommandBuffers.data());
+//
+//	// Start second subpass (INLINE here as no multithreading is used and only primary buffers are submitted)
+//	vkCmdNextSubpass(primaryCommandBuffers[currentImage], VK_SUBPASS_CONTENTS_INLINE);
+//
+//	vkCmdBindPipeline(primaryCommandBuffers[currentImage], VK_PIPELINE_BIND_POINT_GRAPHICS, secondPipeline);
+//	vkCmdBindDescriptorSets(primaryCommandBuffers[currentImage], VK_PIPELINE_BIND_POINT_GRAPHICS, secondPipelineLayout,
+//		0, 1, &inputDescriptorSets[currentImage], 0, nullptr);
+//	vkCmdDraw(primaryCommandBuffers[currentImage], 3, 1, 0, 0);
+//
+//	// End Render Pass
+//	vkCmdEndRenderPass(primaryCommandBuffers[currentImage]);
+//
+//	// Stop recording to primary command buffers
+//	result = vkEndCommandBuffer(primaryCommandBuffers[currentImage]);
+//	if (result != VK_SUCCESS)
+//	{
+//		throw std::runtime_error("Failed to stop recording Command Buffer!");
+//	}
+//}
+
 // TODO: changes threads to split load for number of meshes rather than models
 void VulkanRenderer::recordCommands(uint32_t currentImage) // Current image is swapchain index
 {
-	// Information about how to begin each command buffer
-	VkCommandBufferBeginInfo bufferBeginInfo = {};
-	bufferBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-	bufferBeginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+	CommandBuffer& primaryCmdBuffer = mDevice->requestCommandBuffer(VK_COMMAND_BUFFER_LEVEL_PRIMARY);
 
+	primaryCmdBuffer.beginRecording();
+
+	// Information about how to begin each command buffer
+	/*VkCommandBufferBeginInfo bufferBeginInfo = {};
+	bufferBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+	bufferBeginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;*/
+
+	//// Start recording commands to command buffer
+	//VkResult result = vkBeginCommandBuffer(primaryCommandBuffers[currentImage], &bufferBeginInfo);
+
+	//if (result != VK_SUCCESS)
+	//{
+	//	throw std::runtime_error("Failed to start recording a Primary Command Buffer!");
+	//}
+
+	// TODO : abstract this info to a renderpass object?
 	// Information about how to begin a render pass (only needed for graphical applications)
 	VkRenderPassBeginInfo renderPassBeginInfo = {};
 	renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
@@ -1132,19 +1277,11 @@ void VulkanRenderer::recordCommands(uint32_t currentImage) // Current image is s
 	clearValues[1].color = { 0.6f, 0.65f, 0.4f, 1.0f };				// Clear values for attachment 1 (colour)
 	clearValues[2].depthStencil.depth = 1.0f;						// Clear values for attachment 2 (depth)
 
-
 	renderPassBeginInfo.pClearValues = clearValues.data();							// List of clear values 
 	renderPassBeginInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
 
 	renderPassBeginInfo.framebuffer = mFramebuffers[currentImage]->handle();
 
-	// Start recording commands to command buffer
-	VkResult result = vkBeginCommandBuffer(primaryCommandBuffers[currentImage], &bufferBeginInfo);
-
-	if (result != VK_SUCCESS)
-	{
-		throw std::runtime_error("Failed to start recording a Primary Command Buffer!");
-	}
 
 	// Inheritance create info allows secondary buffers to inherit render pass state
 	VkCommandBufferInheritanceInfo inheritanceInfo = {};
@@ -1170,7 +1307,7 @@ void VulkanRenderer::recordCommands(uint32_t currentImage) // Current image is s
 		// Split objects to draw equally between threads
 	uint32_t numModels = modelList.size();
 
-	float avgObjectsPerBuffer = static_cast<float>(numModels) / threadCount;
+	float avgObjectsPerBuffer = static_cast<float>(numModels) / mThreadCount;
 
 	uint32_t objectsPerBuffer = static_cast<uint32_t> (std::floor(avgObjectsPerBuffer));
 	uint32_t remainderObjects = numModels % objectsPerBuffer;
@@ -1194,7 +1331,7 @@ void VulkanRenderer::recordCommands(uint32_t currentImage) // Current image is s
 
 
 		// Push lambda function to threadpool for running
-		auto futureResult = threadPool.push([=](size_t threadID) {
+		auto futureResult = mThreadPool.push([=](size_t threadID) {
 			return recordSecondaryCommandBuffers(secondaryBeginInfo, objectStart, objectEnd, currentImage, i, threadID);
 			});
 

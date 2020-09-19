@@ -32,8 +32,10 @@ public:
 	const Queue& queue(uint32_t familyIndex, uint32_t index) const;
 	const Queue& getQueueByFlag(VkQueueFlagBits queueFlag, uint32_t index);
 
+	CommandBuffer& requestCommandBuffer(VkCommandBufferLevel level = VK_COMMAND_BUFFER_LEVEL_PRIMARY);
+
 	// - Management
-	std::unique_ptr<CommandBuffer> createAndBeginTemporaryCommandBuffer(VkCommandBufferLevel level);
+	std::unique_ptr<CommandBuffer> createAndBeginTemporaryCommandBuffer(VkCommandBufferLevel level = VK_COMMAND_BUFFER_LEVEL_PRIMARY);
 	void endAndSubmitTemporaryCommandBuffer(CommandBuffer& commandBuffer);
 	//void submitCommandBuffer(CommandBuffer commandBuffer);
 

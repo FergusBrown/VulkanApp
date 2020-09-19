@@ -68,6 +68,12 @@ const Queue& Device::getQueueByFlag(VkQueueFlagBits queueFlag, uint32_t index)
 	throw std::runtime_error("Could not find the requested queue!");
 }
 
+// Request a command buffer for the primary queue
+CommandBuffer& Device::requestCommandBuffer(VkCommandBufferLevel level)
+{
+	return mPrimaryCommandPool->requestCommandBuffer(level);
+}
+
 // Allocates a buffer to the device's command pools without incrementing the pool's counter
 // This must be submitted and freed with the submitTemporaryCommandBuffer() function
 // Use this for one-off copy commands etc.

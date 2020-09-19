@@ -15,7 +15,7 @@ class Frame
 {
 public:
 	Frame(Device& device, std::unique_ptr<RenderTarget>&& renderTarget, uint32_t threadCount = 1);
-	~Frame();
+	~Frame() = default;
 
 	// - Getters
 	Device& device() const;
@@ -25,7 +25,7 @@ public:
 	void reset();
 
 	// - Command Buffer management
-	//CommandBuffer& requestCommandBuffer()
+	CommandBuffer& requestCommandBuffer(const Queue& queue, VkCommandBufferLevel level, size_t threadIndex = 0);
 
 private:
 	// Variables
@@ -42,8 +42,8 @@ private:
 	VkFence		mDrawFence;*/
 
 	// - Thread Pool
-	uint32_t mThreadCount;
-	ctpl::thread_pool mThreadPool;
+	//uint32_t mThreadCount;
+	//ctpl::thread_pool mThreadPool;
 
 	struct ThreadData {
 		std::vector<std::unique_ptr<CommandPool>> commandPools;			// per thread vector of command pools: Each index holds a pool for a different queue type
@@ -64,7 +64,7 @@ private:
 	//void createThreadData();
 
 	// - Command Pool
-	std::unique_ptr<CommandPool>& commandPool(const Queue& queue, uint32_t threadIndex = 0);
+	std::unique_ptr<CommandPool>& requestCommandPool(const Queue& queue, size_t threadIndex = 0);
 
 	// - Synchronisation
 	//void createSynchronisation();

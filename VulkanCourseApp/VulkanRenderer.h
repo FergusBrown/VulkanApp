@@ -86,6 +86,7 @@ private:
 	VkQueue presentationQueue;		// abstract to Device*/
 	VkSurfaceKHR mSurface;
 	std::unique_ptr<Device> mDevice;
+
 	std::unique_ptr<Swapchain> mSwapchain;
 	//std::vector<std::unique_ptr<RenderTarget>> mRenderTargets; ----> RENDER TARGETS ARE OWNED BY THE FRAME OBJECTS
 	std::vector<std::unique_ptr<Framebuffer>> mFramebuffers;
@@ -139,8 +140,6 @@ private:
 
 	std::vector<std::unique_ptr<Buffer>> mUniformBuffers;
 	/* ABSTRACTED TO BUFFER CLASS */
-	//std::vector<VkBuffer> vpUniformBuffer;		// We want one of these for every command buffer so that nothing funky happens??
-	//std::vector<VkDeviceMemory> vpUniformBufferMemory;
 
 	//std::vector<VkBuffer> modelDUniformBuffer;	
 	//std::vector<VkDeviceMemory> modelDUniformBufferMemory;
@@ -181,7 +180,7 @@ private:
 	// - Multithreading
 	// Max. number of concurrent threads
 	uint32_t mThreadCount;
-	ctpl::thread_pool threadPool;
+	ctpl::thread_pool mThreadPool;
 
 	//struct ThreadPushConstantBlock {
 	//	Model model;
@@ -206,6 +205,7 @@ private:
 
 	// Vulkan Functions
 	// - Create Functions
+	void setupThreadPool();
 	void createInstance();
 	void setupDebugMessenger();
 	//void createLogicalDevice();

@@ -1,7 +1,7 @@
 #pragma once
 #include "Common.h"
 
-#include "CommandPool.h"
+//#include "CommandPool.h"
 #include "Image.h"
 #include "Buffer.h"
 
@@ -19,6 +19,10 @@ public:
 
 	// - Command buffer operations
 	void beginRecording(VkCommandBufferUsageFlags flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
+	void beginRenderPass(const RenderTarget& renderTarget,
+		const std::vector<VkClearValue>& clearValues,
+
+		VkSubpassContents subpassContentsRecordingStrategy);
 
 	// -- Transition and copy operations
 	void transitionImageLayout(VkImage image, VkImageLayout oldLayout, VkImageLayout newLayout);
