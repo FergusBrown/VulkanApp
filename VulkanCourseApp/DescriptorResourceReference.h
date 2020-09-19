@@ -6,7 +6,7 @@
 #include "Sampler.h"
 
 // Struct contating pointer to the appropriate resource
-struct Resource
+struct ResourceBinding
 {
 	const Buffer*	buffer{ nullptr };
 	uint32_t		offset{ 0 };
@@ -24,7 +24,7 @@ public:
 	~DescriptorResourceReference() = default;
 
 	// - Getters
-	const BindingMap<Resource>& resourceBindings() const;
+	const BindingMap<ResourceBinding>& resourceBindings() const;
 
 
 	// - Management
@@ -37,6 +37,6 @@ public:
 	void bindInputImage(const Image& image, const uint32_t bindingIndex, const uint32_t arrayIndex);
 
 private:
-	BindingMap<Resource> mResourceBindings;
+	BindingMap<ResourceBinding> mResourceBindings;
 
 };

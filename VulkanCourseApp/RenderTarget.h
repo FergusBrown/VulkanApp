@@ -26,7 +26,7 @@ public:
 	~RenderTarget();
 
 	// - Getters
-	const VkExtent3D& extent() const;
+	const VkExtent2D& extent() const;
 	const std::vector<VkImageView>& imageViews() const;
 	const std::vector<Attachment>& attachments() const;
 
@@ -36,13 +36,13 @@ public:
 	// - Setters
 	void setLayout(uint32_t attachmentIndex, VkImageLayout layout);
 
-	// OBSELETE?
+	// OBSOLETE?
 	void setInputAttachmentIndices(std::vector<uint32_t> newIndices);
 	void setOutputAttachmentIndices(std::vector<uint32_t> newIndices);
 private:
 	Device& mDevice;
 
-	VkExtent3D mExtent;
+	VkExtent2D mExtent;
 
 	std::vector<Image> mImages;
 	std::vector<VkImageView> mImageViews;

@@ -1247,9 +1247,13 @@ void VulkanRenderer::updateUniformBuffers(uint32_t imageIndex)
 // TODO: changes threads to split load for number of meshes rather than models
 void VulkanRenderer::recordCommands(uint32_t currentImage) // Current image is swapchain index
 {
+	auto& frame = mFrames[currentImage];
+	auto& framebuffer = mFramebuffers[currentImage];
+
 	CommandBuffer& primaryCmdBuffer = mDevice->requestCommandBuffer(VK_COMMAND_BUFFER_LEVEL_PRIMARY);
 
 	primaryCmdBuffer.beginRecording();
+
 
 	// Information about how to begin each command buffer
 	/*VkCommandBufferBeginInfo bufferBeginInfo = {};
@@ -1266,22 +1270,32 @@ void VulkanRenderer::recordCommands(uint32_t currentImage) // Current image is s
 
 	// TODO : abstract this info to a renderpass object?
 	// Information about how to begin a render pass (only needed for graphical applications)
-	VkRenderPassBeginInfo renderPassBeginInfo = {};
-	renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-	renderPassBeginInfo.renderPass = mRenderPass;							// Render pass to begin
-	renderPassBeginInfo.renderArea.offset = { 0, 0 };						// Start point of render pass in pixels
-	renderPassBeginInfo.renderArea.extent = swapChainExtent;				// Size of region to run render pass on (starting at offset)
+	//VkRenderPassBeginInfo renderPassBeginInfo = {};
+	//renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+	//renderPassBeginInfo.renderPass = mRenderPass;							// Render pass to begin
+	//renderPassBeginInfo.renderArea.offset = { 0, 0 };						// Start point of render pass in pixels
+	//renderPassBeginInfo.renderArea.extent = swapChainExtent;				// Size of region to run render pass on (starting at offset)
 
-	std::array<VkClearValue, 3> clearValues = {};
-	clearValues[0].color = { 0.0f, 0.0f, 0.0f, 1.0f };				// Clear values for attachment 1 (colour)
+	std::vector<VkClearValue> clearValues;
+	clearValues.resize(frame->renderTarget().imageViews().size());
+	clearValues[0].color = { 0.0f, 0.0f, 0.0f, 1.0f };				// Clear values for swapchain image (colour)
 	clearValues[1].color = { 0.6f, 0.65f, 0.4f, 1.0f };				// Clear values for attachment 1 (colour)
 	clearValues[2].depthStencil.depth = 1.0f;						// Clear values for attachment 2 (depth)
 
-	renderPassBeginInfo.pClearValues = clearValues.data();							// List of clear values 
-	renderPassBeginInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
+	//renderPassBeginInfo.pClearValues = clearValues.data();							// List of clear values 
+	//renderPassBeginInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
 
-	renderPassBeginInfo.framebuffer = mFramebuffers[currentImage]->handle();
+	//renderPassBeginInfo.framebuffer = mFramebuffers[currentImage]->handle();
 
+	primaryCmdBuffer.beginRenderPass(frame->renderTarget(),
+		mRenderPass,
+		*framebuffer,
+		clearValues,
+		VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFERS);
+
+	// Begin Render Pass (Use secondary command buffers to allow for multithreading)
+	/*vkCmdBeginRenderPass(primaryCommandBuffers[currentImage], &renderPassBeginInfo, VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFERS);*/
+	//vkCmdBeginRenderPass(primaryCommandBuffers[currentImage], &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
 	// Inheritance create info allows secondary buffers to inherit render pass state
 	VkCommandBufferInheritanceInfo inheritanceInfo = {};
@@ -1298,9 +1312,7 @@ void VulkanRenderer::recordCommands(uint32_t currentImage) // Current image is s
 
 	// Below is indented to indicate that the commands are being recorded in the command buffer
 
-		// Begin Render Pass (Use secondary command buffers to allow for multithreading)
-	vkCmdBeginRenderPass(primaryCommandBuffers[currentImage], &renderPassBeginInfo, VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFERS);
-	//vkCmdBeginRenderPass(primaryCommandBuffers[currentImage], &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+		
 
 
 

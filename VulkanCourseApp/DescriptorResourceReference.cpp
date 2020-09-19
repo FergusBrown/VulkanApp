@@ -7,7 +7,7 @@ void DescriptorResourceReference::reset()
 
 void DescriptorResourceReference::generateDescriptorImageInfo(VkDescriptorImageInfo& imageInfo, uint32_t bindingIndex, uint32_t arrayIndex)
 {
-	Resource& resource = mResourceBindings.at(bindingIndex).at(arrayIndex);
+	ResourceBinding& resource = mResourceBindings.at(bindingIndex).at(arrayIndex);
 
 	if (resource.image == nullptr)
 	{
@@ -31,7 +31,7 @@ void DescriptorResourceReference::generateDescriptorImageInfo(VkDescriptorImageI
 
 void DescriptorResourceReference::generateDescriptorBufferInfo(VkDescriptorBufferInfo& bufferInfo, uint32_t bindingIndex, uint32_t arrayIndex)
 {
-	Resource& resource = mResourceBindings.at(bindingIndex).at(arrayIndex);
+	ResourceBinding& resource = mResourceBindings.at(bindingIndex).at(arrayIndex);
 
 	if (resource.buffer == nullptr)
 	{
@@ -44,7 +44,7 @@ void DescriptorResourceReference::generateDescriptorBufferInfo(VkDescriptorBuffe
 	bufferInfo.range =  resource.range;					// Size of data
 }
 
-const BindingMap<Resource>& DescriptorResourceReference::resourceBindings() const
+const BindingMap<ResourceBinding>& DescriptorResourceReference::resourceBindings() const
 {
 	return mResourceBindings;
 }

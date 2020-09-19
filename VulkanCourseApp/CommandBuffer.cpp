@@ -43,6 +43,12 @@ uint32_t CommandBuffer::queueFamilyIndex() const
 	return mCommandPool.queueFamilyIndex();
 }
 
+//void CommandBuffer::bindRenderPass(VkRenderPass* renderpassBinding, Framebuffer* framebufferBinding)
+//{
+//	mRenderPassBinding.renderPass = renderpassBinding;
+//	mRenderPassBinding.framebuffer = framebufferBinding;
+//}
+
 // TODO : update to work with secondary command buffers
 void CommandBuffer::beginRecording(VkCommandBufferUsageFlags flags)
 {
@@ -53,12 +59,17 @@ void CommandBuffer::beginRecording(VkCommandBufferUsageFlags flags)
 
 	if (mLevel == VK_COMMAND_BUFFER_LEVEL_SECONDARY)
 	{
+		if (!mRenderPassBinding.renderPass || !mRenderPassBinding.framebuffer)
+		{
+			throw std::runtime_error("Cannot begin recording with a Secondary Command Buffer with no RenderPass binding! Have you called beginRenderPass?");
+		}
+
 		// Inheritance create info allows secondary buffers to inherit render pass state
 		VkCommandBufferInheritanceInfo inheritanceInfo = {};
 		inheritanceInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO;
-		inheritanceInfo.renderPass = mRenderPass;
-		inheritanceInfo.framebuffer = mFramebuffers[currentImage]->handle();
-		inheritanceInfo.subpass = 0;
+		inheritanceInfo.renderPass = *mRenderPassBinding.renderPass;
+		inheritanceInfo.framebuffer = mRenderPassBinding.framebuffer->handle();
+		inheritanceInfo.subpass = 0;	// TODO : this must be changed
 		beginInfo.pInheritanceInfo = &inheritanceInfo;
 	}
 
@@ -70,6 +81,38 @@ void CommandBuffer::beginRecording(VkCommandBufferUsageFlags flags)
 		throw std::runtime_error("Failed to start recording a Command Buffer!");
 	}
 }
+
+// Records command to begin execution of a renderpass
+// This should be recorded with a primary command buffer
+void CommandBuffer::beginRenderPass(const RenderTarget& renderTarget,
+	const VkRenderPass& renderPassBinding,
+	const Framebuffer& framebufferBinding, 
+	const std::vector<VkClearValue>& clearValues, 
+	VkSubpassContents subpassContentsRecordingStrategy)
+{
+	assert(mLevel == VK_COMMAND_BUFFER_LEVEL_PRIMARY && "Must begin render pass using a primary command buffer!");
+
+	// Set bindings
+	mRenderPassBinding.renderPass = &renderPassBinding;
+	mRenderPassBinding.framebuffer = &framebufferBinding;
+
+	// Create begin info
+	VkRenderPassBeginInfo renderPassBeginInfo = {};
+	renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+	renderPassBeginInfo.renderPass = *mRenderPassBinding.renderPass;			// Render pass to begin
+	renderPassBeginInfo.framebuffer = mRenderPassBinding.framebuffer->handle();
+	renderPassBeginInfo.renderArea.offset = { 0, 0 };							// Start point of render pass in pixels
+	renderPassBeginInfo.renderArea.extent = renderTarget.extent();				// Size of region to run render pass on (starting at offset)
+
+	renderPassBeginInfo.pClearValues = clearValues.data();						// List of clear values 
+	renderPassBeginInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
+
+	// Record command to begin Render Pass
+	vkCmdBeginRenderPass(mHandle, &renderPassBeginInfo, subpassContentsRecordingStrategy);
+	// Subpass contents options	:
+	// VK_SUBPASS_CONTENTS_INLINE						: only record to primary command buffers for this subpass
+	// VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFERS	: only record to secondary command buffers for this subpass then execute with primary command buffer
+}	
 
 // TODO : pass in struct to define resource range - currently this will only work for images which match the values here
 // TODO : expand functionality to allow for other types of transitions

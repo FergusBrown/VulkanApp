@@ -97,7 +97,7 @@ private:
 	// All 3 of below are 1:1 connected
 	//std::vector<SwapchainImage> swapChainImages;
 	//std::vector<VkFramebuffer> swapChainFramebuffers;
-	std::vector<VkCommandBuffer> primaryCommandBuffers;
+	//std::vector<VkCommandBuffer> primaryCommandBuffers;
 
 	/*std::vector<VkImage> colourBufferImage;
 	std::vector <VkDeviceMemory> colourBufferImageMemory;

@@ -20,6 +20,11 @@ Device& Frame::device() const
 	return mDevice;
 }
 
+const RenderTarget& Frame::renderTarget() const
+{
+	return *mRenderTarget;
+}
+
 //CommandPool& Frame::commandPool(uint32_t threadIndex)
 //{
 //	return *mThreadData[threadIndex].commandPools;

@@ -6,7 +6,7 @@ Attachment::Attachment(VkFormat format, VkSampleCountFlagBits sampleCount, VkIma
 }
 
 RenderTarget::RenderTarget(std::vector<Image>& images) :
-	mImages(images), mDevice(images.back().device()), mExtent(images.back().extent())
+	mImages(images), mDevice(images.back().device()), mExtent({ images.back().extent().width, images.back().extent().height })
 {
 	for (auto& image : images)
 	{
@@ -21,7 +21,7 @@ RenderTarget::~RenderTarget()
 
 }
 
-const VkExtent3D& RenderTarget::extent() const
+const VkExtent2D& RenderTarget::extent() const
 {
 	return mExtent;
 }

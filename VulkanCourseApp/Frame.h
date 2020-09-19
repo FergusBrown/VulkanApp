@@ -19,6 +19,7 @@ public:
 
 	// - Getters
 	Device& device() const;
+	const RenderTarget& renderTarget() const;
 	//CommandPool& commandPool(uint32_t threadIndex = 0);
 
 	// - Frame management
