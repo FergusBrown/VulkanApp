@@ -2,6 +2,7 @@
 #include "Common.h"
 
 #include "Device.h"
+#include "Swapchain.h"
 
 class Queue
 {
@@ -18,8 +19,11 @@ public:
 	const VkQueueFamilyProperties& properties() const;
 
 	// - Management
-	void submit(CommandBuffer& commandBuffer, VkFence fence = VK_NULL_HANDLE); // TODO : need to add fence functionality here
+	void submit(const CommandBuffer& commandBuffer, VkFence fence = VK_NULL_HANDLE) const;
+	void submit(VkSemaphore waitSemaphore, VkPipelineStageFlags waitStage, VkSemaphore signalSemaphore,
+		const CommandBuffer& commandBuffer, VkFence fence = VK_NULL_HANDLE) const;
 
+	void present(VkSemaphore waitSemaphore, const Swapchain& swapchain, uint32_t imageIndex) const;
 private:
 	Device& mDevice;
 
