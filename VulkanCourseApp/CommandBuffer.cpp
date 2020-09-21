@@ -149,23 +149,33 @@ void CommandBuffer::bindDescriptorSets(VkPipelineBindPoint pipelineBindPoint, Vk
 		firstSet, static_cast<uint32_t>(descriptorHandles.size()), descriptorHandles.data(), 0, nullptr);
 }
 
+void CommandBuffer::draw(uint32_t vertexCount, uint32_t instanceCount, uint32_t firstIndex, uint32_t firstInstance)
+{
+	vkCmdDraw(mHandle, vertexCount, instanceCount, firstIndex, firstInstance);
+}
+
 // Assemble primitives using index order from index buffer, instanceCount number of times
 void CommandBuffer::drawIndexed(uint32_t indexCount, uint32_t instanceCount, uint32_t firstIndex, int32_t vertexOffset, uint32_t firstInstance)
 {
 	vkCmdDrawIndexed(mHandle, indexCount, instanceCount, firstIndex, vertexOffset, firstInstance);
 }
 
-void CommandBuffer::executeCommands(const std::vector<std::reference_wrapper<const CommandBuffer>>& commandBuffers)
+void CommandBuffer::executeCommands(const std::vector<CommandBuffer*>& commandBuffers)
 {
 	assert(mLevel == VK_COMMAND_BUFFER_LEVEL_PRIMARY && "Command must be executed with a Primary Command Buffer!");
 
 	// Transform to vector of command buffer handles
 	std::vector<VkCommandBuffer> commandBufferHandles(commandBuffers.size(), VK_NULL_HANDLE);
 	std::transform(commandBuffers.begin(), commandBuffers.end(), commandBufferHandles,
-		[](const CommandBuffer& commandBuffer) { return commandBuffer.handle(); });
+		[](const CommandBuffer* commandBuffer) { return commandBuffer->handle(); });
 
 	// Execute commands
 	vkCmdExecuteCommands(mHandle, commandBufferHandles.size(), commandBufferHandles.data());
+}
+
+void CommandBuffer::nextSubpass(VkSubpassContents subpassContentsRecordingStrategy)
+{
+	vkCmdNextSubpass(mHandle, subpassContentsRecordingStrategy);
 }
 
 // TODO : pass in struct to define resource range - currently this will only work for images which match the values here
@@ -255,6 +265,11 @@ void CommandBuffer::copyBuffer(Buffer& srcBuffer, Buffer& dstBuffer)
 
 	vkCmdCopyBuffer(mHandle, srcBuffer.handle(), dstBuffer.handle(), 1, &bufferCopyRegion);
 
+}
+
+void CommandBuffer::endRenderPass()
+{
+	vkCmdEndRenderPass(mHandle);
 }
 
 void CommandBuffer::endRecording()

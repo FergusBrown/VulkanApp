@@ -36,7 +36,7 @@ public:
 		const VkRenderPass& renderPassBinding,
 		const Framebuffer& framebufferBinding,
 		const std::vector<VkClearValue>& clearValues,
-		VkSubpassContents subpassContentsRecordingStrategy = VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFERS);
+		VkSubpassContents subpassContentsRecordingStrategy = VK_SUBPASS_CONTENTS_INLINE);
 	void bindPipeline(VkPipelineBindPoint bindPoint, VkPipeline& pipeline);
 
 	// TODO : need to update this to be able to take several values
@@ -63,15 +63,20 @@ rtex buffer befor		// Check size
 	// TODO : update to include dynamic bindings
 	void bindDescriptorSets(VkPipelineBindPoint pipelineBindPoint, VkPipelineLayout pipelineLayout, uint32_t firstSet, const std::vector<std::reference_wrapper<const DescriptorSet>>& descriptorSets);
 
+
+	void draw(uint32_t vertexCount, uint32_t instanceCount, uint32_t firstIndex, uint32_t firstInstance);
 	void drawIndexed(uint32_t indexCount, uint32_t instanceCount, uint32_t firstIndex, int32_t vertexOffset, uint32_t firstInstance);
 
-	void executeCommands(const std::vector<std::reference_wrapper<const CommandBuffer>>& commandBuffers);
+	void executeCommands(const std::vector<CommandBuffer*>& commandBuffers);
+
+	void nextSubpass(VkSubpassContents subpassContentsRecordingStrategy = VK_SUBPASS_CONTENTS_INLINE);
 
 	// -- Transition and copy operations
 	void transitionImageLayout(VkImage image, VkImageLayout oldLayout, VkImageLayout newLayout);
 	void copyBufferToImage(Buffer& srcBuffer, Image& image);
 	void copyBuffer(Buffer& srcBuffer, Buffer& dstBuffer);
 
+	void endRenderPass();
 	void endRecording();
 	//void submit();
 

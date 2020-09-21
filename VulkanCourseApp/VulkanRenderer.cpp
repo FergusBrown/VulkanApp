@@ -1001,11 +1001,11 @@ void VulkanRenderer::createSynchronation()
 
 void VulkanRenderer::createFramebuffers()
 {
-	const VkExtent2D& extent = { mRenderTargets.back()->extent().width, mRenderTargets.back()->extent().height };
-
-	for (auto& renderTarget : mRenderTargets)
+	for (auto& frame : mFrames)
 	{
-		mFramebuffers.push_back(std::make_unique<Framebuffer>(mDevice, extent, renderTarget->imageViews(), mRenderPass));
+		auto& renderTarget = frame->renderTarget();
+
+		mFramebuffers.push_back(std::make_unique<Framebuffer>(mDevice, renderTarget.extent(), renderTarget.imageViews(), mRenderPass));
 	}
 }
 
@@ -1365,25 +1365,39 @@ void VulkanRenderer::recordCommands(uint32_t currentImage) // Current image is s
 	}
 
 
-	std::vector<CommandBuffer> secondaryCommandBuffers(secondaryCommandBufferPtrs.size(), VK_NULL_HANDLE);
-	// transform to a vector of commandbuffers
-	std::transform(secondaryCommandBufferPtrs.begin(), secondaryCommandBufferPtrs.end(),
-		secondaryCommandBuffers.begin(), [](CommandBuffer* item) {return *item; });
+	//std::vector<CommandBuffer> secondaryCommandBuffers(secondaryCommandBufferPtrs.size(), VK_NULL_HANDLE);
+	//// transform to a vector of commandbuffers
+	//std::transform(secondaryCommandBufferPtrs.begin(), secondaryCommandBufferPtrs.end(),
+	//	secondaryCommandBuffers.begin(), [](CommandBuffer* item) {return *item; });
 
 	// Submit the secondary command buffers to the primary command buffer.
-	primaryCmdBuffer.executeCommands(secondaryCommandBuffers);
-	vkCmdExecuteCommands(primaryCommandBuffers[currentImage], secondaryCommandBuffers.size(), secondaryCommandBuffers.data());
+	primaryCmdBuffer.executeCommands(secondaryCommandBufferPtrs);
+	
+	//vkCmdExecuteCommands(primaryCommandBuffers[currentImage], secondaryCommandBuffers.size(), secondaryCommandBuffers.data());
+
+	primaryCmdBuffer.nextSubpass(VK_SUBPASS_CONTENTS_INLINE);
 
 	// Start second subpass (INLINE here as no multithreading is used and only primary buffers are submitted)
-	vkCmdNextSubpass(primaryCommandBuffers[currentImage], VK_SUBPASS_CONTENTS_INLINE);
+	//vkCmdNextSubpass(primaryCommandBuffers[currentImage], VK_SUBPASS_CONTENTS_INLINE);
 
-	vkCmdBindPipeline(primaryCommandBuffers[currentImage], VK_PIPELINE_BIND_POINT_GRAPHICS, secondPipeline);
+	primaryCmdBuffer.bindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, secondPipeline);
+
+	std::vector<std::reference_wrapper<const DescriptorSet>> descriptorGroup{ *mAttachmentDescriptorSets[currentImage] };
+
+	primaryCmdBuffer.bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, secondPipelineLayout,
+		0, descriptorGroup);
+
+	primaryCmdBuffer.draw(3, 1, 0, 0);
+
+	/*vkCmdBindPipeline(primaryCommandBuffers[currentImage], VK_PIPELINE_BIND_POINT_GRAPHICS, secondPipeline);
 	vkCmdBindDescriptorSets(primaryCommandBuffers[currentImage], VK_PIPELINE_BIND_POINT_GRAPHICS, secondPipelineLayout,
 		0, 1, &inputDescriptorSets[currentImage], 0, nullptr);
-	vkCmdDraw(primaryCommandBuffers[currentImage], 3, 1, 0, 0);
+	vkCmdDraw(primaryCommandBuffers[currentImage], 3, 1, 0, 0);*/
 
 	// End Render Pass
-	vkCmdEndRenderPass(primaryCommandBuffers[currentImage]);
+	primaryCmdBuffer.endRenderPass();
+
+	//vkCmdEndRenderPass(primaryCommandBuffers[currentImage]);
 
 	// Stop recording to primary command buffers
 	primaryCmdBuffer.endRecording();
