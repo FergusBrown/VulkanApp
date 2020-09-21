@@ -5,6 +5,7 @@
 #include "Image.h"
 #include "Buffer.h"
 #include "Framebuffer.h"
+#include "DescriptorSet.h"
 
 // TODO : modify once renderpass object has been implemented
 struct RenderPassBinding

@@ -1422,15 +1422,11 @@ CommandBuffer* VulkanRenderer::recordSecondaryCommandBuffers(Frame& frame, uint3
 
 			cmdBuffer.bindIndexBuffer(thisMesh->indexBuffer(), 0, VK_INDEX_TYPE_UINT32);
 
-			std::vector<std::reference_wrapper<const DescriptorSet>> descriptorSetGroup = { *mUniformDescriptorSets[currentImage],
+			std::vector<std::reference_wrapper<const DescriptorSet>> descriptorSetGroup{ *mUniformDescriptorSets[currentImage],
 				*mTextureDescriptorSets[thisMesh->texId()] };
 
-			cmdBuffer.bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, secondPipelineLayout,
+			cmdBuffer.bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout,
 				0, descriptorSetGroup);
-
-			// Bind descriptor sets
-			//vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout,
-			//	0, static_cast<uint32_t>(descriptorSetGroup.size()), descriptorSetGroup.data(), 0, nullptr);
 
 			// Execute pipeline
 			cmdBuffer.drawIndexed(thisMesh->indexCount(), 1, 0, 0, 0);

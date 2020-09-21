@@ -137,6 +137,18 @@ void CommandBuffer::bindIndexBuffer(const Buffer& buffer, VkDeviceSize offset, V
 	vkCmdBindIndexBuffer(mHandle, buffer.handle(), offset, indexType);
 }
 
+void CommandBuffer::bindDescriptorSets(VkPipelineBindPoint pipelineBindPoint, VkPipelineLayout pipelineLayout, uint32_t firstSet, const std::vector<std::reference_wrapper<const DescriptorSet>>& descriptorSets)
+{
+	// Transform vector to hold descriptor handles
+	std::vector<VkDescriptorSet> descriptorHandles(descriptorSets.size(), VK_NULL_HANDLE);
+	std::transform(descriptorSets.begin(), descriptorSets.end(), descriptorHandles,
+		[](const DescriptorSet& descriptorSet) { return descriptorSet.handle(); });
+
+	// Bind descriptor sets
+	vkCmdBindDescriptorSets(mHandle, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 
+		firstSet, static_cast<uint32_t>(descriptorHandles.size()), descriptorHandles.data(), 0, nullptr);
+}
+
 // Assemble primitives using index order from index buffer, instanceCount number of times
 void CommandBuffer::drawIndexed(uint32_t indexCount, uint32_t instanceCount, uint32_t firstIndex, int32_t vertexOffset, uint32_t firstInstance)
 {
