@@ -155,6 +155,19 @@ void CommandBuffer::drawIndexed(uint32_t indexCount, uint32_t instanceCount, uin
 	vkCmdDrawIndexed(mHandle, indexCount, instanceCount, firstIndex, vertexOffset, firstInstance);
 }
 
+void CommandBuffer::executeCommands(const std::vector<std::reference_wrapper<const CommandBuffer>>& commandBuffers)
+{
+	assert(mLevel == VK_COMMAND_BUFFER_LEVEL_PRIMARY && "Command must be executed with a Primary Command Buffer!");
+
+	// Transform to vector of command buffer handles
+	std::vector<VkCommandBuffer> commandBufferHandles(commandBuffers.size(), VK_NULL_HANDLE);
+	std::transform(commandBuffers.begin(), commandBuffers.end(), commandBufferHandles,
+		[](const CommandBuffer& commandBuffer) { return commandBuffer.handle(); });
+
+	// Execute commands
+	vkCmdExecuteCommands(mHandle, commandBufferHandles.size(), commandBufferHandles.data());
+}
+
 // TODO : pass in struct to define resource range - currently this will only work for images which match the values here
 // TODO : expand functionality to allow for other types of transitions
 // Set up image memory barriers and transition image from one layout to another

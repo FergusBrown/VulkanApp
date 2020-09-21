@@ -1365,12 +1365,13 @@ void VulkanRenderer::recordCommands(uint32_t currentImage) // Current image is s
 	}
 
 
-	std::vector<VkCommandBuffer> secondaryCommandBuffers(secondaryCommandBufferPtrs.size(), VK_NULL_HANDLE);
+	std::vector<CommandBuffer> secondaryCommandBuffers(secondaryCommandBufferPtrs.size(), VK_NULL_HANDLE);
 	// transform to a vector of commandbuffers
 	std::transform(secondaryCommandBufferPtrs.begin(), secondaryCommandBufferPtrs.end(),
-		secondaryCommandBuffers.begin(), [](VkCommandBuffer* item) {return *item; });
+		secondaryCommandBuffers.begin(), [](CommandBuffer* item) {return *item; });
 
 	// Submit the secondary command buffers to the primary command buffer.
+	primaryCmdBuffer.executeCommands(secondaryCommandBuffers);
 	vkCmdExecuteCommands(primaryCommandBuffers[currentImage], secondaryCommandBuffers.size(), secondaryCommandBuffers.data());
 
 	// Start second subpass (INLINE here as no multithreading is used and only primary buffers are submitted)

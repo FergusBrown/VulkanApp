@@ -65,6 +65,8 @@ rtex buffer befor		// Check size
 
 	void drawIndexed(uint32_t indexCount, uint32_t instanceCount, uint32_t firstIndex, int32_t vertexOffset, uint32_t firstInstance);
 
+	void executeCommands(const std::vector<std::reference_wrapper<const CommandBuffer>>& commandBuffers);
+
 	// -- Transition and copy operations
 	void transitionImageLayout(VkImage image, VkImageLayout oldLayout, VkImageLayout newLayout);
 	void copyBufferToImage(Buffer& srcBuffer, Image& image);
