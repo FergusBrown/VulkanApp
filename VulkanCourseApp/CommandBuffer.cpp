@@ -137,6 +137,12 @@ void CommandBuffer::bindIndexBuffer(const Buffer& buffer, VkDeviceSize offset, V
 	vkCmdBindIndexBuffer(mHandle, buffer.handle(), offset, indexType);
 }
 
+// Assemble primitives using index order from index buffer, instanceCount number of times
+void CommandBuffer::drawIndexed(uint32_t indexCount, uint32_t instanceCount, uint32_t firstIndex, int32_t vertexOffset, uint32_t firstInstance)
+{
+	vkCmdDrawIndexed(mHandle, indexCount, instanceCount, firstIndex, vertexOffset, firstInstance);
+}
+
 // TODO : pass in struct to define resource range - currently this will only work for images which match the values here
 // TODO : expand functionality to allow for other types of transitions
 // Set up image memory barriers and transition image from one layout to another

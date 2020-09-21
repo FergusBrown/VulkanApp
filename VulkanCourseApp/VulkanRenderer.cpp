@@ -1349,7 +1349,7 @@ void VulkanRenderer::recordCommands(uint32_t currentImage) // Current image is s
 
 		// Push lambda function to threadpool for running
 		auto futureResult = mThreadPool.push([=, &frame](size_t threadIndex) {
-			return recordSecondaryCommandBuffers(frame, objectStart, objectEnd, threadIndex);
+			return recordSecondaryCommandBuffers(frame, objectStart, objectEnd, threadIndex, currentImage);
 		});
 
 		futureSecondaryCommandBuffers.push_back(std::move(futureResult));
@@ -1385,15 +1385,11 @@ void VulkanRenderer::recordCommands(uint32_t currentImage) // Current image is s
 	vkCmdEndRenderPass(primaryCommandBuffers[currentImage]);
 
 	// Stop recording to primary command buffers
-	result = vkEndCommandBuffer(primaryCommandBuffers[currentImage]);
-	if (result != VK_SUCCESS)
-	{
-		throw std::runtime_error("Failed to stop recording Command Buffer!");
-	}
+	primaryCmdBuffer.endRecording();
 }
 
 
-CommandBuffer* VulkanRenderer::recordSecondaryCommandBuffers(Frame& frame, uint32_t objectStart, uint32_t objectEnd, size_t threadIndex)
+CommandBuffer* VulkanRenderer::recordSecondaryCommandBuffers(Frame& frame, uint32_t objectStart, uint32_t objectEnd, size_t threadIndex, uint32_t currentImage)
 {
 	auto& queue = mDevice->queue(mGraphicsQueueFamily, 0);
 
@@ -1403,9 +1399,6 @@ CommandBuffer* VulkanRenderer::recordSecondaryCommandBuffers(Frame& frame, uint3
 		| VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT);
 
 	cmdBuffer.bindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
-
-	//// Bind graphics pipeline to command buffer
-	//vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
 
 	for (uint32_t i = objectStart; i < objectEnd; ++i)
 	{
@@ -1418,13 +1411,6 @@ CommandBuffer* VulkanRenderer::recordSecondaryCommandBuffers(Frame& frame, uint3
 			VK_SHADER_STAGE_VERTEX_BIT,
 			thisModel->getModel());
 
-		/*vkCmdPushConstants(
-			cmdBuffer,
-			pipelineLayout,
-			VK_SHADER_STAGE_VERTEX_BIT,		
-			0,								
-			sizeof(glm::mat4),					
-			&thisModel->getModel());	*/	
 
 		for (size_t j = 0; j < thisData->getMeshCount(); ++j)
 		{
@@ -1434,33 +1420,25 @@ CommandBuffer* VulkanRenderer::recordSecondaryCommandBuffers(Frame& frame, uint3
 			std::vector<VkDeviceSize> offsets{ 0 };															// Offsets into buffers being bound
 			cmdBuffer.bindVertexBuffers(0, vertexBuffers, offsets);
 
-			//VkBuffer vertexBuffers[] = { thisMesh->vertexBuffer().handle() };		// Buffers to bind
-			//VkDeviceSize offsets[] = { 0 };											
-			//vkCmdBindVertexBuffers(cmdBuffer, 0, 1, vertexBuffers, offsets);	// Command to bind vee drawing with them
-
 			cmdBuffer.bindIndexBuffer(thisMesh->indexBuffer(), 0, VK_INDEX_TYPE_UINT32);
 
-			/*vkCmdBindIndexBuffer(cmdBuffer, thisMesh->indexBuffer(), 0, VK_INDEX_TYPE_UINT32);*/
+			std::vector<std::reference_wrapper<const DescriptorSet>> descriptorSetGroup = { *mUniformDescriptorSets[currentImage],
+				*mTextureDescriptorSets[thisMesh->texId()] };
 
-			std::array<VkDescriptorSet, 2> descriptorSetGroup = { descriptorSets[currentImage],
-				samplerDescriptorSets[thisMesh->texId()] };
+			cmdBuffer.bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, secondPipelineLayout,
+				0, descriptorSetGroup);
 
 			// Bind descriptor sets
-			vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout,
-				0, static_cast<uint32_t>(descriptorSetGroup.size()), descriptorSetGroup.data(), 0, nullptr);
+			//vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout,
+			//	0, static_cast<uint32_t>(descriptorSetGroup.size()), descriptorSetGroup.data(), 0, nullptr);
 
 			// Execute pipeline
-			vkCmdDrawIndexed(cmdBuffer, thisMesh->indexCount(), 1, 0, 0, 0);
-
+			cmdBuffer.drawIndexed(thisMesh->indexCount(), 1, 0, 0, 0);
 		}
 	}
 
 	// Stop recording to primary command buffers
-	result = vkEndCommandBuffer(cmdBuffer);
-	if (result != VK_SUCCESS)
-	{
-		throw std::runtime_error("Failed to stop recording Command Buffer!");
-	}
+	cmdBuffer.endRecording();
 
 	return &cmdBuffer;
 
