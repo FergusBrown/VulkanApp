@@ -1,7 +1,9 @@
 #include "CommandBuffer.h"
 
 CommandBuffer::CommandBuffer(CommandPool& commandPool, VkCommandBufferLevel level) :
-	mCommandPool(commandPool), mLevel(level)
+	mCommandPool(commandPool), 
+	mLevel(level),
+	mMaxPushConstantSize(commandPool.device().physicalDeviceProperties().limits.maxPushConstantsSize)
 {
 
 	VkCommandBufferAllocateInfo cbAllocInfo = {};
@@ -55,7 +57,7 @@ void CommandBuffer::beginRecording(VkCommandBufferUsageFlags flags)
 	// Information to begin the command buffer record
 	VkCommandBufferBeginInfo beginInfo = {};
 	beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-	beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;		// We're only using the command buffer once so set up for one time submit
+	beginInfo.flags = flags;		// We're only using the command buffer once so set up for one time submit
 
 	if (mLevel == VK_COMMAND_BUFFER_LEVEL_SECONDARY)
 	{
@@ -112,7 +114,28 @@ void CommandBuffer::beginRenderPass(const RenderTarget& renderTarget,
 	// Subpass contents options	:
 	// VK_SUBPASS_CONTENTS_INLINE						: only record to primary command buffers for this subpass
 	// VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFERS	: only record to secondary command buffers for this subpass then execute with primary command buffer
-}	
+}
+void CommandBuffer::bindPipeline(VkPipelineBindPoint bindPoint, VkPipeline& pipeline)
+{
+	vkCmdBindPipeline(mHandle, bindPoint, pipeline);
+}
+
+
+void CommandBuffer::bindVertexBuffers(uint32_t firstBinding, const std::vector<std::reference_wrapper<const Buffer>>& buffers, const std::vector<VkDeviceSize>& offsets)
+{
+	// Transform to vector of buffer handles
+	std::vector<VkBuffer> bufferHandles(buffers.size(), VK_NULL_HANDLE);
+	std::transform(buffers.begin(), buffers.end(), bufferHandles,
+		[](const Buffer& buffer) { return buffer.handle(); });
+
+	// Bind vertex buffers
+	vkCmdBindVertexBuffers(mHandle, firstBinding, buffers.size(), bufferHandles.data(), offsets.data());
+}
+
+void CommandBuffer::bindIndexBuffer(const Buffer& buffer, VkDeviceSize offset, VkIndexType indexType)
+{
+	vkCmdBindIndexBuffer(mHandle, buffer.handle(), offset, indexType);
+}
 
 // TODO : pass in struct to define resource range - currently this will only work for images which match the values here
 // TODO : expand functionality to allow for other types of transitions

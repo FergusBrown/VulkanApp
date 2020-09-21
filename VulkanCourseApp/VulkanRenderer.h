@@ -86,11 +86,13 @@ private:
 	VkQueue presentationQueue;		// abstract to Device*/
 	VkSurfaceKHR mSurface;
 	std::unique_ptr<Device> mDevice;
+	uint32_t mGraphicsQueueFamily;
 
 	std::unique_ptr<Swapchain> mSwapchain;
 	//std::vector<std::unique_ptr<RenderTarget>> mRenderTargets; ----> RENDER TARGETS ARE OWNED BY THE FRAME OBJECTS
 	std::vector<std::unique_ptr<Framebuffer>> mFramebuffers;
 	std::vector<std::unique_ptr<Frame>> mFrames;
+	
 
 	//VkSwapchainKHR swapchain;
 
@@ -211,6 +213,7 @@ private:
 	//void createLogicalDevice();
 	void createSurface();
 	void createDevice();
+	void findDesiredQueueFamilies();
 	void createSwapChain();
 	void createPerFrameObjects();
 	void createRenderPass();
@@ -238,7 +241,7 @@ private:
 
 	// - Record Functions
 	void recordCommands(uint32_t currentImage);
-	VkCommandBuffer* VulkanRenderer::recordSecondaryCommandBuffers(VkCommandBufferBeginInfo beginInfo, uint32_t objectStart, uint32_t objectEnd, uint32_t currentImage, uint32_t taskIndex, size_t threadID);
+	CommandBuffer* recordSecondaryCommandBuffers(Frame& frame, uint32_t objectStart, uint32_t objectEnd, size_t threadIndex);
 	// -- Create Helper Functions
 	void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
 

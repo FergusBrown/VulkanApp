@@ -26,11 +26,14 @@ public:
 	~Device();
 
 	// - Getters
-	VkPhysicalDevice physicalDevice() const;
+	VkPhysicalDevice physicalDevice() const; // TODO : make a physical device class
 	VkDevice logicalDevice() const;
 	CommandPool& primaryCommandPool();
 	const Queue& queue(uint32_t familyIndex, uint32_t index) const;
+	const VkPhysicalDeviceProperties& physicalDeviceProperties();
+
 	const Queue& getQueueByFlag(VkQueueFlagBits queueFlag, uint32_t index);
+	uint32_t getQueueFamilyIndex(VkQueueFlagBits queueFlag);
 
 	CommandBuffer& requestCommandBuffer(VkCommandBufferLevel level = VK_COMMAND_BUFFER_LEVEL_PRIMARY);
 
@@ -59,7 +62,6 @@ private:
 	void getPhysicalDevice(VkInstance instance, const std::vector<const char*>& deviceExtensions);
 	// -- Support
 	/*QueueFamilyIndices getQueueFamilies();*/
-	uint32_t getQueueFamilyIndex(VkQueueFlagBits queueFlag);
 	VkBool32 checkPresentationSupport(uint32_t queueFamilyIndex);
 	bool checkDeviceSuitable(const std::vector<const char*>& deviceExtensions);
 	bool checkDeviceExtensionSupport(const std::vector<const char*>& deviceExtensions);

@@ -52,6 +52,16 @@ const Queue& Device::queue(uint32_t familyIndex, uint32_t index) const
 	return mQueues[familyIndex][index];
 }
 
+// TODO : abstract to physicald evice class
+const VkPhysicalDeviceProperties& Device::physicalDeviceProperties()
+{
+	VkPhysicalDeviceProperties properties;
+	
+	vkGetPhysicalDeviceProperties(mPhysicalDevice, &properties);
+	
+	return properties;
+}
+
 const Queue& Device::getQueueByFlag(VkQueueFlagBits queueFlag, uint32_t index)
 {
 	for (auto& queueFamily : mQueues)
