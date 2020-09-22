@@ -91,6 +91,25 @@ Image::Image(Device& device,
 //	createImageView();
 //}
 
+Image::Image(Image&& other) :
+	mDevice(other.mDevice),
+	mType(other.mType),
+	mExtent(other.mExtent),
+	mSubresource(other.mSubresource),
+	mFormat(other.mFormat),
+	mTiling(other.mTiling),
+	mSampleCount(other.mSampleCount),
+	mUsage(other.mUsage),
+	//mPropFlags(propFlags),
+	mSharingMode(other.mSharingMode),
+	mLayout(other.mLayout),
+	mHandle(other.mHandle),
+	mMemory(std::move(other.mMemory)),
+	mImageView(other.mImageView)
+{
+	other.mHandle = VK_NULL_HANDLE;
+}
+
 Image::~Image()
 {
 	vkDestroyImageView(mDevice.logicalDevice(), mImageView, nullptr);
@@ -121,7 +140,7 @@ const VkImageView& Image::imageView() const
 
 const VkExtent3D& Image::extent() const
 {
-	return extent();
+	return mExtent;
 }
 
 const VkImageSubresource& Image::subresource() const

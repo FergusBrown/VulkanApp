@@ -133,7 +133,7 @@ void CommandBuffer::bindVertexBuffers(uint32_t firstBinding, const std::vector<s
 {
 	// Transform to vector of buffer handles
 	std::vector<VkBuffer> bufferHandles(buffers.size(), VK_NULL_HANDLE);
-	std::transform(buffers.begin(), buffers.end(), bufferHandles,
+	std::transform(buffers.begin(), buffers.end(), bufferHandles.begin(),
 		[](const Buffer& buffer) { return buffer.handle(); });
 
 	// Bind vertex buffers
@@ -149,7 +149,7 @@ void CommandBuffer::bindDescriptorSets(VkPipelineBindPoint pipelineBindPoint, Vk
 {
 	// Transform vector to hold descriptor handles
 	std::vector<VkDescriptorSet> descriptorHandles(descriptorSets.size(), VK_NULL_HANDLE);
-	std::transform(descriptorSets.begin(), descriptorSets.end(), descriptorHandles,
+	std::transform(descriptorSets.begin(), descriptorSets.end(), descriptorHandles.begin(),
 		[](const DescriptorSet& descriptorSet) { return descriptorSet.handle(); });
 
 	// Bind descriptor sets
@@ -174,11 +174,11 @@ void CommandBuffer::executeCommands(const std::vector<CommandBuffer*>& commandBu
 
 	// Transform to vector of command buffer handles
 	std::vector<VkCommandBuffer> commandBufferHandles(commandBuffers.size(), VK_NULL_HANDLE);
-	std::transform(commandBuffers.begin(), commandBuffers.end(), commandBufferHandles,
+	std::transform(commandBuffers.begin(), commandBuffers.end(), commandBufferHandles.begin(),
 		[](const CommandBuffer* commandBuffer) { return commandBuffer->handle(); });
 
 	// Execute commands
-	vkCmdExecuteCommands(mHandle, commandBufferHandles.size(), commandBufferHandles.data());
+	vkCmdExecuteCommands(mHandle, static_cast<uint32_t>(commandBufferHandles.size()), commandBufferHandles.data());
 }
 
 void CommandBuffer::nextSubpass(VkSubpassContents subpassContentsRecordingStrategy)

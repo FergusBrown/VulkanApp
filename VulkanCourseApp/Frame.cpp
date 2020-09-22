@@ -1,7 +1,7 @@
 #include "Frame.h"
 
 #include "CommandBuffer.h"
-#include "CommandPool.h"
+//#include "CommandPool.h"
 #include "DescriptorPool.h"
 #include "DescriptorSet.h"
 #include "Device.h"
@@ -44,7 +44,7 @@ void Frame::reset()
 	{
 		for (auto& pool : thread.commandPools)
 		{
-			pool->reset();
+			pool.reset();
 		}
 		
 	}

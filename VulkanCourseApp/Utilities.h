@@ -2,9 +2,7 @@
 
 #include <fstream>
 
-#define GLFW_INCLUDE_VULKAN
-#include <GLFW/glfw3.h>
-#include <glm/glm.hpp>
+#include "Common.h"
 
 const int MAX_FRAME_DRAWS = 2;
 const int MAX_OBJECTS = 2048;
@@ -76,13 +74,13 @@ static std::vector<char> readFile(const std::string& filename)
 }
 
 
-void getWindowExtent(VkExtent2D& windowExtent, GLFWwindow* window)
-{
-	// Get window size
-	int width, height;
-	glfwGetFramebufferSize(window, &width, &height);
-
-	// Create new extent using window size
-	windowExtent.width = static_cast<uint32_t>(width);
-	windowExtent.height = static_cast<uint32_t>(height);
-}
+//void getWindowExtent(VkExtent2D& windowExtent, GLFWwindow* window)
+//{
+//	// Get window size
+//	int width, height;
+//	glfwGetFramebufferSize(window, &width, &height);
+//
+//	// Create new extent using window size
+//	windowExtent.width = static_cast<uint32_t>(width);
+//	windowExtent.height = static_cast<uint32_t>(height);
+//}

@@ -10,6 +10,8 @@ public:
 	DescriptorPool(Device& device, const DescriptorSetLayout& descriptorSetLayout, uint32_t maxSets);
 	~DescriptorPool();
 
+	DescriptorPool(const DescriptorPool&) = delete;
+
 	// - Getters
 	Device& device();
 	VkDescriptorPool handle() const;

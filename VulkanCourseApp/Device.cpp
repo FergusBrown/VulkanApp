@@ -92,7 +92,7 @@ CommandBuffer& Device::requestCommandBuffer(VkCommandBufferLevel level)
 std::unique_ptr<CommandBuffer> Device::createAndBeginTemporaryCommandBuffer(VkCommandBufferLevel level)
 {
 	// ALLOCATE COMMAND BUFFER
-	std::unique_ptr<CommandBuffer> commandBuffer = std::make_unique<CommandBuffer>(mPrimaryCommandPool->handle(), level);
+	std::unique_ptr<CommandBuffer> commandBuffer = std::make_unique<CommandBuffer>(*mPrimaryCommandPool, level);
 
 	// BEGIN RECORDING
 	commandBuffer->beginRecording();
@@ -184,7 +184,7 @@ uint32_t Device::getQueueFamilyIndex(VkQueueFlagBits queueFlag)
 	{
 		for (uint32_t i = 0; i < queueFamilyCount; ++i)
 		{
-			if (queueFamilyList[i].queueFlags & queueFlag == VK_QUEUE_COMPUTE_BIT)
+			if ((queueFamilyList[i].queueFlags & queueFlag) == VK_QUEUE_COMPUTE_BIT)
 			{
 				return i;
 			}
@@ -195,7 +195,7 @@ uint32_t Device::getQueueFamilyIndex(VkQueueFlagBits queueFlag)
 	{
 		for (uint32_t i = 0; i < queueFamilyCount; ++i)
 		{
-			if (queueFamilyList[i].queueFlags & queueFlag == VK_QUEUE_TRANSFER_BIT)
+			if ((queueFamilyList[i].queueFlags & queueFlag) == VK_QUEUE_TRANSFER_BIT)
 			{
 				return i;
 			}

@@ -22,7 +22,7 @@ struct Attachment {
 class RenderTarget
 {
 public:
-	RenderTarget(std::vector<Image>& images);
+	RenderTarget(std::vector<Image>&& images);
 	~RenderTarget();
 
 	// - Getters

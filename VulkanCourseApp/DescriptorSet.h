@@ -13,15 +13,15 @@ public:
 	DescriptorSet(Device& device,
 		DescriptorSetLayout& descriptorSetLayout,
 		DescriptorPool& descriptorPool,
-		const BindingMap<VkDescriptorImageInfo>& imageInfos = {},		// BindingMap image infos and corresponding binding index
-		const BindingMap<VkDescriptorBufferInfo>& bufferInfos = {});	// BindingMap with buffer info and corresponding binding index
+		const BindingMap<VkDescriptorImageInfo>& imageInfos = {},		
+		const BindingMap<VkDescriptorBufferInfo>& bufferInfos = {});	
 
 	// Alternate order
 	DescriptorSet(Device& device,
 		DescriptorSetLayout& descriptorSetLayout,
 		DescriptorPool& descriptorPool,
-		const BindingMap<VkDescriptorBufferInfo>& bufferInfos = {},	
-		const BindingMap<VkDescriptorImageInfo>& imageInfos = {});
+		const BindingMap<VkDescriptorBufferInfo>& bufferInfos = {},	// BindingMap image infos and corresponding binding index
+		const BindingMap<VkDescriptorImageInfo>& imageInfos = {});  // BindingMap with buffer info and corresponding binding index
 		
 	~DescriptorSet() = default;
 

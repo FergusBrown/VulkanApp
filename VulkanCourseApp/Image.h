@@ -1,6 +1,6 @@
 #pragma once
 #include "Common.h"
-#include "Utilities.h"
+//#include "Utilities.h"
 
 class Device;
 class DeviceMemory;
@@ -34,22 +34,13 @@ public:
 		VkImageLayout initialLayout = VK_IMAGE_LAYOUT_UNDEFINED
 	);
 
-	//// Same as above, different order of arguments
-	//Image(Device& device,
-	//	const VkExtent2D& extent,
-	//	VkFormat format,
-	//	VkImageUsageFlags usage,
-	//	VkMemoryPropertyFlags propFlags,
-	//	VkImageAspectFlags aspectMask,
-	//	VkImageLayout initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-	//	VkSampleCountFlagBits sampleCount = VK_SAMPLE_COUNT_1_BIT,
-	//	uint32_t mipLevels = 1,
-	////	uint32_t arrayLayerCount = 1,
-	////	VkImageTiling tiling = VK_IMAGE_TILING_OPTIMAL
-	//	
-	//);
+	Image(const Image&) = delete;
+
+	Image(Image&& other);
 
 	~Image();
+
+	
 
 	// - Getters
 	Device& device() const;

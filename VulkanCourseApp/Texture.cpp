@@ -1,5 +1,5 @@
-#define STB_IMAGE_IMPLEMENTATION
-#include <stb_image.h>
+//#define STB_IMAGE_IMPLEMENTATION
+//#include <stb_image.h>
 #include "Texture.h"
 
 #include "Buffer.h"
@@ -7,10 +7,9 @@
 #include "Device.h"
 #include "Image.h"
 
+uint32_t Texture::ID = 0;
 
-
-
-Texture::Texture(Device& device, stbi_uc* textureData, int width, int height, VkDeviceSize imageSize) :
+Texture::Texture(Device& device, void* textureData, int width, int height, VkDeviceSize imageSize) :
 	mDevice(device), mID(ID)
 {
 	createTextureImage(textureData, width, height, imageSize);
@@ -47,29 +46,29 @@ uint32_t Texture::textureID() const
 {
 	return mID;
 }
+//
+//// TODO : consider move this out of this class and back to vulkan renderer
+//stbi_uc* Texture::loadTextureFile(std::string fileName, int* width, int* height, VkDeviceSize* imageSize)
+//{
+//	// Number of channels image uses
+//	int channels;
+//
+//	// Load pixel data for image
+//	std::string fileLoc = "Textures/" + fileName;
+//	stbi_uc* image = stbi_load(fileLoc.c_str(), width, height, &channels, STBI_rgb_alpha);
+//
+//	if (!image)
+//	{
+//		throw std::runtime_error("Failed to load a Texture File! (" + fileName + ")");
+//	}
+//
+//	// calculate image size using given and known data (note 4 is for RGB and A channels)
+//	*imageSize = *width * *height * 4;
+//
+//	return image;
+//}
 
-// TODO : consider move this out of this class and back to vulkan renderer
-stbi_uc* Texture::loadTextureFile(std::string fileName, int* width, int* height, VkDeviceSize* imageSize)
-{
-	// Number of channels image uses
-	int channels;
-
-	// Load pixel data for image
-	std::string fileLoc = "Textures/" + fileName;
-	stbi_uc* image = stbi_load(fileLoc.c_str(), width, height, &channels, STBI_rgb_alpha);
-
-	if (!image)
-	{
-		throw std::runtime_error("Failed to load a Texture File! (" + fileName + ")");
-	}
-
-	// calculate image size using given and known data (note 4 is for RGB and A channels)
-	*imageSize = *width * *height * 4;
-
-	return image;
-}
-
-void Texture::createTextureImage(stbi_uc* textureData, int width, int height, VkDeviceSize imageSize)
+void Texture::createTextureImage(void* textureData, int width, int height, VkDeviceSize imageSize)
 {
 	// Create staging buffer to hold loaded data, ready to copy to device
 	Buffer imageStagingBuffer(mDevice,
@@ -83,11 +82,12 @@ void Texture::createTextureImage(stbi_uc* textureData, int width, int height, Vk
 	imageStagingBuffer.unmap();
 
 	// Free original image data
-	stbi_image_free(textureData);
+	//stbi_image_free(textureData);
 
 	// Create image to hold final texture
 	VkExtent2D newExtent = { width, height };
-	mImage = std::make_unique<Image>(newExtent,
+	mImage = std::make_unique<Image>(mDevice,
+		newExtent,
 		VK_FORMAT_R8G8B8A8_UNORM,
 		VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
 		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,

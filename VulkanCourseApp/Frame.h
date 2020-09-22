@@ -3,14 +3,15 @@
 
 #include "Common.h"
 
-class CommandPool;
+#include "CommandPool.h"
+
+//class CommandPool;
 class CommandBuffer;
 class Device;
 class DescriptorPool;
 class DescriptorSet;
 class Queue;
 class RenderTarget;
-
 
 
 // This is a container for data which must be held by every frame

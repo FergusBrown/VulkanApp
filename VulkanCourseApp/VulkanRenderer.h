@@ -12,6 +12,9 @@
 
 #include <ctpl_stl.h>
 
+
+#include <stb_image.h>
+
 #include "Common.h"
 #include "Utilities.h"
 #include "VulkanValidation.h"
@@ -60,7 +63,7 @@ public:
 	~VulkanRenderer();
 
 private:
-	GLFWwindow* window;
+	GLFWwindow* mWindow;
 
 	int currentFrame = 0;
 
@@ -158,6 +161,7 @@ private:
 	//std::vector<VkDeviceMemory> textureImageMemory;
 	//std::vector<VkImageView> textureImageViews;
 	std::map <uint32_t, std::unique_ptr<Texture>> mTextures;
+	//std::vector<VkImage> textureImages;
 
 	// - Pipeline
 	VkPipeline graphicsPipeline;
@@ -261,6 +265,7 @@ private:
 	//bool checkDeviceSuitable(VkPhysicalDevice device);
 	
 	// -- Getter Functions
+	void getWindowExtent(VkExtent2D& windowExtent);
 	//QueueFamilyIndices getQueueFamilies(VkPhysicalDevice device);
 	//SwapChainDetails getSwapChainDetails(VkPhysicalDevice device);
 	
@@ -276,15 +281,16 @@ private:
 	//VkImageView createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags);
 	VkShaderModule createShaderModule(const std::vector<char>& code);
 
-	//int createTextureImage(std::string fileName);
+	
+
 	int createTexture(std::string fileName);
+	//int createTextureImage(std::string fileName);
 	int createTextureDescriptor(const Texture& texture);
 	
+	// -- Loader Functions
+	stbi_uc* loadTextureFile(std::string fileName, int& width, int& height, VkDeviceSize& imageSize);
 
 	
-
-	// -- Loader Functions
-	//stbi_uc* loadTextureFile(std::string fileName, int* width, int* height, VkDeviceSize* imageSize);
 	
 };
 

@@ -1,6 +1,5 @@
-#include "VulkanRenderer.h"
 #define STB_IMAGE_IMPLEMENTATION
-#include <stb_image.h>
+#include "VulkanRenderer.h"
 
 #include "Mesh.h"
 #include "MeshModelData.h"
@@ -29,7 +28,7 @@ VulkanRenderer::VulkanRenderer()
 
 int VulkanRenderer::init(GLFWwindow* newWindow)
 {
-	window = newWindow;
+	mWindow = newWindow;
 
 	try {
 		setupThreadPool();
@@ -245,7 +244,7 @@ void VulkanRenderer::createInstance()
 void VulkanRenderer::createSurface()
 {
 	// Create Surface (creates a surface create info struct, runs the create surface function, returns result)
-	VkResult result = glfwCreateWindowSurface(mInstance, window, nullptr, &mSurface);
+	VkResult result = glfwCreateWindowSurface(mInstance, mWindow, nullptr, &mSurface);
 
 
 	if (result != VK_SUCCESS)
@@ -269,7 +268,7 @@ void VulkanRenderer::findDesiredQueueFamilies()
 void VulkanRenderer::createSwapChain()
 {
 	VkExtent2D windowExtent;
-	getWindowExtent(windowExtent, window);
+	getWindowExtent(windowExtent);
 
 	mSwapchain = std::make_unique<Swapchain>(*mDevice, windowExtent, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT);
 }
@@ -277,7 +276,7 @@ void VulkanRenderer::createSwapChain()
 // Prepare rendertargets and frames
 void VulkanRenderer::createPerFrameObjects()
 {
-	auto& device = mSwapchain->device();
+	//auto& device = mSwapchain->device();
 	auto& swapchainExtent = mSwapchain->extent();
 	VkFormat swapchainFormat = mSwapchain->format();
 	VkImageUsageFlags swapchainUsage = mSwapchain->usage();
@@ -298,18 +297,18 @@ void VulkanRenderer::createPerFrameObjects()
 	for (auto& image : mSwapchain->images())
 	{
 		// IMAGES + RENDERTARGET + RESOURCE REFERENCE
-		std::vector<Image> renderTargetImages;
+		
 		mAttachmentResources.push_back(std::make_unique<DescriptorResourceReference>());
 
 		// 0 - swapchain image
-		Image swapchainImage(device,
+		Image swapchainImage(*mDevice,
 			image,
 			swapchainExtent,
 			swapchainFormat,
 			swapchainUsage);
 
 		// 1 - colour image
-		Image colourImage(device,
+		Image colourImage(*mDevice,
 			swapchainExtent,
 			mColourFormat,
 			VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT,
@@ -321,7 +320,7 @@ void VulkanRenderer::createPerFrameObjects()
 			0);
 
 		// 2 - depth image
-		Image depthImage(device,
+		Image depthImage(*mDevice,
 			swapchainExtent,
 			mDepthFormat,
 			VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT,
@@ -329,17 +328,18 @@ void VulkanRenderer::createPerFrameObjects()
 			VK_IMAGE_ASPECT_DEPTH_BIT);
 
 		mAttachmentResources.back()->bindInputImage(depthImage,
-			0,
+			1,
 			0);
 
 
-		renderTargetImages.push_back(swapchainImage);
-		renderTargetImages.push_back(colourImage);
-		renderTargetImages.push_back(depthImage);
+		std::vector<Image> renderTargetImages;
+		renderTargetImages.push_back(std::move(swapchainImage));
+		renderTargetImages.push_back(std::move(colourImage));
+		renderTargetImages.push_back(std::move(depthImage));
 
 
-		std::unique_ptr<RenderTarget> renderTarget = std::make_unique<RenderTarget>(renderTargetImages);
-		mFrames.push_back(std::make_unique<Frame>(mDevice, renderTarget, mThreadCount));
+		std::unique_ptr<RenderTarget> renderTarget = std::make_unique<RenderTarget>(std::move(renderTargetImages));
+		mFrames.push_back(std::make_unique<Frame>(*mDevice, std::move(renderTarget), mThreadCount));
 	}
 }
 
@@ -501,7 +501,7 @@ void VulkanRenderer::createDescriptorSetLayouts()
 
 	vpResources.push_back(vpBuffer);
 
-	mUniformSetLayout = std::make_unique<DescriptorSetLayout>(mDevice, 0, vpResources);
+	mUniformSetLayout = std::make_unique<DescriptorSetLayout>(*mDevice, 0, vpResources);
 
 
 	// TEXTURE SAMPLER
@@ -514,7 +514,7 @@ void VulkanRenderer::createDescriptorSetLayouts()
 
 	samplerResources.push_back(textureSampler);
 
-	mSamplerSetLayout = (std::make_unique<DescriptorSetLayout>(mDevice, 1, samplerResources));
+	mSamplerSetLayout = (std::make_unique<DescriptorSetLayout>(*mDevice, 1, samplerResources));
 
 	// INPUT ATTACHMENTS
 	ShaderResource depthAttachment(0,
@@ -532,7 +532,7 @@ void VulkanRenderer::createDescriptorSetLayouts()
 	attachmentResources.push_back(depthAttachment);
 	attachmentResources.push_back(colourAttachment);
 
-	mAttachmentSetLayout = (std::make_unique<DescriptorSetLayout>(mDevice, 2, attachmentResources));	
+	mAttachmentSetLayout = (std::make_unique<DescriptorSetLayout>(*mDevice, 2, attachmentResources));	
 
 }
 
@@ -845,26 +845,13 @@ void VulkanRenderer::createFramebuffers()
 	{
 		auto& renderTarget = frame->renderTarget();
 
-		mFramebuffers.push_back(std::make_unique<Framebuffer>(mDevice, renderTarget.extent(), renderTarget.imageViews(), mRenderPass));
+		mFramebuffers.push_back(std::make_unique<Framebuffer>(*mDevice, renderTarget.extent(), renderTarget.imageViews(), mRenderPass));
 	}
 }
 
-//void VulkanRenderer::createThreadData()
-//{
-//	threadCount = std::thread::hardware_concurrency();
-//	threadPool.resize(threadCount);
-//	frameData.resize(mSwapchain->details().imageCount);
-//
-//	for (auto& frame : frameData)
-//	{
-//		frame.threadData.resize(threadCount);
-//	}
-//	
-//}
-
 void VulkanRenderer::createTextureSampler()
 {
-	mTextureSampler = std::make_unique<Sampler>(mDevice);
+	mTextureSampler = std::make_unique<Sampler>(*mDevice);
 }
 
 void VulkanRenderer::createUniformBuffers()
@@ -876,7 +863,7 @@ void VulkanRenderer::createUniformBuffers()
 	// Create uniform buffers
 	for (size_t i = 0; i < mSwapchain->details().imageCount; ++i)
 	{
-		mUniformBuffers.push_back(std::make_unique<Buffer>(mDevice,
+		mUniformBuffers.push_back(std::make_unique<Buffer>(*mDevice,
 			vpBufferSize,
 			VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
 			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT));
@@ -890,13 +877,15 @@ void VulkanRenderer::createUniformBuffers()
 void VulkanRenderer::createDescriptorPools()
 {
 	// CREATE UNIFORM DESCRIPTOR POOL
-	mUniformDescriptorPool = std::make_unique<DescriptorPool>(mDevice, mUniformSetLayout, mSwapchain->details().imageCount);
+	mUniformDescriptorPool = std::make_unique<DescriptorPool>(*mDevice, *mUniformSetLayout, mSwapchain->details().imageCount);
 
+
+	// TODO : maxsets here must be changed
 	// CREATE SAMPLER DESCRIPTOR POOL
-	mSamplerDescriptorPool = std::make_unique<DescriptorPool>(mDevice, mSamplerSetLayout, mSwapchain->details().imageCount);
+	mSamplerDescriptorPool = std::make_unique<DescriptorPool>(*mDevice, *mSamplerSetLayout, mSwapchain->details().imageCount);
 
 	// CREATE INPUT ATTACHMENT DESCRIPTOR POOL
-	mAttachmentDescriptorPool = std::make_unique<DescriptorPool>(mDevice, mAttachmentSetLayout, mSwapchain->details().imageCount);
+	mAttachmentDescriptorPool = std::make_unique<DescriptorPool>(*mDevice, *mAttachmentSetLayout, mSwapchain->details().imageCount);
 
 }
 
@@ -926,9 +915,11 @@ void VulkanRenderer::createUniformDescriptorSets()
 
 		VkDescriptorBufferInfo vpBufferInfo = {};
 		mUniformResources[i]->generateDescriptorBufferInfo(vpBufferInfo, 0, 0);
-		std::vector<VkDescriptorBufferInfo> uniformBufferInfos = { vpBufferInfo };
+		BindingMap<VkDescriptorBufferInfo> uniformBufferInfos;
 
-		mUniformDescriptorSets.push_back(std::make_unique<DescriptorSet>(mDevice, mUniformDescriptorPool, uniformBufferInfos));
+		uniformBufferInfos[0][0] = vpBufferInfo;
+
+		mUniformDescriptorSets.push_back(std::make_unique<DescriptorSet>(*mDevice, *mUniformSetLayout, *mUniformDescriptorPool, uniformBufferInfos));
 
 		// Update the descriptor sets with new buffer/binding info
 		std::vector<uint32_t> bindingsToUpdate = { 0 };
@@ -941,15 +932,15 @@ void VulkanRenderer::createInputDescriptorSets()
 	// CREATE SETS
 	for (size_t i = 0; i < mSwapchain->details().imageCount; ++i)
 	{
-		std::vector<VkDescriptorImageInfo> attachmentImageInfos;
+		BindingMap<VkDescriptorImageInfo> imageInfos{};
 
 		VkDescriptorImageInfo imageInfo = {};
 		mAttachmentResources[i]->generateDescriptorImageInfo(imageInfo, 0, 0);
-		attachmentImageInfos.push_back(imageInfo);
+		imageInfos[0][0] = imageInfo;
 		mAttachmentResources[i]->generateDescriptorImageInfo(imageInfo, 1, 0);
-		attachmentImageInfos.push_back(imageInfo);
+		imageInfos[1][0] = imageInfo;
 
-		mAttachmentDescriptorSets.push_back(std::make_unique<DescriptorSet>(mDevice, mAttachmentDescriptorPool, attachmentImageInfos));
+		mAttachmentDescriptorSets.push_back(std::make_unique<DescriptorSet>(*mDevice, *mAttachmentSetLayout, *mAttachmentDescriptorPool, imageInfos));
 
 		// Update the descriptor sets with new image/binding info
 		std::vector<uint32_t> bindingsToUpdate = { 0, 1 };
@@ -1263,11 +1254,9 @@ int VulkanRenderer::createTexture(std::string fileName)
 	// Load in the image file
 	int width, height;
 	VkDeviceSize imageSize;
-	stbi_uc* textureData = Texture::loadTextureFile(fileName, &width, &height, &imageSize);
-	// TODO : maybe it is cleaner to just create the texture object by passing it the file name
-	// TODO : but I don't want the texture to have to know the file name and I want to leave the opportunity in future to load image data using different libraries
+	stbi_uc* textureData = loadTextureFile(fileName, width, height, imageSize);
 
-	std::unique_ptr<Texture>  texture = std::make_unique<Texture>(mDevice, textureData, width, height, imageSize);
+	std::unique_ptr<Texture>  texture = std::make_unique<Texture>(*mDevice, textureData, width, height, imageSize);
 
 	// Add texture to map of textures
 	int textureID = texture->textureID();;
@@ -1292,9 +1281,11 @@ int VulkanRenderer::createTextureDescriptor(const Texture& texture)
 	
 	VkDescriptorImageInfo imageInfo = {};
 	mSamplerResources.back()->generateDescriptorImageInfo(imageInfo, 0, 0);
-	std::vector<VkDescriptorImageInfo> imageInfos = { imageInfo };
 
-	mTextureDescriptorSets.push_back(std::make_unique<DescriptorSet>(mDevice, mSamplerDescriptorPool, imageInfos));
+	BindingMap<VkDescriptorImageInfo> imageInfos;
+	imageInfos[0][0] = imageInfo;
+
+	mTextureDescriptorSets.push_back(std::make_unique<DescriptorSet>(*mDevice, *mSamplerSetLayout, *mSamplerDescriptorPool, imageInfos));
 
 	// Update the descriptor sets with new buffer/binding info
 	std::vector<uint32_t> bindingsToUpdate = { 0 };
@@ -1304,6 +1295,26 @@ int VulkanRenderer::createTextureDescriptor(const Texture& texture)
 	return mTextureDescriptorSets.size() - 1;
 
 
+}
+
+stbi_uc* VulkanRenderer::loadTextureFile(std::string fileName, int& width, int& height, VkDeviceSize& imageSize)
+{
+	// Number of channels image uses
+	int channels;
+
+	// Load pixel data for image
+	std::string fileLoc = "Textures/" + fileName;
+	stbi_uc* image = stbi_load(fileLoc.c_str(), &width, &height, &channels, STBI_rgb_alpha);
+
+	if (!image)
+	{
+		throw std::runtime_error("Failed to load a Texture File! (" + fileName + ")");
+	}
+
+	// calculate image size using given and known data (note 4 is for RGB and A channels)
+	imageSize = width * height * 4;
+
+	return image;
 }
 
 int VulkanRenderer::loadMeshModelData(std::string modelFile)
@@ -1381,6 +1392,17 @@ bool VulkanRenderer::checkValidationLayerSupport() {
 	}
 
 	return true;
+}
+
+void VulkanRenderer::getWindowExtent(VkExtent2D& windowExtent)
+{
+	// Get window size
+	int width, height;
+	glfwGetFramebufferSize(mWindow, &width, &height);
+
+	// Create new extent using window size
+	windowExtent.width = static_cast<uint32_t>(width);
+	windowExtent.height = static_cast<uint32_t>(height);
 }
 
 void VulkanRenderer::setupDebugMessenger()

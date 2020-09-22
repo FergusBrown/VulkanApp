@@ -7,7 +7,7 @@ class Image;
 class Texture
 {
 public:
-	Texture(Device& device, stbi_uc* textureData, int width, int height, VkDeviceSize imageSize);
+	Texture(Device& device, void* textureData, int width, int height, VkDeviceSize imageSize);
 	~Texture() = default;
 
 	// - Getters
@@ -19,7 +19,7 @@ public:
 	uint32_t textureID() const;
 
 	//static void createTextureImage(std::string fileName);
-	static stbi_uc* loadTextureFile(std::string fileName, int* width, int* height, VkDeviceSize* imageSize);
+	//static stbi_uc* loadTextureFile(std::string fileName, int* width, int* height, VkDeviceSize* imageSize);
 
 private:
 	Device& mDevice;
@@ -29,6 +29,6 @@ private:
 
 	std::unique_ptr<Image> mImage;
 
-	void createTextureImage(stbi_uc* textureData, int width, int height, VkDeviceSize imageSize);
+	void createTextureImage(void* textureData, int width, int height, VkDeviceSize imageSize);
 };
-uint32_t Texture::ID = 0;
+
