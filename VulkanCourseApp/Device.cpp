@@ -1,6 +1,8 @@
 #include "Device.h"
 
-
+#include "CommandBuffer.h"
+#include "CommandPool.h"
+#include "Queue.h"
 
 Device::Device(VkInstance instance, VkSurfaceKHR surface, const std::vector<const char*>& deviceExtensions)
 	:mSurface(surface)

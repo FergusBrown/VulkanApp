@@ -1,11 +1,12 @@
 #pragma once
 #include "Common.h"
 
-//#include "CommandPool.h"
-#include "Image.h"
-#include "Buffer.h"
-#include "Framebuffer.h"
-#include "DescriptorSet.h"
+class Buffer;
+class CommandPool;
+class DescriptorSet;
+class Framebuffer;
+class Image;
+class RenderTarget;
 
 // TODO : modify once renderpass object has been implemented
 struct RenderPassBinding
@@ -44,7 +45,7 @@ public:
 	template<typename T>
 	void pushConstant(VkPipelineLayout pipelineLayout, VkShaderStageFlags shaderStageFlags, const T& value)
 	{
-rtex buffer befor		// Check size
+		// Check size
 		uint32_t size = sizeof(T);
 		assert(size <= mMaxPushConstantSize && "Push constant size is greater than 128 bytes!");
 
@@ -54,7 +55,7 @@ rtex buffer befor		// Check size
 			shaderStageFlags,		// Stage to push constants to
 			0,						// Offset of push constants to update
 			size,					// Size of data being pushed	
-			value);					// Actual data being pushed (can be array)
+			&value);				// Actual data being pushed (can be array)
 	}
 
 	void bindVertexBuffers(uint32_t firstBinding, const std::vector<std::reference_wrapper<const Buffer>>& buffers, const std::vector<VkDeviceSize>& offsets);

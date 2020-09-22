@@ -1,5 +1,9 @@
 #include "DescriptorSet.h"
 
+#include "DescriptorPool.h"
+#include "DescriptorSetLayout.h"
+#include "Device.h"
+
 DescriptorSet::DescriptorSet(Device& device,
 	DescriptorSetLayout& descriptorSetLayout,
 	DescriptorPool& descriptorPool,

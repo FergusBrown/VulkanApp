@@ -1,7 +1,7 @@
 #pragma once
 #include "Common.h"
 
-#include "Device.h"
+class Device;
 
 class Sampler
 {

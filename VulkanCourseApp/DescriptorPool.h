@@ -1,8 +1,8 @@
 #pragma once
 #include "Common.h"
 
-#include "Device.h"
-#include "DescriptorSetLayout.h"
+class Device;
+class DescriptorSetLayout;
 
 class DescriptorPool
 {

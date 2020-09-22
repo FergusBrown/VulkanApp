@@ -1,8 +1,8 @@
 #pragma once
 #include "Common.h"
-#include "Device.h"
 
-#include "Image.h"
+class Device;
+class Image;
 
 struct Attachment {
 	VkFormat format;

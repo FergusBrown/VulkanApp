@@ -1,5 +1,8 @@
 #include "Image.h"
 
+#include "Device.h"
+#include "DeviceMemory.h"
+
 // TODO : unfinished constructor
 Image::Image(Device& device, 
 	VkImage image, 

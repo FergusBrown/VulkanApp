@@ -1,8 +1,8 @@
 #pragma once
 #include "Common.h"
 
-#include "Device.h"
-#include "DeviceMemory.h"
+class Device;
+class DeviceMemory;
 
 // Contains a VkBuffer and the VkDeviceMemory which is mapped to the resource
 class Buffer

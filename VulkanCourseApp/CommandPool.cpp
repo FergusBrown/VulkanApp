@@ -1,5 +1,8 @@
 #include "CommandPool.h"
 
+#include "CommandBuffer.h"
+#include "Device.h"
+
 CommandPool::CommandPool(Device& device, uint32_t queueFamilyIndex) :
 	mDevice(device), mQueueFamilyIndex(queueFamilyIndex)
 {

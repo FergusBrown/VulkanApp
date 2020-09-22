@@ -1,5 +1,9 @@
 #include "Queue.h"
 
+#include "CommandBuffer.h"
+#include "Device.h"
+#include "Swapchain.h"
+
 Queue::Queue(Device& device, uint32_t familyIndex, uint32_t index, VkQueueFamilyProperties properties, VkBool32 presentationSupport) :
     mDevice(device), mFamilyIndex(familyIndex), mIndex(index), mProperties(properties), mPresentationSupport(presentationSupport)
 {
@@ -59,12 +63,12 @@ void Queue::submit(VkSemaphore waitSemaphore, VkPipelineStageFlags waitStage, Vk
 	// Queue submission information
 	VkSubmitInfo submitInfo = {};
 	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-	submitInfo.waitSemaphoreCount = 1;		// Number of semaphores to wait on
+	submitInfo.waitSemaphoreCount = 1;												// Number of semaphores to wait on
 	submitInfo.pWaitSemaphores = &waitSemaphore;									// Stages to check semaphores at
 	submitInfo.pWaitDstStageMask = &waitStage;
-	submitInfo.commandBufferCount = 1;													// Number of command buffers to submit
-	submitInfo.pCommandBuffers = &commandBuffer.handle();								// Command buffer to submit
-	submitInfo.signalSemaphoreCount = 1;	// Number of semaphores to signal
+	submitInfo.commandBufferCount = 1;												// Number of command buffers to submit
+	submitInfo.pCommandBuffers = &commandBuffer.handle();							// Command buffer to submit
+	submitInfo.signalSemaphoreCount = 1;											// Number of semaphores to signal
 	submitInfo.pSignalSemaphores = &signalSemaphore;								// Semaphore to signal when the command buffer finishes
 
 	// submit command buffer to queue

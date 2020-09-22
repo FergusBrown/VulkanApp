@@ -1,8 +1,9 @@
 #pragma once
 #include "Common.h"
 
-#include "Device.h"
-#include "Swapchain.h"
+class CommandBuffer;
+class Device;
+class Swapchain;
 
 class Queue
 {

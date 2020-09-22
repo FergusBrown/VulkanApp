@@ -1,5 +1,7 @@
 #include "DeviceMemory.h"
 
+#include "Device.h"
+
 DeviceMemory::DeviceMemory(Device& device, VkMemoryPropertyFlags properties, VkMemoryRequirements& memRequirements) :
 	mDevice(device)
 {

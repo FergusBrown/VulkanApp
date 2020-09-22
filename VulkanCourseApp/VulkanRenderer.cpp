@@ -2,6 +2,27 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
+#include "Mesh.h"
+#include "MeshModelData.h"
+#include "MeshModel.h"
+
+#include "Device.h"
+#include "SwapChain.h"
+#include "Image.h"
+#include "Buffer.h"
+#include "CommandBuffer.h"
+#include "Sampler.h"
+#include "DescriptorPool.h"
+#include "DescriptorSetLayout.h"
+#include "DescriptorResourceReference.h"
+#include "DescriptorSet.h"
+#include "RenderTarget.h"
+#include "Frame.h"
+#include "Framebuffer.h"
+#include "Texture.h"
+#include "Queue.h"
+#include "CommandBuffer.h"
+
 VulkanRenderer::VulkanRenderer()
 {
 }
@@ -109,10 +130,10 @@ void VulkanRenderer::cleanup()
 	// Wait until no actions being run on device before destroying
 	vkDeviceWaitIdle(mDevice->logicalDevice());
 
-	for (size_t i = 0; i < modelDataList.size(); ++i)
-	{
-		modelDataList[i].destroyMeshModel();
-	}
+	//for (size_t i = 0; i < modelDataList.size(); ++i)
+	//{
+	//	modelDataList[i].destroyMeshModel();
+	//}
 
 	for (size_t i = 0; i < MAX_FRAME_DRAWS; ++i)
 	{

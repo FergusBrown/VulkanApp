@@ -3,8 +3,10 @@
 
 #include "Common.h"
 
-#include "Device.h"
-#include "Mesh.h"
+class Device;
+class Mesh;
+
+
 
 // Class for loading mesh and material data + default position
 class MeshModelData
@@ -18,7 +20,7 @@ public:
 	/*glm::mat4 getModel();
 	void setModel(glm::mat4 newModel);*/
 
-	void destroyMeshModel();
+	//void destroyMeshModel();
 
 	static std::vector<std::string> LoadMaterials(const aiScene* scene);
 	/*static std::vector<Mesh*> LoadNode(VkPhysicalDevice newPhysicalDevice, VkDevice newDevice, VkQueue transferQueue, VkCommandPool transferCommandPool,

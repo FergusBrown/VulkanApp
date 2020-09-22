@@ -1,8 +1,9 @@
 #pragma once
 #include "Common.h"
 #include "Utilities.h"
-#include "Device.h"
-#include "DeviceMemory.h"
+
+class Device;
+class DeviceMemory;
 
 // TODO: add functionality to change image properties based on member variables
 // TODO: support for 3D images

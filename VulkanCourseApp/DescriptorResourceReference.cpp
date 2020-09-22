@@ -1,5 +1,9 @@
 #include "DescriptorResourceReference.h"
 
+#include "Buffer.h"
+#include "Image.h"
+#include "Sampler.h"
+
 void DescriptorResourceReference::reset()
 {
 	mResourceBindings.clear();

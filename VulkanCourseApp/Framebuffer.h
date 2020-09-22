@@ -1,8 +1,8 @@
 #pragma once
 #include "Common.h"	
 
-#include "Device.h"
-#include "RenderTarget.h"
+class Device;
+//class RenderTarget;
 
 class Framebuffer
 {

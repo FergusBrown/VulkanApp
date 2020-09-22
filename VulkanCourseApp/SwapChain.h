@@ -1,7 +1,7 @@
 #pragma once
 #include "Common.h"
 
-#include "Device.h"
+class Device;
 
 // Supported surface capabilities,formats and presentation modes
 struct SurfaceSupport {

@@ -3,8 +3,10 @@
 
 //#include "Utilities.h" // was used for vertex struct def. That has since been moved here
 
-#include "Device.h"
-#include "Buffer.h"
+
+
+class Device;
+class Buffer;
 
 // This struct is bad!!
 //struct Model {

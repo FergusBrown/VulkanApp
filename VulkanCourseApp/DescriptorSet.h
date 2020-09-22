@@ -1,8 +1,9 @@
 #pragma once
 #include "Common.h"
 
-#include "DescriptorPool.h"
-
+class DescriptorPool;
+class DescriptorSetLayout;
+class Device;
 
 // This class manages a descriptor set once it is allocated by from a pool
 // This primarily involves updating descriptors with writes

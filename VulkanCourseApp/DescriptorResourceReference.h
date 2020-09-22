@@ -1,9 +1,9 @@
 #pragma once
 #include "Common.h"
 
-#include "Buffer.h"
-#include "Image.h"
-#include "Sampler.h"
+class Buffer;
+class Image;
+class Sampler;
 
 // Struct contating pointer to the appropriate resource
 struct ResourceBinding

@@ -1,5 +1,7 @@
 #include "Sampler.h"
 
+#include "Device.h"
+
 Sampler::Sampler(Device& device, VkFilter magFilter, VkFilter minFilter, VkSamplerMipmapMode mipmapMode, VkSamplerAddressMode addressModeU, VkSamplerAddressMode addressModeV, VkSamplerAddressMode addressModeW, float mipLodBias, VkBool32 anisotropyEnable, float maxAnisotropy, float minLod, float maxLod, VkBorderColor borderColor, VkBool32 unnormalisedCoordinates) :
     mDevice(device)
 {

@@ -1,5 +1,8 @@
 #include "RenderTarget.h"
 
+#include "Device.h"
+#include "Image.h"
+
 Attachment::Attachment(VkFormat format, VkSampleCountFlagBits sampleCount, VkImageUsageFlags usage) :
 	format(format), sampleCount(sampleCount), usage(usage)
 {

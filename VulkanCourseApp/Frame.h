@@ -3,11 +3,15 @@
 
 #include "Common.h"
 
-#include "Device.h"
-#include "RenderTarget.h"
-#include "CommandPool.h"
-#include "DescriptorPool.h"
-#include "DescriptorSet.h"
+class CommandPool;
+class CommandBuffer;
+class Device;
+class DescriptorPool;
+class DescriptorSet;
+class Queue;
+class RenderTarget;
+
+
 
 // This is a container for data which must be held by every frame
 // All operation regarding command buffers and descriptor sets are handled in this class and multithreaded where possible

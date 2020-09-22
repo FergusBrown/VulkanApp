@@ -2,6 +2,13 @@
 #include <stb_image.h>
 #include "Texture.h"
 
+#include "Buffer.h"
+#include "CommandBuffer.h"
+#include "Device.h"
+#include "Image.h"
+
+
+
 
 Texture::Texture(Device& device, stbi_uc* textureData, int width, int height, VkDeviceSize imageSize) :
 	mDevice(device), mID(ID)

@@ -1,10 +1,7 @@
 #include "MeshModel.h"
 
+//#include "MeshModelData.h"
 
-
-MeshModel::MeshModel()
-{
-}
 
 MeshModel::MeshModel(int dataID) :
 	mMeshDataID(dataID), mModel(glm::mat4(1.0f))

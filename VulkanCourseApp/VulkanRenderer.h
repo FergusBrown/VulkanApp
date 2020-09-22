@@ -10,28 +10,30 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 
-#include "ctpl_stl.h"
-
-#include "Mesh.h"
-#include "MeshModelData.h"
-#include "MeshModel.h"
+#include <ctpl_stl.h>
 
 #include "Common.h"
 #include "Utilities.h"
 #include "VulkanValidation.h"
 
-#include "Device.h"
-#include "SwapChain.h"
-#include "Image.h"
-#include "Buffer.h"
-#include "Sampler.h"
-#include "DescriptorSetLayout.h"
-#include "DescriptorResourceReference.h"
-#include "DescriptorSet.h"
-#include "RenderTarget.h"
-#include "Frame.h"
-#include "Framebuffer.h"
-#include "Texture.h"
+class Mesh;
+class MeshModelData;
+class MeshModel;
+
+class Device;
+class Swapchain;
+class Image;
+class Buffer;
+class CommandBuffer;
+class Sampler;
+class DescriptorPool;
+class DescriptorSetLayout;
+class DescriptorResourceReference;
+class DescriptorSet;
+class RenderTarget;
+class Frame;
+class Framebuffer;
+class Texture;
 
 using namespace glm;
 

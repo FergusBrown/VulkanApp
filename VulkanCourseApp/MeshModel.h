@@ -2,12 +2,10 @@
 
 #include "Common.h"
 
-#include "MeshModelData.h"
-
 class MeshModel
 {
 public:
-	MeshModel();
+	MeshModel() = default;
 	MeshModel(int dataID);
 
 	int getMeshDataID() const;

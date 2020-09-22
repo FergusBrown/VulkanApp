@@ -1,5 +1,8 @@
 #include "MeshModelData.h"
 
+#include "Device.h"
+#include "Mesh.h"
+
 MeshModelData::MeshModelData(std::vector<Mesh*> newMeshList)
 {
 	meshList = newMeshList;
@@ -21,14 +24,14 @@ Mesh* MeshModelData::getMesh(size_t index)
 }
 
 
-void MeshModelData::destroyMeshModel()
-{
-	for (auto* mesh : meshList)
-	{
-		mesh->destroyBuffers();
-		delete mesh;
-	}
-}
+//void MeshModelData::destroyMeshModel()
+//{
+//	for (auto* mesh : meshList)
+//	{
+//		mesh->destroyBuffers();
+//		delete mesh;
+//	}
+//}
 
 std::vector<std::string> MeshModelData::LoadMaterials(const aiScene* scene)
 {

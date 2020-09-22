@@ -1,5 +1,8 @@
 #include "Buffer.h"
 
+#include "Device.h"
+#include "DeviceMemory.h"
+
 Buffer::Buffer(Device& device, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties) :
     mDevice(device), mSize(size)
 {

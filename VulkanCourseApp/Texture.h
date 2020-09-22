@@ -1,9 +1,8 @@
 #pragma once
 #include "Common.h"
 
-#include "Device.h"
-#include "Image.h"
-#include "Buffer.h"
+class Device;
+class Image;
 
 class Texture
 {

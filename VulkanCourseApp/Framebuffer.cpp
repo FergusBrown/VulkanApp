@@ -1,5 +1,7 @@
 #include "Framebuffer.h"
 
+#include "Device.h"
+
 Framebuffer::Framebuffer(Device& device, const VkExtent2D& extent, const std::vector<VkImageView>& attachments, VkRenderPass renderPass) :
 	mDevice(mDevice)
 {

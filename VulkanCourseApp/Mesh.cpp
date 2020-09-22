@@ -1,5 +1,9 @@
 #include "Mesh.h"
 
+#include "Device.h"
+#include "Buffer.h"
+#include "CommandBuffer.h"
+
 Mesh::Mesh(Device& device,
 	std::vector<Vertex>* vertices, std::vector<uint32_t> * indices,
 	int newTexId) :

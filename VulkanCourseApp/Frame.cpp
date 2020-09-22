@@ -1,5 +1,13 @@
 #include "Frame.h"
 
+#include "CommandBuffer.h"
+#include "CommandPool.h"
+#include "DescriptorPool.h"
+#include "DescriptorSet.h"
+#include "Device.h"
+#include "Queue.h"
+#include "RenderTarget.h"
+
 Frame::Frame(Device& device, std::unique_ptr<RenderTarget>&& renderTarget, uint32_t threadCount) :
 	mDevice(device), mRenderTarget(std::move(renderTarget))//, mThreadCount(threadCount)
 {

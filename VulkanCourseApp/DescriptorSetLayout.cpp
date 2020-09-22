@@ -1,5 +1,7 @@
 #include "DescriptorSetLayout.h"
 
+#include "Device.h"
+
 DescriptorSetLayout::DescriptorSetLayout(Device& device, uint32_t setIndex, std::vector<ShaderResource>& shaderResources) :
 	mDevice(device), mSetIndex(setIndex)
 {

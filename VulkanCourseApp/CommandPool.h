@@ -1,8 +1,8 @@
 #pragma once
 #include "Common.h"
 
-#include "Device.h"
-#include "CommandBuffer.h"
+class CommandBuffer;
+class Device;
 
 class CommandPool
 {

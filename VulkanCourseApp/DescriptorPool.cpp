@@ -1,5 +1,8 @@
 #include "DescriptorPool.h"
 
+#include "Device.h"
+#include "DescriptorSetLayout.h"
+
 // Creates a descriptor pool based on a Descriptor Set Layout which can allocate "maxSets" number of sets
 DescriptorPool::DescriptorPool(Device& device, const DescriptorSetLayout& descriptorSetLayout, uint32_t maxSets) :
 	mDevice(device), mDescriptorSetLayout(descriptorSetLayout), mMaxSets(maxSets)

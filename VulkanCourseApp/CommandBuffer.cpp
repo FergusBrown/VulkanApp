@@ -1,5 +1,13 @@
 #include "CommandBuffer.h"
 
+#include "Buffer.h"
+#include "CommandPool.h"
+#include "DescriptorSet.h"
+#include "Device.h"
+#include "Framebuffer.h"
+#include "Image.h"
+#include "RenderTarget.h"
+
 CommandBuffer::CommandBuffer(CommandPool& commandPool, VkCommandBufferLevel level) :
 	mCommandPool(commandPool), 
 	mLevel(level),
