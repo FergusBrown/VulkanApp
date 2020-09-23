@@ -3,11 +3,69 @@
 #include "Device.h"
 
 // TODO: check usage is valid
-Swapchain::Swapchain(Device& device, const VkExtent2D& newExtent, VkImageUsageFlags usage) :
-	mDevice(device)
+Swapchain::Swapchain(Device& device, 
+	const VkExtent2D& extent, 
+	VkSurfaceKHR surface,
+	VkPresentModeKHR presentMode,
+	VkImageUsageFlags usage) :
+	mDevice(device),
+	mSurface(surface)
 {
 	mDetails.usage = usage;
-	createSwapchain(newExtent);
+
+	// Get surface support so that we can choose supported/best settings
+	SurfaceSupport surfaceSupport;
+	getSurfaceSupport(surfaceSupport);
+
+	// 1. CHOOSE BEST SURFACE FORMAT
+	chooseSurfaceFormat(surfaceSupport.formats);
+	// 2. CHOOSE BEST PRESENTATION MODE
+	choosePresentationMode(surfaceSupport.presentationModes, presentMode);
+	// 3. CHOOSE NUMBER OF IMAGES
+	chooseImageCount();
+	// 4. CHOOSE SWAP CHAIN IMAGE RESOLUTION
+	chooseExtent(surfaceSupport.surfaceCapabilities, extent);
+
+	// If imageCount higher than max, then clamp down to max
+	// If 0 then limitless
+	if (surfaceSupport.surfaceCapabilities.maxImageCount > 0
+		&& surfaceSupport.surfaceCapabilities.maxImageCount < mDetails.imageCount)
+	{
+		mDetails.imageCount = surfaceSupport.surfaceCapabilities.maxImageCount;
+	}
+
+	// Creation information for swap chain
+	VkSwapchainCreateInfoKHR swapChainCreateInfo = {};
+	swapChainCreateInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
+	swapChainCreateInfo.surface = mSurface;														// Swapchain surface
+	swapChainCreateInfo.imageFormat = mDetails.surfaceFormat.format;							// Swapchain format
+	swapChainCreateInfo.imageColorSpace = mDetails.surfaceFormat.colorSpace;					// Swapchain color space
+	swapChainCreateInfo.presentMode = mDetails.presentMode;										// Swapchain presentation mode
+	swapChainCreateInfo.imageExtent = mDetails.extent;											// Swapchain image extents
+	swapChainCreateInfo.minImageCount = mDetails.imageCount;									// Minimum images in swapchain
+	swapChainCreateInfo.imageArrayLayers = 1;													// Number of layers for each image in chain
+	swapChainCreateInfo.imageUsage = mDetails.usage;						// What attachment images will be used at
+	swapChainCreateInfo.preTransform = surfaceSupport.surfaceCapabilities.currentTransform;		// Transform to perform on swap chain
+	swapChainCreateInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;						// How to handle blending images with external graphics (e.g. other windows)
+	swapChainCreateInfo.clipped = VK_TRUE;														// whether to clip part of images not in view (e.g. behind another window, off screen etc.)
+	swapChainCreateInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
+	swapChainCreateInfo.pQueueFamilyIndices = nullptr;
+
+	// If old swapchain been destroyed and this one replaces it, then link old one to quickly hand over responsibilities
+	swapChainCreateInfo.oldSwapchain = VK_NULL_HANDLE;
+
+	// Create Swapchain
+	VkResult result = vkCreateSwapchainKHR(mDevice.logicalDevice(), &swapChainCreateInfo, nullptr, &mHandle);
+	if (result != VK_SUCCESS)
+	{
+		throw std::runtime_error("Failed to create a Swapchain!");
+	}
+
+	// get Swapchain images (first count, then values)
+	uint32_t swapChainImageCount;
+	vkGetSwapchainImagesKHR(mDevice.logicalDevice(), mHandle, &swapChainImageCount, nullptr);
+	mImages.resize(swapChainImageCount);
+	vkGetSwapchainImagesKHR(mDevice.logicalDevice(), mHandle, &swapChainImageCount, mImages.data());
 }
 
 Swapchain::~Swapchain()
@@ -77,98 +135,6 @@ VkResult Swapchain::acquireNextImage(VkFence drawFence, VkSemaphore imageAvailab
 	return vkAcquireNextImageKHR(mDevice.logicalDevice(), mHandle, std::numeric_limits<uint64_t>::max(), imageAvailable, VK_NULL_HANDLE, &imageIndex);;
 }
 
-void Swapchain::createSwapchain(const VkExtent2D& newExtent)
-{
-
-	// Get surface support so that we can pick best settings
-	SurfaceSupport surfaceSupport;
-	getSurfaceSupport(surfaceSupport);
-
-	// 1. CHOOSE BEST SURFACE FORMAT
-	chooseSurfaceFormat(surfaceSupport.formats);
-	// 2. CHOOSE BEST PRESENTATION MODE
-	choosePresentationMode(surfaceSupport.presentationModes);
-	// 3. CHOOSE SWAP CHAIN IMAGE RESOLUTION
-	chooseExtent(surfaceSupport.surfaceCapabilities, newExtent);
-
-	// How many images are in the swap chain? Get 1 more than the minimum to allow triple buffering
-	mDetails.imageCount = surfaceSupport.surfaceCapabilities.minImageCount + 1;
-
-	// If imageCount higher than max, then clamp down to max
-	// If 0 then limitless
-	if (surfaceSupport.surfaceCapabilities.maxImageCount > 0
-		&& surfaceSupport.surfaceCapabilities.maxImageCount < mDetails.imageCount)
-	{
-		mDetails.imageCount = surfaceSupport.surfaceCapabilities.maxImageCount;
-	}
-
-	// Creation information for swap chain
-	VkSwapchainCreateInfoKHR swapChainCreateInfo = {};
-	swapChainCreateInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-	swapChainCreateInfo.surface = mSurface;														// Swapchain surface
-	swapChainCreateInfo.imageFormat = mDetails.surfaceFormat.format;							// Swapchain format
-	swapChainCreateInfo.imageColorSpace = mDetails.surfaceFormat.colorSpace;					// Swapchain color space
-	swapChainCreateInfo.presentMode = mDetails.presentMode;										// Swapchain presentation mode
-	swapChainCreateInfo.imageExtent = mDetails.extent;											// Swapchain image extents
-	swapChainCreateInfo.minImageCount = mDetails.imageCount;									// Minimum images in swapchain
-	swapChainCreateInfo.imageArrayLayers = 1;													// Number of layers for each image in chain
-	swapChainCreateInfo.imageUsage = mDetails.usage;						// What attachment images will be used at
-	swapChainCreateInfo.preTransform = surfaceSupport.surfaceCapabilities.currentTransform;		// Transform to perform on swap chain
-	swapChainCreateInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;						// How to handle blending images with external graphics (e.g. other windows)
-	swapChainCreateInfo.clipped = VK_TRUE;														// whether to clip part of images not in view (e.g. behind another window, off screen etc.)
-
-	// TODO:  Unlikely that this check is needed - readd this if it becomes necessary
-	// Get graphics queue family index
-	//QueueFamilyIndices indices = mDevice.queueFamilyIndices();
-
-	//// If Graphics and Presentation families are different, then swapchain must let images be shared between families
-	//if (indices.graphicsFamily != indices.presentationFamily)
-	//{
-	//	// Queues to share between
-	//	uint32_t queueFamilyIndices[] = {
-	//		(uint32_t)indices.graphicsFamily,
-	//		(uint32_t)indices.presentationFamily
-	//	};
-
-	//	swapChainCreateInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;	// Image share handling
-	//	swapChainCreateInfo.queueFamilyIndexCount = 2;						// Number of queues to share images between -- 2 in this case as must be shared between graphics and presentation queue
-	//	swapChainCreateInfo.pQueueFamilyIndices = queueFamilyIndices;		// Array of queues to share between
-	//}
-	//else
-	//{
-	swapChainCreateInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
-	swapChainCreateInfo.pQueueFamilyIndices = nullptr;
-	//}
-
-	// If old swapchain been destroyed and this one replaces it, then link old one to quickly hand over responsibilities
-	swapChainCreateInfo.oldSwapchain = VK_NULL_HANDLE;
-
-	// Create Swapchain
-	VkResult result = vkCreateSwapchainKHR(mDevice.logicalDevice(), &swapChainCreateInfo, nullptr, &mHandle);
-	if (result != VK_SUCCESS)
-	{
-		throw std::runtime_error("Failed to create a Swapchain!");
-	}
-
-	// get Swapchain images (first count, then values)
-	uint32_t swapChainImageCount;
-	vkGetSwapchainImagesKHR(mDevice.logicalDevice(), mHandle, &swapChainImageCount, nullptr);
-	mImages.resize(swapChainImageCount);
-	vkGetSwapchainImagesKHR(mDevice.logicalDevice(), mHandle, &swapChainImageCount, mImages.data());
-
-	// TODO: move swap chain image views to render target
-	/*for (VkImage image : images)
-	{
-		// Store image handle
-		SwapchainImage swapChainImage = {};
-		swapChainImage.image = image;
-		swapChainImage.imageView = createImageView(image, swapChainImageFormat, VK_IMAGE_ASPECT_COLOR_BIT);
-
-		// add to swap chain image list
-		swapChainImages.push_back(swapChainImage);
-	}*/
-}
-
 void Swapchain::getSurfaceSupport(SurfaceSupport& surfaceSupport)
 {
 	VkPhysicalDevice device = mDevice.physicalDevice();
@@ -227,10 +193,21 @@ void Swapchain::chooseSurfaceFormat(std::vector<VkSurfaceFormatKHR>& formats)
 	mDetails.surfaceFormat = formats[0];
 }
 
-void Swapchain::choosePresentationMode(std::vector<VkPresentModeKHR>& presentationModes)
+// If requested mode is supported then set it. Otherwise find the highest priority presentation mode available
+void Swapchain::choosePresentationMode(std::vector<VkPresentModeKHR>& supportedPresentationModes, VkPresentModeKHR requestedPresentationMode)
 {
-	// Look for Mailbox presentation mode
-	for (const auto& presentationMode : presentationModes)
+	// Look for requested presentation mode
+	for (const auto& presentationMode : supportedPresentationModes)
+	{
+		if (presentationMode == requestedPresentationMode)
+		{
+			mDetails.presentMode = requestedPresentationMode;
+			return;
+		}
+	}
+
+	// Otherwise set to a supported presentation mode in the priority list
+	for (const auto& presentationMode : supportedPresentationModes)
 	{
 		for (size_t i = 0; i < mPresentationModePriority.size(); ++i)
 		{
@@ -244,12 +221,25 @@ void Swapchain::choosePresentationMode(std::vector<VkPresentModeKHR>& presentati
 
 	// make this the default as it is required as part of vulkan spec so must be present
 	mDetails.presentMode = VK_PRESENT_MODE_FIFO_KHR;
-	return;
 }
 
-void Swapchain::chooseExtent(VkSurfaceCapabilitiesKHR& surfaceCapabilities, const VkExtent2D& newExtent)
+void Swapchain::chooseImageCount()
 {
-	VkExtent2D currentExtent = surfaceCapabilities.currentExtent;
+	// TODO : these values should be checked against the surfaceCapabilities to ensure they work
+	if (mDetails.presentMode == VK_PRESENT_MODE_MAILBOX_KHR)
+	{
+		mDetails.imageCount = IMAGE_COUNT_MAILBOX;
+	}
+	else
+	{
+		mDetails.imageCount = IMAGE_COUNT_DEFAULT;
+	}
+}
+
+// If requested extent not supported then clamp the extent values to a supported extent
+void Swapchain::chooseExtent(VkSurfaceCapabilitiesKHR& supportedSurfaceCapabilities, const VkExtent2D& requestedExtent)
+{
+	VkExtent2D currentExtent = supportedSurfaceCapabilities.currentExtent;
 
 	// If current extent is at numeric limits, then extent can vary. Otherwise, it is the size of the window
 	if (currentExtent.width != std::numeric_limits <uint32_t>::max())
@@ -259,7 +249,7 @@ void Swapchain::chooseExtent(VkSurfaceCapabilitiesKHR& surfaceCapabilities, cons
 	else
 	{
 		// If value can vary, clamp the passed in value and use that
-		mDetails.extent.width = std::max(surfaceCapabilities.minImageExtent.width, std::min(surfaceCapabilities.maxImageExtent.width, newExtent.width));
-		mDetails.extent.height = std::max(surfaceCapabilities.minImageExtent.height, std::min(surfaceCapabilities.maxImageExtent.height, newExtent.height));
+		mDetails.extent.width = std::max(supportedSurfaceCapabilities.minImageExtent.width, std::min(supportedSurfaceCapabilities.maxImageExtent.width, requestedExtent.width));
+		mDetails.extent.height = std::max(supportedSurfaceCapabilities.minImageExtent.height, std::min(supportedSurfaceCapabilities.maxImageExtent.height, requestedExtent.height));
 	}
 }

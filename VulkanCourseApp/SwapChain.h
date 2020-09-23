@@ -19,12 +19,19 @@ struct SwapchainDetails {
 	VkImageUsageFlags usage;
 };
 
+const uint32_t IMAGE_COUNT_MAILBOX = 3;
+const uint32_t IMAGE_COUNT_DEFAULT = 2;
+
 class Swapchain
 {
 public:
 
 	// TODO: need to be able to recreate swapchain and change priorities before creation
-	Swapchain(Device& device, const VkExtent2D& newExtent, VkImageUsageFlags usage);
+	Swapchain(Device& device, 
+		const VkExtent2D& newExtent, 
+		VkSurfaceKHR surface,
+		VkPresentModeKHR presentMode,
+		VkImageUsageFlags usage);
 	~Swapchain();
 
 	// - Getters
@@ -71,12 +78,13 @@ private:
 		{VK_FORMAT_B8G8R8A8_UNORM, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR} };
 
 	// - Swapchain creation
-	void createSwapchain(const VkExtent2D& newExtent);
+	//void createSwapchain(const VkExtent2D& newExtent);
 	// -- Support
 	void getSurfaceSupport(SurfaceSupport& swapchainSupport);
 	void chooseSurfaceFormat(std::vector<VkSurfaceFormatKHR>& formats);
-	void choosePresentationMode(std::vector<VkPresentModeKHR>& presentationModes);
-	void chooseExtent(VkSurfaceCapabilitiesKHR& surfaceCapabilities, const VkExtent2D& newExtent);
+	void choosePresentationMode(std::vector<VkPresentModeKHR>& supportedPresentationModes, VkPresentModeKHR requestedPresentationMode);
+	void chooseImageCount();
+	void chooseExtent(VkSurfaceCapabilitiesKHR& supportedSurfaceCapabilities, const VkExtent2D& requestedExtent);
 
 
 };

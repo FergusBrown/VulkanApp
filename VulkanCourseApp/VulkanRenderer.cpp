@@ -279,7 +279,7 @@ void VulkanRenderer::createSwapChain()
 	VkExtent2D windowExtent;
 	getWindowExtent(windowExtent);
 
-	mSwapchain = std::make_unique<Swapchain>(*mDevice, windowExtent, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT);
+	mSwapchain = std::make_unique<Swapchain>(*mDevice, windowExtent, mSurface, VK_PRESENT_MODE_MAILBOX_KHR, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT);
 }
 
 // Prepare rendertargets and frames
