@@ -261,7 +261,7 @@ void VulkanRenderer::createDevice()
 	VK_KHR_SWAPCHAIN_EXTENSION_NAME
 	};
 
-	VkPhysicalDeviceFeatures requiredFeatures;
+	VkPhysicalDeviceFeatures requiredFeatures = {};
 	requiredFeatures.samplerAnisotropy = VK_TRUE;
 
 	mDevice = std::make_unique<Device>(mInstance, mSurface, requiredExtensions, requiredFeatures);

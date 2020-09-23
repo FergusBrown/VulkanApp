@@ -9,7 +9,7 @@ Device::Device(VkInstance instance, VkSurfaceKHR surface, const std::vector<cons
 	:mSurface(surface)
 {
 	getPhysicalDevice(instance, requiredExtensions, requiredFeatures);
-	createLogicalDevice(requiredExtensions);
+	createLogicalDevice(requiredExtensions, requiredFeatures);
 	createCommandPool();
 }
 
@@ -150,7 +150,8 @@ void Device::getPhysicalDevice(VkInstance instance, const std::vector<const char
 
 }
 
-void Device::createLogicalDevice(const std::vector<const char*>& requiredExtensions)
+// Create logical device and associated queues
+void Device::createLogicalDevice(const std::vector<const char*>& requiredExtensions, VkPhysicalDeviceFeatures& requiredFeatures)
 {
 	// Get number of queue families
 	uint32_t queueFamilyCount = 0;
@@ -165,11 +166,13 @@ void Device::createLogicalDevice(const std::vector<const char*>& requiredExtensi
 	std::vector<std::vector<float>>      queuePriorities(queueFamilyCount);
 	for (uint32_t queueFamilyIndex = 0; queueFamilyIndex < queueFamilyCount; ++queueFamilyIndex)
 	{
+		uint32_t queueCount = queueFamilyList[queueFamilyIndex].queueCount;
+
 		VkDeviceQueueCreateInfo queueCreateInfo = {};
 		queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
 		queueCreateInfo.queueFamilyIndex = queueFamilyIndex;							// The index of the family to create a queue from
-		queueCreateInfo.queueCount = queueFamilyList[queueFamilyIndex].queueCount;		// Number of queues to create
-		queuePriorities[queueFamilyIndex].resize(queueFamilyCount, 1.0f);				//
+		queueCreateInfo.queueCount = queueCount;										// Number of queues to create
+		queuePriorities[queueFamilyIndex].resize(queueCount, 1.0f);				//
 		queueCreateInfo.pQueuePriorities = queuePriorities[queueFamilyIndex].data();	// Give all queues priority of 1 (1 is highest priority)
 
 		queueCreateInfos.push_back(queueCreateInfo);
@@ -183,11 +186,11 @@ void Device::createLogicalDevice(const std::vector<const char*>& requiredExtensi
 	deviceCreateInfo.enabledExtensionCount = static_cast<uint32_t>(requiredExtensions.size());			// Number of enabled logical device extensions
 	deviceCreateInfo.ppEnabledExtensionNames = requiredExtensions.data();									// List of enabled logical device extensions
 
-	// Physical Device Features the Logical Device will be using
-	VkPhysicalDeviceFeatures deviceFeatures = {};
-	deviceFeatures.samplerAnisotropy = VK_TRUE;		// Enable Anisotropy
+	//// Physical Device Features the Logical Device will be using
+	//VkPhysicalDeviceFeatures deviceFeatures = {};
+	//deviceFeatures.samplerAnisotropy = VK_TRUE;		// Enable Anisotropy
 
-	deviceCreateInfo.pEnabledFeatures = &deviceFeatures;					// Physical Device features Logical Device will use
+	deviceCreateInfo.pEnabledFeatures = &requiredFeatures;					// Physical Device features Logical Device will use
 
 
 	// Create the logical device for the given physical device

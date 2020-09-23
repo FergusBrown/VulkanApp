@@ -57,7 +57,7 @@ private:
 	//bool checkDeviceExtensionSupport(VkPhysicalDevice device, const std::vector<const char*>& deviceExtensions);
 
 	// - Object creation
-	void createLogicalDevice(const std::vector<const char*>& requiredExtensions);
+	void createLogicalDevice(const std::vector<const char*>& requiredExtensions, VkPhysicalDeviceFeatures& requiredFeatures);
 	void createCommandPool();
 	
 };
