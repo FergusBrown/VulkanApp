@@ -9,9 +9,9 @@ const int MAX_OBJECTS = 2048;
 
 // TODO : update device creation to take a list of device extensions
 // read in additional extensions via file?
-const std::vector<const char*> deviceExtensions = {
-	VK_KHR_SWAPCHAIN_EXTENSION_NAME
-};
+//const std::vector<const char*> deviceExtensions = {
+//	VK_KHR_SWAPCHAIN_EXTENSION_NAME
+//};
 
 //struct Vertex
 //{

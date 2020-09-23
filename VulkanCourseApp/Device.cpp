@@ -2,13 +2,14 @@
 
 #include "CommandBuffer.h"
 #include "CommandPool.h"
+#include "PhysicalDevice.h"
 #include "Queue.h"
 
-Device::Device(VkInstance instance, VkSurfaceKHR surface, const std::vector<const char*>& deviceExtensions)
+Device::Device(VkInstance instance, VkSurfaceKHR surface, const std::vector<const char*>& requiredExtensions, VkPhysicalDeviceFeatures& requiredFeatures)
 	:mSurface(surface)
 {
-	getPhysicalDevice(instance, deviceExtensions);
-	createLogicalDevice(deviceExtensions);
+	getPhysicalDevice(instance, requiredExtensions, requiredFeatures);
+	createLogicalDevice(requiredExtensions);
 	createCommandPool();
 }
 
@@ -21,7 +22,7 @@ Device::~Device()
 // NOTE: all these types are just pointers so return by value
 VkPhysicalDevice Device::physicalDevice() const
 {
-    return mPhysicalDevice;
+    return mPhysicalDevice->handle();
 }
 
 VkDevice Device::logicalDevice() const
@@ -29,20 +30,6 @@ VkDevice Device::logicalDevice() const
     return mLogicalDevice;
 }
 
-//QueueFamilyIndices Device::queueFamilyIndices() const
-//{
-//	return mQueueFamilyIndices;
-//}
-//
-//VkQueue Device::graphicsQueue() const
-//{
-//	return mGraphicsQueue;
-//}
-//
-//VkQueue Device::presentationQueue() const
-//{
-//	return mPresentationQueue;
-//}
 
 CommandPool& Device::primaryCommandPool()
 {
@@ -59,7 +46,7 @@ const VkPhysicalDeviceProperties& Device::physicalDeviceProperties()
 {
 	VkPhysicalDeviceProperties properties;
 	
-	vkGetPhysicalDeviceProperties(mPhysicalDevice, &properties);
+	vkGetPhysicalDeviceProperties(mPhysicalDevice->handle(), &properties);
 	
 	return properties;
 }
@@ -123,172 +110,14 @@ void Device::endAndSubmitTemporaryCommandBuffer(CommandBuffer& commandBuffer)
 }
 
 
-//QueueFamilyIndices Device::getQueueFamilies()
-//{
-//	QueueFamilyIndices indices;
-//
-//	// Get all Queue Family property info for the given device
-//	uint32_t queueFamilyCount = 0;
-//	vkGetPhysicalDeviceQueueFamilyProperties(mPhysicalDevice, &queueFamilyCount, nullptr);
-//
-//	std::vector<VkQueueFamilyProperties> queueFamilyList(queueFamilyCount);
-//	vkGetPhysicalDeviceQueueFamilyProperties(mPhysicalDevice, &queueFamilyCount, queueFamilyList.data());
-//
-//	// Go through each queue family and check if it has at least 1 of the required types of queue
-//	int i = 0;
-//	for (const auto& queueFamily : queueFamilyList)
-//	{
-//		// queue count indicates how many queus there are in the family
-//
-//
-//		// First check if queue family has at least 1 queue in that family (could have no queue)
-//		// Queue can be multiple types define through bitfield. Need tobitwise AND with VK_QUEUE_*_BIT to check if has required type
-//		if (queueFamily.queueCount > 0 && queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT)
-//		{
-//			indices.graphicsFamily = i;		// If queue family is valid then get index
-//		}
-//
-//		// Check if queue family supports presentation
-//		VkBool32 presentationSupport = false;
-//		vkGetPhysicalDeviceSurfaceSupportKHR(mPhysicalDevice, i, mSurface, &presentationSupport);
-//		// Check if queue is presentation type (can be both graphics and presentation)
-//		if (queueFamily.queueCount > 0 && presentationSupport)
-//		{
-//			indices.presentationFamily = i;
-//		}
-//
-//		if (indices.isValid())
-//		{
-//			break;
-//		}
-//
-//		++i;
-//	}
-//
-//	return indices;
-//}
+
 
 uint32_t Device::getQueueFamilyIndex(VkQueueFlagBits queueFlag)
 {
-	// Get all Queue Family property info for the given device
-	uint32_t queueFamilyCount = 0;
-	vkGetPhysicalDeviceQueueFamilyProperties(mPhysicalDevice, &queueFamilyCount, nullptr);
-
-	std::vector<VkQueueFamilyProperties> queueFamilyList(queueFamilyCount);
-	vkGetPhysicalDeviceQueueFamilyProperties(mPhysicalDevice, &queueFamilyCount, queueFamilyList.data());
-
-	// If looking for compute or transfer then we want to check if 
-	// there is exclusively a compute or transfer queue
-
-	if (queueFlag == VK_QUEUE_COMPUTE_BIT)
-	{
-		for (uint32_t i = 0; i < queueFamilyCount; ++i)
-		{
-			if ((queueFamilyList[i].queueFlags & queueFlag) == VK_QUEUE_COMPUTE_BIT)
-			{
-				return i;
-			}
-		}
-	}
-
-	if (queueFlag == VK_QUEUE_TRANSFER_BIT)
-	{
-		for (uint32_t i = 0; i < queueFamilyCount; ++i)
-		{
-			if ((queueFamilyList[i].queueFlags & queueFlag) == VK_QUEUE_TRANSFER_BIT)
-			{
-				return i;
-			}
-		}
-	}
-
-	// Otherwise check if another queue is suitable
-	for (uint32_t i = 0; i < queueFamilyCount; ++i)
-	{
-		if (queueFamilyList[i].queueFlags & queueFlag)
-		{
-			return i;
-		}
-	}
-
-	throw std::runtime_error("Could not find an index for the requested queue family!");
+	return mPhysicalDevice->getQueueFamilyIndex(queueFlag);
 }
 
-VkBool32 Device::checkPresentationSupport(uint32_t queueFamilyIndex)
-{
-	VkBool32 presentationSupport = false;
-	vkGetPhysicalDeviceSurfaceSupportKHR(mPhysicalDevice, queueFamilyIndex, mSurface, &presentationSupport);
-
-	return presentationSupport;
-}
-
-// TODO: remove the samplerAnisotropy flag and pass to this function a list of features we want the device to support
-bool Device::checkDeviceSuitable(const std::vector<const char*>& deviceExtensions)
-{
-	// Information about what the device can do (geo shader, tess shader, wide lines, etc)
-	VkPhysicalDeviceFeatures deviceFeatures;
-	vkGetPhysicalDeviceFeatures(mPhysicalDevice, &deviceFeatures);
-
-
-	//QueueFamilyIndices indices = getQueueFamilies();
-
-	uint32_t graphicsIndex = getQueueFamilyIndex(VK_QUEUE_GRAPHICS_BIT);
-
-	bool extensionsSupported = checkDeviceExtensionSupport(deviceExtensions);
-
-
-	// TODO: abstract this check to swapchain construction
-	/*bool swapChainValid = false;
-	if (extensionsSupported)
-	{
-		SwapChainDetails swapChainDetails = getSwapChainDetails(device);
-		swapChainValid = !swapChainDetails.presentationModes.empty() && !swapChainDetails.formats.empty();
-	}*/
-
-
-	//return indices.isValid() && extensionsSupported && swapChainValid && deviceFeatures.samplerAnisotropy;
-	//return indices.isValid() && extensionsSupported && deviceFeatures.samplerAnisotropy;
-	return checkPresentationSupport(graphicsIndex) && extensionsSupported && deviceFeatures.samplerAnisotropy;
-}
-
-bool Device::checkDeviceExtensionSupport(const std::vector<const char*>& deviceExtensions)
-{
-	uint32_t extensionCount = 0;
-	vkEnumerateDeviceExtensionProperties(mPhysicalDevice, nullptr, &extensionCount, nullptr);
-
-	// If no extensions found, return failure
-	if (extensionCount == 0)
-	{
-		return false;
-	}
-
-	// Populate lists of extensions
-	std::vector<VkExtensionProperties> extensions(extensionCount);
-	vkEnumerateDeviceExtensionProperties(mPhysicalDevice, nullptr, &extensionCount, extensions.data());
-
-	// Check for extension
-	for (const auto& deviceExtension : deviceExtensions)
-	{
-		bool hasExtension = false;
-		for (const auto& extension : extensions)
-		{
-			if (strcmp(deviceExtension, extension.extensionName) == 0)
-			{
-				hasExtension = true;
-				break;
-			}
-		}
-
-		if (!hasExtension)
-		{
-			return false;
-		}
-	}
-
-	return true;
-}
-
-void Device::getPhysicalDevice(VkInstance instance, const std::vector<const char*>& deviceExtensions)
+void Device::getPhysicalDevice(VkInstance instance, const std::vector<const char*>& requiredExtensions, VkPhysicalDeviceFeatures& requiredFeatures)
 {
 	// Enumerate Physical devices the vkInstance can access
 	uint32_t deviceCount = 0;
@@ -297,21 +126,23 @@ void Device::getPhysicalDevice(VkInstance instance, const std::vector<const char
 	// If no devices available, then no support Vulkan!
 	if (deviceCount == 0)
 	{
-		throw std::runtime_error("Can't find GPUs that support Vulkan instance!");
+		throw std::runtime_error("Can't find GPUs that support a Vulkan instance!");
 	}
 
-	// Get list of Physcial Devices
+	// Get list of Physical Devices
 	std::vector<VkPhysicalDevice> deviceList(deviceCount);
 	vkEnumeratePhysicalDevices(instance, &deviceCount, deviceList.data());
 
-	// Find most suitable device
-	// TODO: this just finds first suitable, rewrite to find all suitable
-	for (const auto& device : deviceList)
+	// Find first suitable device
+	// TODO: this just finds first suitable, rework to find most suitable of those available
+	for (const auto& deviceHandle : deviceList)
 	{
-		if (checkDeviceSuitable(deviceExtensions))
+		PhysicalDevice physicalDevice(deviceHandle);
+
+		if (physicalDevice.checkDeviceSuitable(requiredExtensions, requiredFeatures, mSurface))
 		{
-			mPhysicalDevice = device;
-			break;
+			mPhysicalDevice = std::make_unique<PhysicalDevice>(std::move(physicalDevice));
+			return;
 		}
 	}
 
@@ -319,14 +150,14 @@ void Device::getPhysicalDevice(VkInstance instance, const std::vector<const char
 
 }
 
-void Device::createLogicalDevice(const std::vector<const char*>& deviceExtensions)
+void Device::createLogicalDevice(const std::vector<const char*>& requiredExtensions)
 {
 	// Get number of queue families
 	uint32_t queueFamilyCount = 0;
-	vkGetPhysicalDeviceQueueFamilyProperties(mPhysicalDevice, &queueFamilyCount, nullptr);
+	vkGetPhysicalDeviceQueueFamilyProperties(mPhysicalDevice->handle(), &queueFamilyCount, nullptr);
 
 	std::vector<VkQueueFamilyProperties> queueFamilyList(queueFamilyCount);
-	vkGetPhysicalDeviceQueueFamilyProperties(mPhysicalDevice, &queueFamilyCount, queueFamilyList.data());
+	vkGetPhysicalDeviceQueueFamilyProperties(mPhysicalDevice->handle(), &queueFamilyCount, queueFamilyList.data());
 
 	// Create infos for all queue families
 	std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
@@ -349,8 +180,8 @@ void Device::createLogicalDevice(const std::vector<const char*>& deviceExtension
 	deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
 	deviceCreateInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());				// Number of Queue Create Infos
 	deviceCreateInfo.pQueueCreateInfos = queueCreateInfos.data();										// List of queue create infos so device can create required queues
-	deviceCreateInfo.enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size());			// Number of enabled logical device extensions
-	deviceCreateInfo.ppEnabledExtensionNames = deviceExtensions.data();									// List of enabled logical device extensions
+	deviceCreateInfo.enabledExtensionCount = static_cast<uint32_t>(requiredExtensions.size());			// Number of enabled logical device extensions
+	deviceCreateInfo.ppEnabledExtensionNames = requiredExtensions.data();									// List of enabled logical device extensions
 
 	// Physical Device Features the Logical Device will be using
 	VkPhysicalDeviceFeatures deviceFeatures = {};
@@ -360,7 +191,7 @@ void Device::createLogicalDevice(const std::vector<const char*>& deviceExtension
 
 
 	// Create the logical device for the given physical device
-	VkResult result = vkCreateDevice(mPhysicalDevice, &deviceCreateInfo, nullptr, &mLogicalDevice);
+	VkResult result = vkCreateDevice(mPhysicalDevice->handle(), &deviceCreateInfo, nullptr, &mLogicalDevice);
 	if (result != VK_SUCCESS)
 	{
 		throw std::runtime_error("Failed to create a Logical Device!");
@@ -371,7 +202,7 @@ void Device::createLogicalDevice(const std::vector<const char*>& deviceExtension
 
 	for (uint32_t i = 0; i < queueFamilyCount; ++i)
 	{
-		VkBool32 presentationSupport = checkPresentationSupport(i);
+		VkBool32 presentationSupport = mPhysicalDevice->checkQueueFamilyPresentationSupport(i, mSurface);
 
 		for (uint32_t j = 0; j < queueFamilyList[i].queueCount; ++j)
 		{

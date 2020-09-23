@@ -4,14 +4,15 @@
 
 class CommandBuffer;
 class CommandPool;
+class PhysicalDevice;
 class Queue;
 
 // Container for logical and physical device
 class Device
 {
 public:
-	// Create logical device based on list of extensions
-	Device(VkInstance instance, VkSurfaceKHR surface, const std::vector<const char*>& deviceExtensions);
+	// Create logical device based on list of requested extensions
+	Device(VkInstance instance, VkSurfaceKHR surface, const std::vector<const char*>& requiredExtensions, VkPhysicalDeviceFeatures& requiredFeatures);
 	~Device();
 
 	// - Getters
@@ -33,7 +34,7 @@ public:
 
 private:
 	// Variables
-	VkPhysicalDevice mPhysicalDevice;
+	std::unique_ptr<PhysicalDevice> mPhysicalDevice;
 	VkDevice mLogicalDevice;
 	VkSurfaceKHR mSurface;
 
@@ -48,15 +49,15 @@ private:
 
 	// Functions
 	// - Get Physical Device referece
-	void getPhysicalDevice(VkInstance instance, const std::vector<const char*>& deviceExtensions);
+	void getPhysicalDevice(VkInstance instance, const std::vector<const char*>& requiredExtensions, VkPhysicalDeviceFeatures& requiredFeatures);
 	// -- Support
 	/*QueueFamilyIndices getQueueFamilies();*/
-	VkBool32 checkPresentationSupport(uint32_t queueFamilyIndex);
-	bool checkDeviceSuitable(const std::vector<const char*>& deviceExtensions);
-	bool checkDeviceExtensionSupport(const std::vector<const char*>& deviceExtensions);
+	//VkBool32 checkPresentationSupport(uint32_t queueFamilyIndex);
+	//bool checkDeviceSuitable(VkPhysicalDevice device, const std::vector<const char*>& deviceExtensions);
+	//bool checkDeviceExtensionSupport(VkPhysicalDevice device, const std::vector<const char*>& deviceExtensions);
 
 	// - Object creation
-	void createLogicalDevice(const std::vector<const char*>& deviceExtensions);
+	void createLogicalDevice(const std::vector<const char*>& requiredExtensions);
 	void createCommandPool();
 	
 };

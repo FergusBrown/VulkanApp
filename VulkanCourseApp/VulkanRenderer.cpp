@@ -253,9 +253,18 @@ void VulkanRenderer::createSurface()
 	}
 }
 
+// TODO : should not be creating the device extensions and features here
 void VulkanRenderer::createDevice()
 {
-	mDevice = std::make_unique<Device>(mInstance, mSurface, deviceExtensions);
+	// TEMPORARY
+	std::vector<const char*> requiredExtensions = {
+	VK_KHR_SWAPCHAIN_EXTENSION_NAME
+	};
+
+	VkPhysicalDeviceFeatures requiredFeatures;
+	requiredFeatures.samplerAnisotropy = VK_TRUE;
+
+	mDevice = std::make_unique<Device>(mInstance, mSurface, requiredExtensions, requiredFeatures);
 }
 
 // This should be redefined per application
@@ -1091,74 +1100,6 @@ CommandBuffer* VulkanRenderer::recordSecondaryCommandBuffers(Frame& frame, uint3
 	return &cmdBuffer;
 
 }
-
-//CommandBuffer* VulkanRenderer::recordSecondaryCommandBuffers(const Queue& queue, Frame& frame, uint32_t objectStart, uint32_t objectEnd, uint32_t taskIndex, size_t threadID)
-//{
-//	CommandBuffer& secondaryCmdBuffer = frame.requestCommandBuffer(queue, VK_COMMAND_BUFFER_LEVEL_SECONDARY, threadID);
-//
-//	ThreadData* thread = &frameData[currentImage].threadData[threadID];
-//
-//	VkCommandBuffer& cmdBuffer = thread->commandBuffer[taskIndex];
-//
-//	// Begin recording for each secondary command buffer
-//	VkResult result = vkBeginCommandBuffer(cmdBuffer, &beginInfo);
-//
-//	if (result != VK_SUCCESS)
-//	{
-//		throw std::runtime_error("Failed to start recording a Secondary Command Buffer!");
-//	}
-//
-//	// Bind graphics pipeline to command buffer
-//	vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
-//
-//	for (uint32_t i = objectStart; i < objectEnd; ++i)
-//	{
-//		MeshModel* thisModel = &modelList[i];
-//		int modelDataIndex = thisModel->getMeshDataID();
-//		MeshModelData* thisData = &modelDataList[modelDataIndex];
-//
-//		// "Push" constants to given shader stage directly
-//		vkCmdPushConstants(
-//			cmdBuffer,
-//			pipelineLayout,
-//			VK_SHADER_STAGE_VERTEX_BIT,		// Stage to push constants to
-//			0,								// Offset of push constants to update
-//			sizeof(glm::mat4),					// Size of data being pushed
-//			&thisModel->getModel());		// Actual data being pushed (can be array)
-//
-//		for (size_t j = 0; j < thisData->getMeshCount(); ++j)
-//		{
-//			Mesh* thisMesh = thisData->getMesh(j);
-//
-//			VkBuffer vertexBuffers[] = { thisMesh->vertexBuffer().handle() };				// Buffers to bind
-//			VkDeviceSize offsets[] = { 0 };											// Offsets into buffers being bound
-//			vkCmdBindVertexBuffers(cmdBuffer, 0, 1, vertexBuffers, offsets);	// Command to bind vertex buffer before drawing with them
-//
-//			vkCmdBindIndexBuffer(cmdBuffer, thisMesh->indexBuffer(), 0, VK_INDEX_TYPE_UINT32);
-//
-//			std::array<VkDescriptorSet, 2> descriptorSetGroup = { descriptorSets[currentImage],
-//				samplerDescriptorSets[thisMesh->texId()] };
-//
-//			// Bind descriptor sets
-//			vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout,
-//				0, static_cast<uint32_t>(descriptorSetGroup.size()), descriptorSetGroup.data(), 0, nullptr);
-//
-//			// Execute pipeline
-//			vkCmdDrawIndexed(cmdBuffer, thisMesh->indexCount(), 1, 0, 0, 0);
-//
-//		}
-//	}
-//
-//	// Stop recording to primary command buffers
-//	result = vkEndCommandBuffer(cmdBuffer);
-//	if (result != VK_SUCCESS)
-//	{
-//		throw std::runtime_error("Failed to stop recording Command Buffer!");
-//	}
-//
-//	return &cmdBuffer;
-//
-//}
 
 void VulkanRenderer::allocateDynamicBufferTransferSpace()
 {
