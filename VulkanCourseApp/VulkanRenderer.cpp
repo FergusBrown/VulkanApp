@@ -82,7 +82,9 @@ void VulkanRenderer::updateModel(int modelId, glm::mat4 newModel)
 
 void VulkanRenderer::createCamera(float FoVinDegrees)
 {
-	uboViewProjection.projection = glm::perspective(glm::radians(FoVinDegrees), (float)swapChainExtent.width / (float)swapChainExtent.height, 0.1f, 100.0f);
+	const VkExtent2D& extent = mSwapchain->extent();
+
+	uboViewProjection.projection = glm::perspective(glm::radians(FoVinDegrees), (float)extent.width / (float)extent.height, 0.1f, 100.0f);
 	uboViewProjection.view = glm::lookAt(glm::vec3(0.0f, 0.0f, 20.0f), glm::vec3(0.0f, 0.0f, -2.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
 	uboViewProjection.projection[1][1] *= -1;
@@ -401,7 +403,7 @@ void VulkanRenderer::createRenderPass()
 
 	// Swapchain Colour attachment
 	VkAttachmentDescription swapchainColourAttachment = {};
-	swapchainColourAttachment.format = swapChainImageFormat;						// Format to use for attachment
+	swapchainColourAttachment.format = mSwapchain->format();					// Format to use for attachment
 	swapchainColourAttachment.samples = VK_SAMPLE_COUNT_1_BIT;					// Number of samples to write for multisampling
 	swapchainColourAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;				// Describes what to do with attachment before rendering
 	swapchainColourAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;			// Describes what to do with attachment after rendering
@@ -631,15 +633,15 @@ void VulkanRenderer::createGraphicsPipeline()
 	VkViewport viewport = {};
 	viewport.x = 0.0f;									// x start coordinate
 	viewport.y = 0.0f;									// y start coordinate
-	viewport.width = (float)swapChainExtent.width;		// width of viewport
-	viewport.height = (float)swapChainExtent.height;	// height of viewport
+	viewport.width = (float)mSwapchain->extent().width;		// width of viewport
+	viewport.height = (float)mSwapchain->extent().height;	// height of viewport
 	viewport.minDepth = 0.0f;							// min framebuffer depth
 	viewport.maxDepth = 1.0f;							// max framebuffer depth
 
 	// Create a scissor info struct
 	VkRect2D scissor = {};
 	scissor.offset = { 0, 0 };				// Offset to use region from
-	scissor.extent = swapChainExtent;		// Extent to describe region to use, starting at offset
+	scissor.extent = mSwapchain->extent();		// Extent to describe region to use, starting at offset
 
 	VkPipelineViewportStateCreateInfo viewportStateCreateInfo = {};
 	viewportStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
@@ -886,15 +888,15 @@ void VulkanRenderer::createUniformBuffers()
 void VulkanRenderer::createDescriptorPools()
 {
 	// CREATE UNIFORM DESCRIPTOR POOL
-	mUniformDescriptorPool = std::make_unique<DescriptorPool>(*mDevice, *mUniformSetLayout, mSwapchain->details().imageCount);
+	mUniformDescriptorPool = std::make_unique<DescriptorPool>(*mDevice, *mUniformSetLayout, mSwapchain->imageCount());
 
 
 	// TODO : maxsets here must be changed
 	// CREATE SAMPLER DESCRIPTOR POOL
-	mSamplerDescriptorPool = std::make_unique<DescriptorPool>(*mDevice, *mSamplerSetLayout, mSwapchain->details().imageCount);
+	mSamplerDescriptorPool = std::make_unique<DescriptorPool>(*mDevice, *mSamplerSetLayout, mSwapchain->imageCount());
 
 	// CREATE INPUT ATTACHMENT DESCRIPTOR POOL
-	mAttachmentDescriptorPool = std::make_unique<DescriptorPool>(*mDevice, *mAttachmentSetLayout, mSwapchain->details().imageCount);
+	mAttachmentDescriptorPool = std::make_unique<DescriptorPool>(*mDevice, *mAttachmentSetLayout, mSwapchain->imageCount());
 
 }
 
@@ -939,7 +941,7 @@ void VulkanRenderer::createUniformDescriptorSets()
 void VulkanRenderer::createInputDescriptorSets()
 {
 	// CREATE SETS
-	for (size_t i = 0; i < mSwapchain->details().imageCount; ++i)
+	for (size_t i = 0; i < mSwapchain->imageCount(); ++i)
 	{
 		BindingMap<VkDescriptorImageInfo> imageInfos{};
 

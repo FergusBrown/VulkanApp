@@ -11,7 +11,7 @@ Attachment::Attachment(VkFormat format, VkSampleCountFlagBits sampleCount, VkIma
 RenderTarget::RenderTarget(std::vector<Image>&& images) :
 	mImages(std::move(images)), mDevice(images.back().device()), mExtent({ images.back().extent().width, images.back().extent().height })
 {
-	for (auto& image : images)
+	for (auto& image : mImages)
 	{
 		mImageViews.push_back(image.imageView());
 

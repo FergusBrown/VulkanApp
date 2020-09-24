@@ -42,6 +42,7 @@ public:
 	VkFormat format() const;
 	VkImageUsageFlags usage() const;
 	const std::vector<VkImage>& images() const;
+	uint32_t imageCount() const;
 
 	// - Setters
 	void setPresentationPriority(const std::vector<VkPresentModeKHR>& newList);

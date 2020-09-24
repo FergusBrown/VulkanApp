@@ -43,8 +43,8 @@ private:
 	std::vector<VkDescriptorSetLayoutBinding> mLayoutBindings;
 
 	// - Support
-	void createDescriptorSetLayoutBinding(std::vector<VkDescriptorSetLayoutBinding>& bindings, ShaderResource& shaderResource);
-	void createDescriptorSetLayout(std::vector<VkDescriptorSetLayoutBinding>& bindings);
+	void createDescriptorSetLayoutBinding(ShaderResource& shaderResource);
+	void createDescriptorSetLayout();
 
 
 };

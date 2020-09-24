@@ -177,8 +177,8 @@ private:
 	//std::vector<VkCommandPool> secondaryCommandPools;
 
 	// - Utility
-	VkFormat swapChainImageFormat;
-	VkExtent2D swapChainExtent;
+	//VkFormat swapChainImageFormat;
+	//VkExtent2D swapChainExtent;
 
 	// - Synchronisation /* In Frame Class
 	std::vector<VkSemaphore> imageAvailable;

@@ -12,6 +12,7 @@ Image::Image(Device& device,
 	VkSampleCountFlagBits sampleCount) :
 
 	mDevice(device),
+	mHandle(image),
 	mExtent({ extent.width, extent.height, 1 }),
 	mFormat(format),
 	mSampleCount(sampleCount),
@@ -112,11 +113,12 @@ Image::Image(Image&& other) :
 
 Image::~Image()
 {
-	vkDestroyImageView(mDevice.logicalDevice(), mImageView, nullptr);
+	
 
 	// If memory null then object was created from an exteernal VkImage
 	if (mHandle != VK_NULL_HANDLE)
 	{
+		vkDestroyImageView(mDevice.logicalDevice(), mImageView, nullptr);
 		vkDestroyImage(mDevice.logicalDevice(), mHandle, nullptr);
 		
 	}

@@ -78,7 +78,7 @@ void DescriptorSet::update(const std::vector<uint32_t>& bindingsToUpdate)
 		for (auto& writeOperation : mWriteOperations)
 		{
 			// if update requested then add to writeOperationsToPerform if not already updated
-			if (std::find(bindingsToUpdate.begin(), bindingsToUpdate.end(), writeOperation.dstBinding) != mUpdatedBindings.end() &&
+			if (std::find(bindingsToUpdate.begin(), bindingsToUpdate.end(), writeOperation.dstBinding) != bindingsToUpdate.end() &&
 				std::find(mUpdatedBindings.begin(), mUpdatedBindings.end(), writeOperation.dstBinding) == mUpdatedBindings.end())
 			{
 				writeOperationsToPerform.push_back(writeOperation);

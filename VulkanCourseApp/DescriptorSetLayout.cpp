@@ -5,15 +5,16 @@
 DescriptorSetLayout::DescriptorSetLayout(Device& device, uint32_t setIndex, std::vector<ShaderResource>& shaderResources) :
 	mDevice(device), mSetIndex(setIndex)
 {
-	std::vector<VkDescriptorSetLayoutBinding> bindings;
+	//std::vector<VkDescriptorSetLayoutBinding> bindings;
 
 	// Create bindings
 	for (auto& resource : shaderResources)
 	{
-		createDescriptorSetLayoutBinding(bindings, resource);
+		createDescriptorSetLayoutBinding(resource);
 	}
 
-	createDescriptorSetLayout(bindings);
+	createDescriptorSetLayout();
+	//createDescriptorSetLayout(bindings);
 }
 
 DescriptorSetLayout::~DescriptorSetLayout()
@@ -44,7 +45,7 @@ const VkDescriptorSetLayoutBinding& DescriptorSetLayout::layoutBinding(uint32_t 
 	return mLayoutBindings.at(bindingIndex);
 }
 
-void DescriptorSetLayout::createDescriptorSetLayoutBinding(std::vector<VkDescriptorSetLayoutBinding>& bindings, ShaderResource& shaderResource)
+void DescriptorSetLayout::createDescriptorSetLayoutBinding(ShaderResource& shaderResource)
 {
 	VkDescriptorSetLayoutBinding layoutBinding = {};
 	layoutBinding.binding = shaderResource.binding;						// Binding point in shader ( designated by binding number in shader)
@@ -53,15 +54,16 @@ void DescriptorSetLayout::createDescriptorSetLayoutBinding(std::vector<VkDescrip
 	layoutBinding.stageFlags = shaderResource.stageFlags;				// Shader stage to bind to
 	layoutBinding.pImmutableSamplers = nullptr;
 
-	bindings.push_back(layoutBinding);
+	mLayoutBindings.push_back(layoutBinding);
 }
 
-void DescriptorSetLayout::createDescriptorSetLayout(std::vector<VkDescriptorSetLayoutBinding>& bindings)
+//void DescriptorSetLayout::createDescriptorSetLayout(std::vector<VkDescriptorSetLayoutBinding>& bindings)
+void DescriptorSetLayout::createDescriptorSetLayout()
 {
 	VkDescriptorSetLayoutCreateInfo layoutCreateInfo = {};
 	layoutCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-	layoutCreateInfo.bindingCount = static_cast<uint32_t>(bindings.size());					// Number of binding infos
-	layoutCreateInfo.pBindings = bindings.data();											// Array of binding infos
+	layoutCreateInfo.bindingCount = static_cast<uint32_t>(mLayoutBindings.size());					// Number of binding infos
+	layoutCreateInfo.pBindings = mLayoutBindings.data();											// Array of binding infos
 
 	// Create descriptor set layout
 	VkResult result = vkCreateDescriptorSetLayout(mDevice.logicalDevice(), &layoutCreateInfo, nullptr, &mHandle);

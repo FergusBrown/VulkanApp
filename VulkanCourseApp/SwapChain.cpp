@@ -61,7 +61,7 @@ Swapchain::Swapchain(Device& device,
 		throw std::runtime_error("Failed to create a Swapchain!");
 	}
 
-	// get Swapchain images (first count, then values)
+	// get Swapchain images (first count, then handles)
 	uint32_t swapChainImageCount;
 	vkGetSwapchainImagesKHR(mDevice.logicalDevice(), mHandle, &swapChainImageCount, nullptr);
 	mImages.resize(swapChainImageCount);
@@ -106,6 +106,11 @@ VkImageUsageFlags Swapchain::usage() const
 const std::vector<VkImage>& Swapchain::images() const
 {
 	return mImages;
+}
+
+uint32_t Swapchain::imageCount() const
+{
+	return mDetails.imageCount;
 }
 
 void Swapchain::setPresentationPriority(const std::vector<VkPresentModeKHR>& newList)
