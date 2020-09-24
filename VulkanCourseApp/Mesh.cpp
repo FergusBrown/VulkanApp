@@ -106,7 +106,7 @@ void Mesh::createIndexBuffer(Device& device, std::vector<uint32_t>* indices)
 	mVertexBuffer = std::make_unique<Buffer>(device,
 		bufferSize,
 		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-		VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
+		VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
 
 	// Copy staging buffer to vertex buffer on GPU
 	copyBuffer(device, stagingBuffer, *mIndexBuffer);

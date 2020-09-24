@@ -70,7 +70,7 @@ int VulkanRenderer::init(GLFWwindow* newWindow)
 	}
 
 
-	return 0;
+	return EXIT_SUCCESS;
 }
 
 void VulkanRenderer::updateModel(int modelId, glm::mat4 newModel)

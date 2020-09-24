@@ -24,6 +24,7 @@ Buffer::Buffer(Device& device, VkDeviceSize size, VkBufferUsageFlags usage, VkMe
 	VkMemoryRequirements memRequirements;
 	vkGetBufferMemoryRequirements(device.logicalDevice(), mHandle, &memRequirements);
 
+	// CREATE DEVICE MEMORY OBJECT
 	mMemory = std::make_unique<DeviceMemory>(device, properties, memRequirements);
 
 	// Allocate memory to given buffer
