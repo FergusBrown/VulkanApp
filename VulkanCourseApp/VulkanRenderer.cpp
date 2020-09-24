@@ -309,7 +309,7 @@ void VulkanRenderer::createPerFrameObjects()
 	{
 		// IMAGES + RENDERTARGET + RESOURCE REFERENCE
 		
-		mAttachmentResources.push_back(std::make_unique<DescriptorResourceReference>());
+		
 
 		// 0 - swapchain image
 		Image swapchainImage(*mDevice,
@@ -326,9 +326,7 @@ void VulkanRenderer::createPerFrameObjects()
 			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
 			VK_IMAGE_ASPECT_COLOR_BIT);
 
-		mAttachmentResources.back()->bindInputImage(colourImage,
-			0,
-			0);
+		
 
 		// 2 - depth image
 		Image depthImage(*mDevice,
@@ -338,9 +336,7 @@ void VulkanRenderer::createPerFrameObjects()
 			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
 			VK_IMAGE_ASPECT_DEPTH_BIT);
 
-		mAttachmentResources.back()->bindInputImage(depthImage,
-			1,
-			0);
+		
 
 
 		std::vector<Image> renderTargetImages;
@@ -348,9 +344,20 @@ void VulkanRenderer::createPerFrameObjects()
 		renderTargetImages.push_back(std::move(colourImage));
 		renderTargetImages.push_back(std::move(depthImage));
 
-
+		// Create Render Target + Frame
 		std::unique_ptr<RenderTarget> renderTarget = std::make_unique<RenderTarget>(std::move(renderTargetImages));
 		mFrames.push_back(std::make_unique<Frame>(*mDevice, std::move(renderTarget), mThreadCount));
+
+		// TODO: make creation of resource references more readable e.g. save image indices in variables
+		// Create resource reference for descriptor sets
+		auto& imageViews = mFrames.back()->renderTarget().imageViews();
+		mAttachmentResources.push_back(std::make_unique<DescriptorResourceReference>());
+		mAttachmentResources.back()->bindInputImage(imageViews[1],
+			0,
+			0);
+		mAttachmentResources.back()->bindInputImage(imageViews[2],
+			1,
+			0);
 	}
 }
 
@@ -1220,7 +1227,7 @@ int VulkanRenderer::createTextureDescriptor(const Texture& texture)
 	// Create descriptor resource reference
 	// TODO : make this a map?
 	mSamplerResources.push_back(std::make_unique<DescriptorResourceReference>());
-	mSamplerResources.back()->bindImage(texture.image(), *mTextureSampler, 0, 0);
+	mSamplerResources.back()->bindImage(texture.image().imageView(), *mTextureSampler, 0, 0);
 	
 	VkDescriptorImageInfo imageInfo = {};
 	mSamplerResources.back()->generateDescriptorImageInfo(imageInfo, 0, 0);

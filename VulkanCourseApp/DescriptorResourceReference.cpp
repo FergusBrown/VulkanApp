@@ -13,14 +13,14 @@ void DescriptorResourceReference::generateDescriptorImageInfo(VkDescriptorImageI
 {
 	ResourceBinding& resource = mResourceBindings.at(bindingIndex).at(arrayIndex);
 
-	if (resource.image == nullptr)
+	if (resource.imageView == nullptr)
 	{
 		throw std::runtime_error("Attempting to create descriptor info for a resource which is not an image!");
 	}
 
 	imageInfo = {};
 	imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-	imageInfo.imageView = resource.image->imageView();
+	imageInfo.imageView = *resource.imageView;
 
 	if (resource.sampler == nullptr)
 	{
@@ -53,17 +53,17 @@ const BindingMap<ResourceBinding>& DescriptorResourceReference::resourceBindings
 	return mResourceBindings;
 }
 
-void DescriptorResourceReference::bindImage(const Image& image, const Sampler& sampler, const uint32_t bindingIndex, const uint32_t arrayIndex)
+void DescriptorResourceReference::bindImage(const VkImageView& imageView, const Sampler& sampler, const uint32_t bindingIndex, const uint32_t arrayIndex)
 {
 	mResourceBindings[bindingIndex][arrayIndex].buffer =	nullptr;
-	mResourceBindings[bindingIndex][arrayIndex].image =		&image;
+	mResourceBindings[bindingIndex][arrayIndex].imageView =		&imageView;
 	mResourceBindings[bindingIndex][arrayIndex].sampler =	&sampler;
 }
 
-void DescriptorResourceReference::bindInputImage(const Image& image, const uint32_t bindingIndex, const uint32_t arrayIndex)
+void DescriptorResourceReference::bindInputImage(const VkImageView& imageView, const uint32_t bindingIndex, const uint32_t arrayIndex)
 {
 	mResourceBindings[bindingIndex][arrayIndex].buffer =	nullptr;
-	mResourceBindings[bindingIndex][arrayIndex].image =		&image;
+	mResourceBindings[bindingIndex][arrayIndex].imageView =		&imageView;
 	mResourceBindings[bindingIndex][arrayIndex].sampler =	nullptr;
 }
 
@@ -72,6 +72,6 @@ void DescriptorResourceReference::bindBuffer(const Buffer& buffer, const uint32_
 	mResourceBindings[bindingIndex][arrayIndex].buffer =	&buffer;
 	mResourceBindings[bindingIndex][arrayIndex].offset =	offset;
 	mResourceBindings[bindingIndex][arrayIndex].range =		range;
-	mResourceBindings[bindingIndex][arrayIndex].image =		nullptr;
+	mResourceBindings[bindingIndex][arrayIndex].imageView =		nullptr;
 	mResourceBindings[bindingIndex][arrayIndex].sampler =	nullptr;
 }

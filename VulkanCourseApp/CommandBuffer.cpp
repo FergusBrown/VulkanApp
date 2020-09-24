@@ -34,7 +34,7 @@ CommandBuffer::~CommandBuffer()
 	// Free command buffer when out of scope
 	if (mHandle != VK_NULL_HANDLE)
 	{
-		vkFreeCommandBuffers(mCommandPool.device().logicalDevice(), mCommandPool.handle(), 1, nullptr);
+		vkFreeCommandBuffers(mCommandPool.device().logicalDevice(), mCommandPool.handle(), 1, &mHandle);
 	}
 }
 
