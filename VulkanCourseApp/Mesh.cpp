@@ -77,8 +77,8 @@ void Mesh::createVertexBuffer(Device& device, std::vector<Vertex>* vertices)
 	// Buffer memory is to be DEVICE_LOCAL_BIT meabning memory is on the GPU and only accessible by it and not CPU (host)
 	mVertexBuffer = std::make_unique<Buffer>(device,
 		bufferSize,
-		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-		VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
+		VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
 	// Copy staging buffer to vertex buffer on GPU
 	copyBuffer(device, stagingBuffer, *mVertexBuffer);
@@ -103,10 +103,10 @@ void Mesh::createIndexBuffer(Device& device, std::vector<uint32_t>* indices)
 
 	// Create buffer with TRANSFER_DST_BIT to mark as a recipient of transfer data
 	// Buffer memory is to be DEVICE_LOCAL_BIT meabning memory is on the GPU and only accessible by it and not CPU (host)
-	mVertexBuffer = std::make_unique<Buffer>(device,
+	mIndexBuffer = std::make_unique<Buffer>(device,
 		bufferSize,
-		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-		VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
+		VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
 	// Copy staging buffer to vertex buffer on GPU
 	copyBuffer(device, stagingBuffer, *mIndexBuffer);

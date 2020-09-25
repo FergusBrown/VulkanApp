@@ -57,4 +57,6 @@ uint32_t DeviceMemory::findMemoryTypeIndex(VkPhysicalDevice physicalDevice, uint
 			return i;
 		}
 	}
+
+	throw std::runtime_error("The physical device does not possess a memory type with the required properties!");
 }
