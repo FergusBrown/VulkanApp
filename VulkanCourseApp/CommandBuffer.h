@@ -11,9 +11,9 @@ class RenderTarget;
 // TODO : modify once renderpass object has been implemented
 struct RenderPassBinding
 {
-	const VkRenderPass* renderPass;
+	VkRenderPass* renderPass = nullptr;
 
-	const Framebuffer* framebuffer;
+	Framebuffer* framebuffer = nullptr;
 };
 
 // Class handles all command buffer operations
@@ -32,10 +32,10 @@ public:
 	/*void bindRenderPass(VkRenderPass* renderpassBinding, Framebuffer* framebufferBinding);*/
 
 	// - Command buffer operations
-	void beginRecording(VkCommandBufferUsageFlags flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT | VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT);
+	void beginRecording(VkCommandBufferUsageFlags flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT, CommandBuffer* primaryCommandBuffer = nullptr);
 	void beginRenderPass(const RenderTarget& renderTarget,
-		const VkRenderPass& renderPassBinding,
-		const Framebuffer& framebufferBinding,
+		VkRenderPass& renderPass,
+		Framebuffer& framebuffer,
 		const std::vector<VkClearValue>& clearValues,
 		VkSubpassContents subpassContentsRecordingStrategy = VK_SUBPASS_CONTENTS_INLINE);
 	void bindPipeline(VkPipelineBindPoint bindPoint, VkPipeline& pipeline);
@@ -91,6 +91,8 @@ private:
 	const uint32_t mMaxPushConstantSize;
 
 	RenderPassBinding mRenderPassBinding;
+
+	const RenderPassBinding& currentRenderPass() const;
 
 
 };

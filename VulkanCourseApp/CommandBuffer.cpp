@@ -60,7 +60,7 @@ uint32_t CommandBuffer::queueFamilyIndex() const
 //}
 
 // TODO : update to work with secondary command buffers
-void CommandBuffer::beginRecording(VkCommandBufferUsageFlags flags)
+void CommandBuffer::beginRecording(VkCommandBufferUsageFlags flags, CommandBuffer* primaryCommandBuffer)
 {
 	// Information to begin the command buffer record
 	VkCommandBufferBeginInfo beginInfo = {};
@@ -69,16 +69,16 @@ void CommandBuffer::beginRecording(VkCommandBufferUsageFlags flags)
 
 	if (mLevel == VK_COMMAND_BUFFER_LEVEL_SECONDARY)
 	{
-		if (!mRenderPassBinding.renderPass || !mRenderPassBinding.framebuffer)
-		{
-			throw std::runtime_error("Cannot begin recording with a Secondary Command Buffer with no RenderPass binding! Have you called beginRenderPass?");
-		}
+		assert(primaryCommandBuffer && "A Primary Command Buffer ptr must be provided in order to begin recording with a Secondary Command Buffer!");
+		auto& currentRenderPass = primaryCommandBuffer->currentRenderPass();
+
+		assert((currentRenderPass.renderPass && currentRenderPass.framebuffer) && "Cannot begin recording with a Secondary Command Buffer with no RenderPass binding! Have you called beginRenderPass?");
 
 		// Inheritance create info allows secondary buffers to inherit render pass state
 		VkCommandBufferInheritanceInfo inheritanceInfo = {};
 		inheritanceInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO;
-		inheritanceInfo.renderPass = *mRenderPassBinding.renderPass;
-		inheritanceInfo.framebuffer = mRenderPassBinding.framebuffer->handle();
+		inheritanceInfo.renderPass = *currentRenderPass.renderPass;
+		inheritanceInfo.framebuffer = currentRenderPass.framebuffer->handle();
 		inheritanceInfo.subpass = 0;	// TODO : this must be changed
 		beginInfo.pInheritanceInfo = &inheritanceInfo;
 	}
@@ -94,17 +94,18 @@ void CommandBuffer::beginRecording(VkCommandBufferUsageFlags flags)
 
 // Records command to begin execution of a renderpass
 // This should be recorded with a primary command buffer
+// TODO : need to set this up so that the renderpass and framebuffer refs can be const
 void CommandBuffer::beginRenderPass(const RenderTarget& renderTarget,
-	const VkRenderPass& renderPassBinding,
-	const Framebuffer& framebufferBinding, 
+	VkRenderPass& renderPass,
+	Framebuffer& framebuffer, 
 	const std::vector<VkClearValue>& clearValues, 
 	VkSubpassContents subpassContentsRecordingStrategy)
 {
 	assert(mLevel == VK_COMMAND_BUFFER_LEVEL_PRIMARY && "Must begin render pass using a primary command buffer!");
 
 	// Set bindings
-	mRenderPassBinding.renderPass = &renderPassBinding;
-	mRenderPassBinding.framebuffer = &framebufferBinding;
+	mRenderPassBinding.renderPass = &renderPass;
+	mRenderPassBinding.framebuffer = &framebuffer;
 
 	// Create begin info
 	VkRenderPassBeginInfo renderPassBeginInfo = {};
@@ -289,6 +290,11 @@ void CommandBuffer::endRecording()
 	{
 		throw std::runtime_error("Failed to stop recording Command Buffer!");
 	}
+}
+
+const RenderPassBinding& CommandBuffer::currentRenderPass() const
+{
+	return mRenderPassBinding;
 }
 
 // TODO: MOVE TO QUEUE CLASS\?

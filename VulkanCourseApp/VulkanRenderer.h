@@ -247,7 +247,7 @@ private:
 
 	// - Record Functions
 	void recordCommands(CommandBuffer& primaryCmdBuffer, uint32_t currentImage);
-	CommandBuffer* recordSecondaryCommandBuffers(Frame& frame, uint32_t objectStart, uint32_t objectEnd, size_t threadIndex, uint32_t currentImage);
+	CommandBuffer* recordSecondaryCommandBuffers(CommandBuffer* primaryCommandBuffer, Frame& frame, uint32_t objectStart, uint32_t objectEnd, size_t threadIndex, uint32_t currentImage);
 	// -- Create Helper Functions
 	void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
 

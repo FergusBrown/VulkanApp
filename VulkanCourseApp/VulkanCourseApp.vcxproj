@@ -157,6 +157,7 @@
     <ClCompile Include="Frame.cpp" />
     <ClCompile Include="Framebuffer.cpp" />
     <ClCompile Include="Image.cpp" />
+    <ClCompile Include="ImageView.cpp" />
     <ClCompile Include="InputHandlerMouse.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Mesh.cpp" />
@@ -190,6 +191,7 @@
     <ClInclude Include="Frame.h" />
     <ClInclude Include="Framebuffer.h" />
     <ClInclude Include="Image.h" />
+    <ClInclude Include="ImageView.h" />
     <ClInclude Include="InputHandler.h" />
     <ClInclude Include="InputHandlerMouse.h" />
     <ClInclude Include="Light.h" />

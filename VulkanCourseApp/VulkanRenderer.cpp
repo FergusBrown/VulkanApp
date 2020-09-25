@@ -1021,8 +1021,8 @@ void VulkanRenderer::recordCommands(CommandBuffer& primaryCmdBuffer, uint32_t cu
 		}
 
 		// Push lambda function to threadpool for running
-		auto futureResult = mThreadPool.push([=, &frame](size_t threadIndex) {
-			return recordSecondaryCommandBuffers(frame, objectStart, objectEnd, threadIndex, currentImage);
+		auto futureResult = mThreadPool.push([=, &frame, &primaryCmdBuffer](size_t threadIndex) {
+			return recordSecondaryCommandBuffers(&primaryCmdBuffer, frame, objectStart, objectEnd, threadIndex, currentImage);
 		});
 
 		futureSecondaryCommandBuffers.push_back(std::move(futureResult));
@@ -1059,14 +1059,14 @@ void VulkanRenderer::recordCommands(CommandBuffer& primaryCmdBuffer, uint32_t cu
 }
 
 
-CommandBuffer* VulkanRenderer::recordSecondaryCommandBuffers(Frame& frame, uint32_t objectStart, uint32_t objectEnd, size_t threadIndex, uint32_t currentImage)
+CommandBuffer* VulkanRenderer::recordSecondaryCommandBuffers(CommandBuffer* primaryCommandBuffer, Frame& frame, uint32_t objectStart, uint32_t objectEnd, size_t threadIndex, uint32_t currentImage)
 {
 	auto& queue = mDevice->queue(mGraphicsQueueFamily, 0);
 
 	CommandBuffer& cmdBuffer = frame.requestCommandBuffer(queue, VK_COMMAND_BUFFER_LEVEL_SECONDARY, threadIndex);
 
 	cmdBuffer.beginRecording(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT 
-		| VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT);
+		| VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT, primaryCommandBuffer);
 
 	cmdBuffer.bindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
 
@@ -1372,7 +1372,8 @@ void VulkanRenderer::populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreat
 {
 	createInfo = {};
 	createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
-	createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+	//createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+	createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
 	createInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
 	createInfo.pfnUserCallback = debugCallback;
 }
