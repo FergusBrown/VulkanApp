@@ -6,13 +6,16 @@
 #include "CommandBuffer.h"
 #include "Device.h"
 #include "Image.h"
+#include "ImageView.h"
 
 uint32_t Texture::ID = 0;
 
 Texture::Texture(Device& device, void* textureData, int width, int height, VkDeviceSize imageSize) :
 	mDevice(device), mID(ID)
 {
-	createTextureImage(textureData, width, height, imageSize);
+	createTextureImage(textureData, static_cast<uint32_t>(width), static_cast<uint32_t>(height), imageSize);
+
+	mImageView = std::make_unique<ImageView>(*mImage, VK_IMAGE_VIEW_TYPE_2D);
 
 	++ID;
 }
@@ -22,21 +25,21 @@ const Device& Texture::device() const
 	return mDevice;
 }
 
-const Image& Texture::image() const
-{
-	return *mImage;
-}
+//const Image& Texture::image() const
+//{
+//	return *mImage;
+//}
 
 //const VkImage& Texture::image() const
 //{
 //	return mImage->handle();
 //}
-//
-//const VkImageView& Texture::imageView() const
-//{
-//	return mImage->imageView();
-//}
-//
+
+const ImageView& Texture::imageView() const
+{
+	return *mImageView;
+}
+
 //VkDeviceMemory Texture::memory() const
 //{
 //	return mImage->memory();
@@ -68,7 +71,7 @@ uint32_t Texture::textureID() const
 //	return image;
 //}
 
-void Texture::createTextureImage(void* textureData, int width, int height, VkDeviceSize imageSize)
+void Texture::createTextureImage(void* textureData, uint32_t width, uint32_t height, VkDeviceSize imageSize)
 {
 	// Create staging buffer to hold loaded data, ready to copy to device
 	Buffer imageStagingBuffer(mDevice,
@@ -90,8 +93,7 @@ void Texture::createTextureImage(void* textureData, int width, int height, VkDev
 		newExtent,
 		VK_FORMAT_R8G8B8A8_UNORM,
 		VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
-		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-		VK_IMAGE_ASPECT_COLOR_BIT); 
+		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT); 
 
 	
 	// COPY DATA TO IMAGE

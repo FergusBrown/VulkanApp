@@ -133,7 +133,10 @@
       <Filter>Source Files\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="ImageView.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Common.cpp">
+      <Filter>Source Files\Renderer</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -243,7 +246,7 @@
       <Filter>Header Files\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="ImageView.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Renderer</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

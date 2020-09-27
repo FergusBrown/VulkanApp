@@ -26,7 +26,7 @@ public:
 		VkFormat format,
 		VkImageUsageFlags usage,
 		VkMemoryPropertyFlags propFlags,
-		VkImageAspectFlags aspectMask,
+		//VkImageAspectFlags aspectMask, IMAGE DOES NOT NEED ASPECT MASK
 		VkSampleCountFlagBits sampleCount = VK_SAMPLE_COUNT_1_BIT,
 		uint32_t mipLevels = 1,
 		uint32_t arrayLayerCount = 1,
@@ -45,7 +45,7 @@ public:
 	// - Getters
 	Device& device() const;
 	const VkImage& handle() const;
-	const VkImageView& imageView() const;
+	//const VkImageView& imageView() const;
 	const VkExtent3D& extent() const;
 	const VkImageSubresource& subresource() const;
 	VkFormat format() const;
@@ -61,22 +61,22 @@ private:
 	VkImage mHandle{ VK_NULL_HANDLE };
 
 	// - Image attributes
-	VkImageType				mType;
-	VkExtent3D				mExtent;		// use different constructor if creating a 3D image
-	VkImageSubresource		mSubresource;
-	VkFormat				mFormat;
-	VkImageTiling			mTiling;
-	VkSampleCountFlagBits	mSampleCount;
-	VkImageUsageFlags		mUsage;
-	VkImageLayout			mLayout;
-	VkSharingMode			mSharingMode;
+	VkImageType				mType{};
+	VkExtent3D				mExtent{};		// use different constructor if creating a 3D image
+	VkImageSubresource		mSubresource{};
+	VkFormat				mFormat{};
+	VkImageTiling			mTiling{};
+	VkSampleCountFlagBits	mSampleCount{};
+	VkImageUsageFlags		mUsage{};
+	VkImageLayout			mLayout{};
+	VkSharingMode			mSharingMode{};
 
 	// - Associated with image
 	std::unique_ptr<DeviceMemory> mMemory;
-	VkImageView mImageView{ VK_NULL_HANDLE };
+	//VkImageView mImageView{ VK_NULL_HANDLE };
 
 	// - Image view management
-	void createImageView();
+	//void createImageView();
 
 	// - Memory management
 	void createMemory(VkMemoryPropertyFlags propFlags);

@@ -3,6 +3,7 @@
 
 class Device;
 class Image;
+class ImageView;
 
 class Texture
 {
@@ -12,10 +13,10 @@ public:
 
 	// - Getters
 	const Device& device() const;
-	const Image& image() const;
-	/*const VkImage& image() const;
-	const VkImageView& imageView() const;
-	VkDeviceMemory memory() const;*/
+	//const Image& image() const;
+	//const VkImage& image() const;
+	const ImageView& imageView() const;
+	//VkDeviceMemory memory() const;
 	uint32_t textureID() const;
 
 	//static void createTextureImage(std::string fileName);
@@ -28,7 +29,8 @@ private:
 	uint32_t mID;
 
 	std::unique_ptr<Image> mImage;
+	std::unique_ptr<ImageView> mImageView;
 
-	void createTextureImage(void* textureData, int width, int height, VkDeviceSize imageSize);
+	void createTextureImage(void* textureData, uint32_t width, uint32_t height, VkDeviceSize imageSize);
 };
 

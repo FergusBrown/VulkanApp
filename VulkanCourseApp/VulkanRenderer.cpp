@@ -8,6 +8,7 @@
 #include "Device.h"
 #include "SwapChain.h"
 #include "Image.h"
+#include "ImageView.h"
 #include "Buffer.h"
 #include "CommandBuffer.h"
 #include "Sampler.h"
@@ -323,8 +324,7 @@ void VulkanRenderer::createPerFrameObjects()
 			swapchainExtent,
 			mColourFormat,
 			VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT,
-			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-			VK_IMAGE_ASPECT_COLOR_BIT);
+			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
 		
 
@@ -333,8 +333,7 @@ void VulkanRenderer::createPerFrameObjects()
 			swapchainExtent,
 			mDepthFormat,
 			VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT,
-			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-			VK_IMAGE_ASPECT_DEPTH_BIT);
+			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
 		
 
@@ -863,7 +862,7 @@ void VulkanRenderer::createFramebuffers()
 	{
 		auto& renderTarget = frame->renderTarget();
 
-		mFramebuffers.push_back(std::make_unique<Framebuffer>(*mDevice, renderTarget.extent(), renderTarget.imageViews(), mRenderPass));
+		mFramebuffers.push_back(std::make_unique<Framebuffer>(*mDevice, mRenderPass, renderTarget));
 	}
 }
 
@@ -1227,7 +1226,7 @@ int VulkanRenderer::createTextureDescriptor(const Texture& texture)
 	// Create descriptor resource reference
 	// TODO : make this a map?
 	mSamplerResources.push_back(std::make_unique<DescriptorResourceReference>());
-	mSamplerResources.back()->bindImage(texture.image().imageView(), *mTextureSampler, 0, 0);
+	mSamplerResources.back()->bindImage(texture.imageView(), *mTextureSampler, 0, 0);
 	
 	VkDescriptorImageInfo imageInfo = {};
 	mSamplerResources.back()->generateDescriptorImageInfo(imageInfo, 0, 0);

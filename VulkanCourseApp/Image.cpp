@@ -3,7 +3,7 @@
 #include "Device.h"
 #include "DeviceMemory.h"
 
-// TODO : unfinished constructor
+// Create image from an existing image handle (e.g. swapchain image)
 Image::Image(Device& device, 
 	VkImage image, 
 	const VkExtent2D& extent, 
@@ -20,9 +20,9 @@ Image::Image(Device& device,
 {
 	mSubresource.arrayLayer = 1;
 	mSubresource.mipLevel = 1;
-	mSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	//mSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 
-	createImageView();
+	//createImageView();
 }
 
 Image::Image(Device& device, 
@@ -30,7 +30,7 @@ Image::Image(Device& device,
 	VkFormat format, 
 	VkImageUsageFlags usage, 
 	VkMemoryPropertyFlags propFlags, 
-	VkImageAspectFlags aspectMask,
+	//VkImageAspectFlags aspectMask,
 	VkSampleCountFlagBits sampleCount,
 	uint32_t mipLevels,
 	uint32_t arrayLayerCount,
@@ -40,7 +40,7 @@ Image::Image(Device& device,
 	mDevice(device), 
 	mType(VK_IMAGE_TYPE_2D),
 	mExtent({ extent.width, extent.height, 1 }), 
-	mSubresource({aspectMask, mipLevels, arrayLayerCount}), 
+	//mSubresource({aspectMask, mipLevels, arrayLayerCount}), 
 	mFormat(format), 
 	mTiling(tiling), 
 	mSampleCount(sampleCount), 
@@ -49,6 +49,9 @@ Image::Image(Device& device,
 	mSharingMode(VK_SHARING_MODE_EXCLUSIVE),
 	mLayout(initialLayout)
 {
+	mSubresource.mipLevel = mipLevels;
+	mSubresource.arrayLayer = arrayLayerCount;
+
 	// CREATE IMAGE
 	createImage();
 
@@ -56,7 +59,7 @@ Image::Image(Device& device,
 	createMemory(propFlags);
 
 	// CREATE VIEW
-	createImageView();
+	//createImageView();
 }
 
 //Image::Image(Device& device, 
@@ -105,8 +108,8 @@ Image::Image(Image&& other) :
 	mSharingMode(other.mSharingMode),
 	mLayout(other.mLayout),
 	mHandle(other.mHandle),
-	mMemory(std::move(other.mMemory)),
-	mImageView(other.mImageView)
+	mMemory(std::move(other.mMemory))
+	//mImageView(other.mImageView)
 {
 	other.mHandle = VK_NULL_HANDLE;
 }
@@ -118,7 +121,7 @@ Image::~Image()
 	// If memory null then object was created from an exteernal VkImage
 	if (mHandle != VK_NULL_HANDLE)
 	{
-		vkDestroyImageView(mDevice.logicalDevice(), mImageView, nullptr);
+		//vkDestroyImageView(mDevice.logicalDevice(), mImageView, nullptr);
 		vkDestroyImage(mDevice.logicalDevice(), mHandle, nullptr);
 		
 	}
@@ -135,10 +138,10 @@ const VkImage& Image::handle() const
 	return mHandle;
 }
 
-const VkImageView& Image::imageView() const
-{
-	return mImageView;
-}
+//const VkImageView& Image::imageView() const
+//{
+//	return mImageView;
+//}
 
 const VkExtent3D& Image::extent() const
 {
@@ -170,32 +173,32 @@ VkDeviceMemory Image::memory() const
 	return mMemory->handle();
 }
 
-void Image::createImageView()
-{
-	VkImageViewCreateInfo viewCreateInfo = {};
-	viewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-	viewCreateInfo.image = mHandle;										// Image to create view for
-	viewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;					// Type of image (1D, 2D, 3D etc.)
-	viewCreateInfo.format = mFormat;										// Format of image data
-	viewCreateInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;		// Allows remapping of rgba components to other rgba values
-	viewCreateInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
-	viewCreateInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
-	viewCreateInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
-
-	// Subresources allow the view to view only a part of a image
-	viewCreateInfo.subresourceRange.aspectMask = mSubresource.aspectMask;			// Which aspect of image to view (e.g. COLOR_BIT for viewing color)
-	viewCreateInfo.subresourceRange.baseMipLevel = 0;								// Start mipmap level to view from
-	viewCreateInfo.subresourceRange.levelCount = mSubresource.mipLevel;				// Number of mipmap levels to view
-	viewCreateInfo.subresourceRange.baseArrayLayer = 0;								// Starrt array level to view from
-	viewCreateInfo.subresourceRange.layerCount = mSubresource.arrayLayer;			// Number of array levels to view
-
-	// Create Image View
-	VkResult result = vkCreateImageView(mDevice.logicalDevice(), &viewCreateInfo, nullptr, &mImageView);
-	if (result != VK_SUCCESS)
-	{
-		throw std::runtime_error("Failed to create an Image View!");
-	}
-}
+//void Image::createImageView()
+//{
+//	VkImageViewCreateInfo viewCreateInfo = {};
+//	viewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+//	viewCreateInfo.image = mHandle;										// Image to create view for
+//	viewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;					// Type of image (1D, 2D, 3D etc.)
+//	viewCreateInfo.format = mFormat;										// Format of image data
+//	viewCreateInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;		// Allows remapping of rgba components to other rgba values
+//	viewCreateInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+//	viewCreateInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+//	viewCreateInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+//
+//	// Subresources allow the view to view only a part of a image
+//	viewCreateInfo.subresourceRange.aspectMask = mSubresource.aspectMask;			// Which aspect of image to view (e.g. COLOR_BIT for viewing color)
+//	viewCreateInfo.subresourceRange.baseMipLevel = 0;								// Start mipmap level to view from
+//	viewCreateInfo.subresourceRange.levelCount = mSubresource.mipLevel;				// Number of mipmap levels to view
+//	viewCreateInfo.subresourceRange.baseArrayLayer = 0;								// Starrt array level to view from
+//	viewCreateInfo.subresourceRange.layerCount = mSubresource.arrayLayer;			// Number of array levels to view
+//
+//	// Create Image View
+//	VkResult result = vkCreateImageView(mDevice.logicalDevice(), &viewCreateInfo, nullptr, &mImageView);
+//	if (result != VK_SUCCESS)
+//	{
+//		throw std::runtime_error("Failed to create an Image View!");
+//	}
+//}
 
 void Image::createMemory(VkMemoryPropertyFlags propFlags)
 {

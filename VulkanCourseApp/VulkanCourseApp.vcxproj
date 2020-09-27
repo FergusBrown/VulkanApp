@@ -148,6 +148,7 @@
     <ClCompile Include="Buffer.cpp" />
     <ClCompile Include="CommandBuffer.cpp" />
     <ClCompile Include="CommandPool.cpp" />
+    <ClCompile Include="Common.cpp" />
     <ClCompile Include="DescriptorPool.cpp" />
     <ClCompile Include="DescriptorResourceReference.cpp" />
     <ClCompile Include="DescriptorSet.cpp" />

@@ -2,6 +2,7 @@
 
 #include "Buffer.h"
 #include "Image.h"
+#include "ImageView.h"
 #include "Sampler.h"
 
 void DescriptorResourceReference::reset()
@@ -20,7 +21,7 @@ void DescriptorResourceReference::generateDescriptorImageInfo(VkDescriptorImageI
 
 	imageInfo = {};
 	imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-	imageInfo.imageView = *resource.imageView;
+	imageInfo.imageView = resource.imageView->handle();
 
 	if (resource.sampler == nullptr)
 	{
@@ -53,17 +54,17 @@ const BindingMap<ResourceBinding>& DescriptorResourceReference::resourceBindings
 	return mResourceBindings;
 }
 
-void DescriptorResourceReference::bindImage(const VkImageView& imageView, const Sampler& sampler, const uint32_t bindingIndex, const uint32_t arrayIndex)
+void DescriptorResourceReference::bindImage(const ImageView& imageView, const Sampler& sampler, const uint32_t bindingIndex, const uint32_t arrayIndex)
 {
 	mResourceBindings[bindingIndex][arrayIndex].buffer =	nullptr;
-	mResourceBindings[bindingIndex][arrayIndex].imageView =		&imageView;
+	mResourceBindings[bindingIndex][arrayIndex].imageView =	&imageView;
 	mResourceBindings[bindingIndex][arrayIndex].sampler =	&sampler;
 }
 
-void DescriptorResourceReference::bindInputImage(const VkImageView& imageView, const uint32_t bindingIndex, const uint32_t arrayIndex)
+void DescriptorResourceReference::bindInputImage(const ImageView& imageView, const uint32_t bindingIndex, const uint32_t arrayIndex)
 {
 	mResourceBindings[bindingIndex][arrayIndex].buffer =	nullptr;
-	mResourceBindings[bindingIndex][arrayIndex].imageView =		&imageView;
+	mResourceBindings[bindingIndex][arrayIndex].imageView =	&imageView;
 	mResourceBindings[bindingIndex][arrayIndex].sampler =	nullptr;
 }
 
@@ -72,6 +73,6 @@ void DescriptorResourceReference::bindBuffer(const Buffer& buffer, const uint32_
 	mResourceBindings[bindingIndex][arrayIndex].buffer =	&buffer;
 	mResourceBindings[bindingIndex][arrayIndex].offset =	offset;
 	mResourceBindings[bindingIndex][arrayIndex].range =		range;
-	mResourceBindings[bindingIndex][arrayIndex].imageView =		nullptr;
+	mResourceBindings[bindingIndex][arrayIndex].imageView =	nullptr;
 	mResourceBindings[bindingIndex][arrayIndex].sampler =	nullptr;
 }

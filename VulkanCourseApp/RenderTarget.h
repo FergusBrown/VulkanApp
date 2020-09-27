@@ -3,6 +3,7 @@
 
 class Device;
 class Image;
+class ImageView;
 
 struct Attachment {
 	VkFormat format;
@@ -27,7 +28,7 @@ public:
 
 	// - Getters
 	const VkExtent2D& extent() const;
-	const std::vector<VkImageView>& imageViews() const;
+	const std::vector<ImageView>& imageViews() const; // Note that only image views are exposed
 	const std::vector<Attachment>& attachments() const;
 
 	const std::vector<uint32_t>& inputAttachmentIndices() const;
@@ -45,7 +46,7 @@ private:
 	VkExtent2D mExtent;
 
 	std::vector<Image> mImages;
-	std::vector<VkImageView> mImageViews;
+	std::vector<ImageView> mImageViews;
 
 	std::vector<Attachment> mAttachments;
 

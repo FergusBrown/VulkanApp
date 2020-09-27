@@ -2,6 +2,7 @@
 
 #include "Device.h"
 #include "Image.h"
+#include "ImageView.h"
 
 Attachment::Attachment(VkFormat format, VkSampleCountFlagBits sampleCount, VkImageUsageFlags usage) :
 	format(format), sampleCount(sampleCount), usage(usage)
@@ -13,9 +14,11 @@ RenderTarget::RenderTarget(std::vector<Image>&& images) :
 {
 	for (auto& image : mImages)
 	{
-		mImageViews.push_back(image.imageView());
 
-		mAttachments.push_back(Attachment(image.format(), image.sampleCount(), image.usage()));
+
+		mImageViews.emplace_back(image, VK_IMAGE_VIEW_TYPE_2D);
+
+		mAttachments.emplace_back(image.format(), image.sampleCount(), image.usage());
 	}
 }
 
@@ -29,7 +32,7 @@ const VkExtent2D& RenderTarget::extent() const
 	return mExtent;
 }
 
-const std::vector<VkImageView>& RenderTarget::imageViews() const
+const std::vector<ImageView>& RenderTarget::imageViews() const
 {
 	return mImageViews;
 }
