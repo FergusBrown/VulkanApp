@@ -33,7 +33,6 @@ int VulkanRenderer::init(GLFWwindow* newWindow)
 
 	try {
 		setupThreadPool();
-		/*createThreadData();*/
 		createInstance();				// LEAVE
 		setupDebugMessenger();			// LEAVE
 		createSurface();				// LEAVE
@@ -41,16 +40,11 @@ int VulkanRenderer::init(GLFWwindow* newWindow)
 		findDesiredQueueFamilies();
 		createSwapChain();				// COMPLETE
 		createPerFrameObjects();		// TODO : still need to create frame with descriptor sets, command buffers etc
-		//createColourBufferImage();	// Abstract to create renderpass images
-		//createDepthBufferImage();		// abstract to create renderpass images
 		createRenderPass();				// Change to use rendertarget and subpass objects
 		createDescriptorSetLayouts();
 		createPushConstantRange();
 		createGraphicsPipeline();
-		//createFrameBuffers();
 		createFramebuffers();
-		/*createCommandPools();
-		createCommandBuffers();*/
 		createTextureSampler();
 		//allocateDynamicBufferTransferSpace();
 		createUniformBuffers();
@@ -98,17 +92,20 @@ void VulkanRenderer::updateCameraView(mat4 newView)
 
 void VulkanRenderer::draw()
 {
-	/* BEGIN ABSTRACT TO SWAPCHAIN ACQUIRE NEXT IMAGE*/
-	// -- GET NEXT IMAGE -- **DO NOT REARRANGE ORDER - FENCE CHANGES MUST BE HANDLED FIRST**
 	// Wait for given fence to signal (open) from last draw before continuing
-	vkWaitForFences(mDevice->logicalDevice(), 1, &drawFences[currentFrame], VK_TRUE, std::numeric_limits<uint64_t>::max());		// ANALOGY : Wait until this fence is open (freezes the code)
+	vkWaitForFences(mDevice->logicalDevice(), 1, &drawFences[currentFrame], VK_TRUE, std::numeric_limits<uint64_t>::max());	
 	// Manually reset (close) fences
-	vkResetFences(mDevice->logicalDevice(), 1, &drawFences[currentFrame]);														// Close fence behind you
+	vkResetFences(mDevice->logicalDevice(), 1, &drawFences[currentFrame]);
 
-	// Get index of next image to be drawn to and signal semapphore when ready to be drawn to
 	uint32_t imageIndex;
-	vkAcquireNextImageKHR(mDevice->logicalDevice(), mSwapchain->handle(), std::numeric_limits<uint64_t>::max(), imageAvailable[currentFrame], VK_NULL_HANDLE, &imageIndex);
-	/* END ABSTRACT */
+	VkResult result = mSwapchain->acquireNextImageIndex(imageAvailable[currentFrame], imageIndex);
+
+	if (result != VK_SUCCESS)
+	{
+		throw std::runtime_error("Could not acquire next swapchain image!");
+	}
+
+	//Frames[imageIndex]->reset();
 
 	CommandBuffer& primaryCmdBuffer = mDevice->requestCommandBuffer(VK_COMMAND_BUFFER_LEVEL_PRIMARY);
 
@@ -1055,6 +1052,7 @@ void VulkanRenderer::recordCommands(CommandBuffer& primaryCmdBuffer, uint32_t cu
 
 	// Stop recording to primary command buffers
 	primaryCmdBuffer.endRecording();
+
 }
 
 

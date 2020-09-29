@@ -12,7 +12,6 @@
 
 #include <ctpl_stl.h>
 
-
 #include <stb_image.h>
 
 #include "Common.h"

@@ -49,7 +49,7 @@ public:
 	void setSurfaceFormatPriority(const std::vector<VkSurfaceFormatKHR>& newList);
 
 	// - Image Management
-	VkResult acquireNextImage(VkFence drawFence, VkSemaphore imageAvailable, uint32_t& imageIndex);
+	VkResult acquireNextImageIndex(VkSemaphore imageAvailable, uint32_t& imageIndex);
 
 	
 private:

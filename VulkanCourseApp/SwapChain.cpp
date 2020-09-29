@@ -124,19 +124,13 @@ void Swapchain::setSurfaceFormatPriority(const std::vector<VkSurfaceFormatKHR>& 
 }
 
 
-//	NOTE: this function will only return once the fence and semaphore are signalled
-VkResult Swapchain::acquireNextImage(VkFence drawFence, VkSemaphore imageAvailable, uint32_t& imageIndex)
+// Block CPU code until drawFence is signalled
+// By passing in the handle of the imageAvailable semaphore, it is specified that this semaphore will become available when the image at this index is available
+// This semaphore should then be passed as a wait semaphore in a queue submission
+// Note that vkAcquireNextImageKHR will block if it does not knoww which image will be ready next, therefore call this as late as possible
+VkResult Swapchain::acquireNextImageIndex(VkSemaphore imageAvailable, uint32_t& imageIndex)
 {
-	// GET NEXT IMAGE
-	// 1. Wait for fence to be signalled and reset it
-	// 2. Use vkAcquireNextImageKHR get the appropriate image index
-
-
-	// Wait for given fence to signal (open) from last draw before continuing
-	vkWaitForFences(mDevice.logicalDevice(), 1, &drawFence, VK_TRUE, std::numeric_limits<uint64_t>::max());		// ANALOGY : Wait until this fence is open (freezes the code)
-	// Manually reset (close) fences
-	vkResetFences(mDevice.logicalDevice(), 1, &drawFence);
-
+	// Use vkAcquireNextImageKHR get the appropriate image index
 	return vkAcquireNextImageKHR(mDevice.logicalDevice(), mHandle, std::numeric_limits<uint64_t>::max(), imageAvailable, VK_NULL_HANDLE, &imageIndex);;
 }
 
