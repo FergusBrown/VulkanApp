@@ -5,11 +5,14 @@
 #include "DescriptorPool.h"
 #include "DescriptorSet.h"
 #include "Device.h"
+//#include "FencePool.h"
 #include "Queue.h"
 #include "RenderTarget.h"
+//#include "SemaphorePool.h"
 
 Frame::Frame(Device& device, std::unique_ptr<RenderTarget>&& renderTarget, uint32_t threadCount) :
-	mDevice(device), mRenderTarget(std::move(renderTarget))//, mThreadCount(threadCount)
+	mDevice(device), mRenderTarget(std::move(renderTarget)),
+	mFencePool(device), mSemaphorePool(device)
 {
 	//mThreadPool.resize(mThreadCount);
 	mThreadData.resize(threadCount);
@@ -40,13 +43,17 @@ const RenderTarget& Frame::renderTarget() const
 
 void Frame::reset()
 {
+	// Reset synchronisation pools
+	mFencePool.reset();
+	mSemaphorePool.reset();
+
+	// Reset thread data
 	for (auto& thread : mThreadData)
 	{
 		for (auto& pool : thread.commandPools)
 		{
-			pool.reset();
+			pool->reset();
 		}
-		
 	}
 }
 
@@ -55,6 +62,25 @@ CommandBuffer& Frame::requestCommandBuffer(const Queue& queue, VkCommandBufferLe
 	auto& commandPool = requestCommandPool(queue, threadIndex);
 
 	return commandPool->requestCommandBuffer(level);
+}
+
+VkFence Frame::requestFence()
+{
+	return mFencePool.requestFence();
+}
+
+VkSemaphore Frame::requestSemaphore()
+{
+	return mSemaphorePool.requestSemaphore();
+}
+
+void Frame::wait()
+{
+	VkResult result = mFencePool.wait();
+	if (result != VK_SUCCESS)
+	{
+		throw std::runtime_error("Failed to wait for Fence(s) to signal!");
+	}
 }
 
 //void Frame::createThreadData()

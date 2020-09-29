@@ -64,7 +64,7 @@ CommandBuffer& CommandPool::requestCommandBuffer(VkCommandBufferLevel level)
 		// However, if we added the ability to reset buffers this would become useful
 		if (mActivePrimaryCommandBuffers < mPrimaryCommandBuffers.size())
 		{
-			return *mPrimaryCommandBuffers[++mActivePrimaryCommandBuffers];
+			return *mPrimaryCommandBuffers[mActivePrimaryCommandBuffers++];
 		}
 
 		mPrimaryCommandBuffers.push_back(std::make_unique<CommandBuffer>(*this, level));
@@ -75,7 +75,7 @@ CommandBuffer& CommandPool::requestCommandBuffer(VkCommandBufferLevel level)
 	{
 		if (mActiveSecondaryCommandBuffers < mSecondaryCommandBuffers.size())
 		{
-			return *mSecondaryCommandBuffers[++mActiveSecondaryCommandBuffers];
+			return *mSecondaryCommandBuffers[mActiveSecondaryCommandBuffers++];
 		}
 
 		mSecondaryCommandBuffers.push_back(std::make_unique<CommandBuffer>(*this, level));

@@ -92,36 +92,37 @@ void VulkanRenderer::updateCameraView(mat4 newView)
 
 void VulkanRenderer::draw()
 {
-	// Wait for given fence to signal (open) from last draw before continuing
-	vkWaitForFences(mDevice->logicalDevice(), 1, &drawFences[currentFrame], VK_TRUE, std::numeric_limits<uint64_t>::max());	
-	// Manually reset (close) fences
-	vkResetFences(mDevice->logicalDevice(), 1, &drawFences[currentFrame]);
-
-	uint32_t imageIndex;
-	VkResult result = mSwapchain->acquireNextImageIndex(imageAvailable[currentFrame], imageIndex);
+	// Get next active frame
+	VkResult result = mSwapchain->acquireNextImageIndex(imageAcquired, activeFrameIndex);
 
 	if (result != VK_SUCCESS)
 	{
 		throw std::runtime_error("Could not acquire next swapchain image!");
 	}
 
-	//Frames[imageIndex]->reset();
+	auto& activeFrame = mFrames[activeFrameIndex];
+
+	// Wait until idle then reset command pools + synchronisation objects
+	activeFrame->wait();
+	activeFrame->reset();
+
+	// Request the required synchronisation objects
+	//VkSemaphore imageAcquired = activeFrame->requestSemaphore(); // try making the image a acquired member variable? Probably not as this would potentially result in the queue submissions waiting on the wrong semaphore
+	VkSemaphore renderFinished = activeFrame->requestSemaphore();
+	VkFence drawFence = activeFrame->requestFence();
 
 	CommandBuffer& primaryCmdBuffer = mDevice->requestCommandBuffer(VK_COMMAND_BUFFER_LEVEL_PRIMARY);
 
-	recordCommands(primaryCmdBuffer, imageIndex);		// Only record commands once the image at imageIndex is available (not being used by the queue)
+	recordCommands(primaryCmdBuffer, activeFrameIndex);		// Only record commands once the image at imageIndex is available (not being used by the queue)
 
-	updateUniformBuffers(imageIndex);
+	updateUniformBuffers(activeFrameIndex);
 
 	const Queue& queue = mDevice->queue(mGraphicsQueueFamily, 0);
 
-	queue.submit(imageAvailable[currentFrame], VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, renderFinished[currentFrame],
-		primaryCmdBuffer, drawFences[currentFrame]);
+	queue.submit(imageAcquired, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, renderFinished,
+		primaryCmdBuffer, drawFence);
 
-	queue.present(renderFinished[currentFrame], *mSwapchain, imageIndex);
-
-	// Get next frame (use % MAX_FRAME_DRAWS)
-	currentFrame = (currentFrame + 1) % MAX_FRAME_DRAWS;
+	queue.present(renderFinished, *mSwapchain, activeFrameIndex);
 }
 
 void VulkanRenderer::cleanup()
@@ -134,12 +135,12 @@ void VulkanRenderer::cleanup()
 	//	modelDataList[i].destroyMeshModel();
 	//}
 
-	for (size_t i = 0; i < MAX_FRAME_DRAWS; ++i)
-	{
-		vkDestroySemaphore(mDevice->logicalDevice(), renderFinished[i], nullptr);
-		vkDestroySemaphore(mDevice->logicalDevice(), imageAvailable[i], nullptr);
-		vkDestroyFence(mDevice->logicalDevice(), drawFences[i], nullptr);
-	}
+	//for (size_t i = 0; i < MAX_FRAME_DRAWS; ++i)
+	//{
+	//	vkDestroySemaphore(mDevice->logicalDevice(), renderFinished[i], nullptr);
+	//	vkDestroySemaphore(mDevice->logicalDevice(), imageAvailable[i], nullptr);
+	//	vkDestroyFence(mDevice->logicalDevice(), drawFences[i], nullptr);
+	//}
 
 	vkDestroyPipeline(mDevice->logicalDevice(), secondPipeline, nullptr);
 	vkDestroyPipelineLayout(mDevice->logicalDevice(), secondPipelineLayout, nullptr);
@@ -828,28 +829,34 @@ void VulkanRenderer::createGraphicsPipeline()
 
 void VulkanRenderer::createSynchronation()
 {
-	imageAvailable.resize(MAX_FRAME_DRAWS);
+	/*imageAvailable.resize(MAX_FRAME_DRAWS);
 	renderFinished.resize(MAX_FRAME_DRAWS);
-	drawFences.resize(MAX_FRAME_DRAWS);
+	drawFences.resize(MAX_FRAME_DRAWS);*/
 
-	// Fence creation information
-	VkFenceCreateInfo fenceCreateInfo = {};
-	fenceCreateInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-	fenceCreateInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;			// Create fence as signaled (open)
+	//// Fence creation information
+	//VkFenceCreateInfo fenceCreateInfo = {};
+	//fenceCreateInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+	//fenceCreateInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;			// Create fence as signaled (open)
 
 	// Semaphore creation information
 	VkSemaphoreCreateInfo semaphoreCreateInfo = {};
 	semaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 
-	for (size_t i = 0; i < MAX_FRAME_DRAWS; ++i)
+	VkResult result = vkCreateSemaphore(mDevice->logicalDevice(), &semaphoreCreateInfo, nullptr, &imageAcquired);
+	if (result != VK_SUCCESS)
 	{
-		if (vkCreateSemaphore(mDevice->logicalDevice(), &semaphoreCreateInfo, nullptr, &imageAvailable[i]) != VK_SUCCESS ||
-			vkCreateSemaphore(mDevice->logicalDevice(), &semaphoreCreateInfo, nullptr, &renderFinished[i]) != VK_SUCCESS ||
-			vkCreateFence(mDevice->logicalDevice(), &fenceCreateInfo, nullptr, &drawFences[i]) != VK_SUCCESS)
-		{
-			throw std::runtime_error("Failed to create a Semaphore and/or Fence!");
-		}
+		throw std::runtime_error("Failed to create a Semaphore!");
 	}
+
+	//for (size_t i = 0; i < MAX_FRAME_DRAWS; ++i)
+	//{
+	//	if (vkCreateSemaphore(mDevice->logicalDevice(), &semaphoreCreateInfo, nullptr, &imageAvailable[i]) != VK_SUCCESS ||
+	//		vkCreateSemaphore(mDevice->logicalDevice(), &semaphoreCreateInfo, nullptr, &renderFinished[i]) != VK_SUCCESS ||
+	//		vkCreateFence(mDevice->logicalDevice(), &fenceCreateInfo, nullptr, &drawFences[i]) != VK_SUCCESS)
+	//	{
+	//		throw std::runtime_error("Failed to create a Semaphore and/or Fence!");
+	//	}
+	//}
 
 }
 

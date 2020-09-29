@@ -64,7 +64,8 @@ public:
 private:
 	GLFWwindow* mWindow;
 
-	int currentFrame = 0;
+	//uint32_t currentFrameIndex{ 0 };
+	uint32_t activeFrameIndex{ 0 };
 
 	// Scene objects
 	std::vector<MeshModelData> modelDataList;			// Model data
@@ -180,9 +181,12 @@ private:
 	//VkExtent2D swapChainExtent;
 
 	// - Synchronisation /* In Frame Class
-	std::vector<VkSemaphore> imageAvailable;
-	std::vector<VkSemaphore> renderFinished;
-	std::vector<VkFence> drawFences;
+	//std::vector<VkSemaphore> imageAvailable;
+	//std::vector<VkSemaphore> renderFinished;
+	//std::vector<VkFence> drawFences;
+	//std::vector<VkSemaphore> mImageAcquired;
+	VkSemaphore imageAcquired;
+
 
 	// - Multithreading
 	// Max. number of concurrent threads

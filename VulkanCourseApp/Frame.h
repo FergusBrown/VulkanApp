@@ -4,14 +4,18 @@
 #include "Common.h"
 
 #include "CommandPool.h"
+#include "FencePool.h"
+#include "SemaphorePool.h"
 
 //class CommandPool;
 class CommandBuffer;
 class Device;
 class DescriptorPool;
 class DescriptorSet;
+//class FencePool;
 class Queue;
 class RenderTarget;
+//class SemaphorePool;
 
 
 // This is a container for data which must be held by every frame
@@ -30,8 +34,13 @@ public:
 	// - Frame management
 	void reset();
 
-	// - Command Buffer management
+	// -- Command Buffers
 	CommandBuffer& requestCommandBuffer(const Queue& queue, VkCommandBufferLevel level, size_t threadIndex = 0);
+
+	// -- Synchronisation
+	VkFence requestFence();
+	VkSemaphore requestSemaphore();
+	void wait();
 
 private:
 	// Variables
@@ -73,6 +82,7 @@ private:
 	std::unique_ptr<CommandPool>& requestCommandPool(const Queue& queue, size_t threadIndex = 0);
 
 	// - Synchronisation
-	//void createSynchronisation();
+	FencePool mFencePool;
+	SemaphorePool mSemaphorePool;
 };
 
