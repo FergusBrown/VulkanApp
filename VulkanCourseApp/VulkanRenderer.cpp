@@ -107,7 +107,6 @@ void VulkanRenderer::draw()
 	activeFrame->reset();
 
 	// Request the required synchronisation objects
-	//VkSemaphore imageAcquired = activeFrame->requestSemaphore(); // try making the image a acquired member variable? Probably not as this would potentially result in the queue submissions waiting on the wrong semaphore
 	VkSemaphore renderFinished = activeFrame->requestSemaphore();
 	VkFence drawFence = activeFrame->requestFence();
 
@@ -123,24 +122,14 @@ void VulkanRenderer::draw()
 		primaryCmdBuffer, drawFence);
 
 	queue.present(renderFinished, *mSwapchain, activeFrameIndex);
+
+
 }
 
 void VulkanRenderer::cleanup()
 {
 	// Wait until no actions being run on device before destroying
 	vkDeviceWaitIdle(mDevice->logicalDevice());
-
-	//for (size_t i = 0; i < modelDataList.size(); ++i)
-	//{
-	//	modelDataList[i].destroyMeshModel();
-	//}
-
-	//for (size_t i = 0; i < MAX_FRAME_DRAWS; ++i)
-	//{
-	//	vkDestroySemaphore(mDevice->logicalDevice(), renderFinished[i], nullptr);
-	//	vkDestroySemaphore(mDevice->logicalDevice(), imageAvailable[i], nullptr);
-	//	vkDestroyFence(mDevice->logicalDevice(), drawFences[i], nullptr);
-	//}
 
 	vkDestroyPipeline(mDevice->logicalDevice(), secondPipeline, nullptr);
 	vkDestroyPipelineLayout(mDevice->logicalDevice(), secondPipelineLayout, nullptr);
@@ -829,15 +818,6 @@ void VulkanRenderer::createGraphicsPipeline()
 
 void VulkanRenderer::createSynchronation()
 {
-	/*imageAvailable.resize(MAX_FRAME_DRAWS);
-	renderFinished.resize(MAX_FRAME_DRAWS);
-	drawFences.resize(MAX_FRAME_DRAWS);*/
-
-	//// Fence creation information
-	//VkFenceCreateInfo fenceCreateInfo = {};
-	//fenceCreateInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-	//fenceCreateInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;			// Create fence as signaled (open)
-
 	// Semaphore creation information
 	VkSemaphoreCreateInfo semaphoreCreateInfo = {};
 	semaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
@@ -847,17 +827,6 @@ void VulkanRenderer::createSynchronation()
 	{
 		throw std::runtime_error("Failed to create a Semaphore!");
 	}
-
-	//for (size_t i = 0; i < MAX_FRAME_DRAWS; ++i)
-	//{
-	//	if (vkCreateSemaphore(mDevice->logicalDevice(), &semaphoreCreateInfo, nullptr, &imageAvailable[i]) != VK_SUCCESS ||
-	//		vkCreateSemaphore(mDevice->logicalDevice(), &semaphoreCreateInfo, nullptr, &renderFinished[i]) != VK_SUCCESS ||
-	//		vkCreateFence(mDevice->logicalDevice(), &fenceCreateInfo, nullptr, &drawFences[i]) != VK_SUCCESS)
-	//	{
-	//		throw std::runtime_error("Failed to create a Semaphore and/or Fence!");
-	//	}
-	//}
-
 }
 
 void VulkanRenderer::createFramebuffers()

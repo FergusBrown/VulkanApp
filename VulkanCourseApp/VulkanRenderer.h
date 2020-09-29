@@ -64,7 +64,6 @@ public:
 private:
 	GLFWwindow* mWindow;
 
-	//uint32_t currentFrameIndex{ 0 };
 	uint32_t activeFrameIndex{ 0 };
 
 	// Scene objects
@@ -82,38 +81,17 @@ private:
 	// - Main
 	VkInstance mInstance;
 	VkDebugUtilsMessengerEXT debugMessenger;
-	/*struct
-	{
-		VkPhysicalDevice physicalDevice;
-		VkDevice logicalDevice;
-	} mainDevice;
-	VkQueue graphicsQueue;			// abstract to Device
-	VkQueue presentationQueue;		// abstract to Device*/
+
 	VkSurfaceKHR mSurface;
 	std::unique_ptr<Device> mDevice;
 	uint32_t mGraphicsQueueFamily;
 
 	std::unique_ptr<Swapchain> mSwapchain;
-	//std::vector<std::unique_ptr<RenderTarget>> mRenderTargets; ----> RENDER TARGETS ARE OWNED BY THE FRAME OBJECTS
 	std::vector<std::unique_ptr<Framebuffer>> mFramebuffers;
 	std::vector<std::unique_ptr<Frame>> mFrames;
 	
-
-	//VkSwapchainKHR swapchain;
-
-	// All 3 of below are 1:1 connected
-	//std::vector<SwapchainImage> swapChainImages;
-	//std::vector<VkFramebuffer> swapChainFramebuffers;
-	//std::vector<VkCommandBuffer> primaryCommandBuffers;
-
-	/*std::vector<VkImage> colourBufferImage;
-	std::vector <VkDeviceMemory> colourBufferImageMemory;
-	std::vector <VkImageView> colourBufferImageView;*/
+	// - Formats
 	VkFormat mColourFormat{ VK_FORMAT_R8G8B8A8_UNORM };
-
-	/*std::vector<VkImage> depthBufferImage;
-	std::vector <VkDeviceMemory> depthBufferImageMemory;
-	std::vector <VkImageView> depthBufferImageView;*/
 	VkFormat mDepthFormat{ VK_FORMAT_D32_SFLOAT_S8_UINT };
 
 	// - Descriptors
@@ -155,13 +133,8 @@ private:
 	//UboModel* modelTransferSpace;
 
 	// - Assets
-	//VkSampler textureSampler;
 	std::unique_ptr<Sampler> mTextureSampler;
-	//std::vector<VkImage> textureImages;
-	//std::vector<VkDeviceMemory> textureImageMemory;
-	//std::vector<VkImageView> textureImageViews;
 	std::map <uint32_t, std::unique_ptr<Texture>> mTextures;
-	//std::vector<VkImage> textureImages;
 
 	// - Pipeline
 	VkPipeline graphicsPipeline;
@@ -172,19 +145,7 @@ private:
 
 	VkRenderPass mRenderPass;
 
-	// - Pools
-	//VkCommandPool graphicsCommandPool;
-	//std::vector<VkCommandPool> secondaryCommandPools;
-
-	// - Utility
-	//VkFormat swapChainImageFormat;
-	//VkExtent2D swapChainExtent;
-
-	// - Synchronisation /* In Frame Class
-	//std::vector<VkSemaphore> imageAvailable;
-	//std::vector<VkSemaphore> renderFinished;
-	//std::vector<VkFence> drawFences;
-	//std::vector<VkSemaphore> mImageAcquired;
+	// - Synchronisation
 	VkSemaphore imageAcquired;
 
 
@@ -197,29 +158,11 @@ private:
 	//	Model model;
 	//};
 
-	/* Below abstracted to Frame*/
-	// Attach command pool and buffer to each thread
-	/* Frame */
-	//struct ThreadData {
-	//	VkCommandPool commandPool;
-	//	// One command buffer per task
-	//	std::vector<VkCommandBuffer> handle;
-	//};
-	//std::vector<ThreadData> threadData;
-
-	//uint32_t numSecondaryBuffers;
-	//struct frameTEMP {
-	//	std::vector<ThreadData> threadData;
-	//};
-
-	//std::vector<frameTEMP> frameData;
-
 	// Vulkan Functions
 	// - Create Functions
 	void setupThreadPool();
 	void createInstance();
 	void setupDebugMessenger();
-	//void createLogicalDevice();
 	void createSurface();
 	void createDevice();
 	void findDesiredQueueFamilies();
@@ -229,23 +172,15 @@ private:
 	void createDescriptorSetLayouts();
 	void createPushConstantRange();
 	void createGraphicsPipeline();
-	//void createColourBufferImage();
-	//void createDepthBufferImage();
-	//void createFrameBuffers();
 	void createFramebuffers();
-	/*void createThreadData();*/
-	/*void createCommandPools();
-	void createCommandBuffers();*/
 	void createSynchronation();
 	void createTextureSampler();
 	void createUniformBuffers();
 	void createDescriptorPools();
-	//void createDescriptorResourceReferences();
 	void createUniformDescriptorSets();
 	void createInputDescriptorSets();
 
 	// -- Support
-	//void createFramebuffer();
 	void updateUniformBuffers(uint32_t imageIndex);
 
 	// - Record Functions
@@ -254,9 +189,6 @@ private:
 	// -- Create Helper Functions
 	void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
 
-	// - Get Functions
-	//void getPhysicalDevice();
-
 	// - Allocate Functions
 	void allocateDynamicBufferTransferSpace();
 
@@ -264,24 +196,14 @@ private:
 	// -- Checker Functions
 	bool checkInstanceExtensionSupport(std::vector<const char*>* checkExtensions);
 	bool checkValidationLayerSupport();
-	//bool checkDeviceExtensionSupport(VkPhysicalDevice device);
-	//bool checkDeviceSuitable(VkPhysicalDevice device);
 	
 	// -- Getter Functions
 	void getWindowExtent(VkExtent2D& windowExtent);
-	//QueueFamilyIndices getQueueFamilies(VkPhysicalDevice device);
-	//SwapChainDetails getSwapChainDetails(VkPhysicalDevice device);
 	
 	// -- Choose Functions
-	//VkSurfaceFormatKHR chooseBestSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& formats);			// Swapchain
-	//VkPresentModeKHR chooseBestPresentationMode(const std::vector<VkPresentModeKHR> presentationMode);	// Swapchain
-	//VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& surfaceCapabilities);					// Swapchain
 	VkFormat chooseSupportedFormat(const std::vector<VkFormat> &formats, VkImageTiling tiling, VkFormatFeatureFlags featureFlags);
 
 	// -- Create Functions
-	//VkImage createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags useFlags, 
-	//	VkMemoryPropertyFlags propFlags, VkDeviceMemory *imageMemory);
-	//VkImageView createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags);
 	VkShaderModule createShaderModule(const std::vector<char>& code);
 
 	
