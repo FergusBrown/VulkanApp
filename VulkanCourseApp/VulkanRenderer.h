@@ -81,8 +81,6 @@ private:
 	// Vulkan Components
 	// - Main
 	std::unique_ptr<Instance> mInstance;
-	/*VkInstance mInstance;
-	VkDebugUtilsMessengerEXT debugMessenger;*/
 
 	VkSurfaceKHR mSurface;
 	std::unique_ptr<Device> mDevice;
@@ -195,9 +193,6 @@ private:
 	void allocateDynamicBufferTransferSpace();
 
 	// - Support Functions
-	// -- Checker Functions
-	/*bool checkInstanceExtensionSupport(std::vector<const char*>* checkExtensions);
-	bool checkValidationLayerSupport();*/
 	
 	// -- Getter Functions
 	void getWindowExtent(VkExtent2D& windowExtent);
@@ -211,7 +206,6 @@ private:
 	
 
 	int createTexture(std::string fileName);
-	//int createTextureImage(std::string fileName);
 	int createTextureDescriptor(const Texture& texture);
 	
 	// -- Loader Functions
