@@ -25,6 +25,7 @@ class MeshModel;
 class Device;
 class Swapchain;
 class Image;
+class Instance;
 class Buffer;
 class CommandBuffer;
 class Sampler;
@@ -79,8 +80,9 @@ private:
 
 	// Vulkan Components
 	// - Main
-	VkInstance mInstance;
-	VkDebugUtilsMessengerEXT debugMessenger;
+	std::unique_ptr<Instance> mInstance;
+	/*VkInstance mInstance;
+	VkDebugUtilsMessengerEXT debugMessenger;*/
 
 	VkSurfaceKHR mSurface;
 	std::unique_ptr<Device> mDevice;
@@ -166,7 +168,7 @@ private:
 	void createSurface();
 	void createDevice();
 	void findDesiredQueueFamilies();
-	void createSwapChain();
+	void createSwapchain();
 	void createPerFrameObjects();
 	void createRenderPass();
 	void createDescriptorSetLayouts();
@@ -185,17 +187,17 @@ private:
 
 	// - Record Functions
 	void recordCommands(CommandBuffer& primaryCmdBuffer, uint32_t currentImage);
-	CommandBuffer* recordSecondaryCommandBuffers(CommandBuffer* primaryCommandBuffer, Frame& frame, uint32_t objectStart, uint32_t objectEnd, size_t threadIndex, uint32_t currentImage);
+	CommandBuffer* recordSecondaryCommandBuffers(CommandBuffer* primaryCommandBuffer, uint32_t objectStart, uint32_t objectEnd, size_t threadIndex);
 	// -- Create Helper Functions
-	void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
+	//void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
 
 	// - Allocate Functions
 	void allocateDynamicBufferTransferSpace();
 
 	// - Support Functions
 	// -- Checker Functions
-	bool checkInstanceExtensionSupport(std::vector<const char*>* checkExtensions);
-	bool checkValidationLayerSupport();
+	/*bool checkInstanceExtensionSupport(std::vector<const char*>* checkExtensions);
+	bool checkValidationLayerSupport();*/
 	
 	// -- Getter Functions
 	void getWindowExtent(VkExtent2D& windowExtent);

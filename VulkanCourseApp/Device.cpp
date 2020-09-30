@@ -2,13 +2,14 @@
 
 #include "CommandBuffer.h"
 #include "CommandPool.h"
+#include "Instance.h"
 #include "PhysicalDevice.h"
 #include "Queue.h"
 
-Device::Device(VkInstance instance, VkSurfaceKHR surface, const std::vector<const char*>& requiredExtensions, VkPhysicalDeviceFeatures& requiredFeatures)
+Device::Device(Instance& instance, VkSurfaceKHR surface, const std::vector<const char*>& requiredExtensions, VkPhysicalDeviceFeatures& requiredFeatures)
 	:mSurface(surface)
 {
-	getPhysicalDevice(instance, requiredExtensions, requiredFeatures);
+	getPhysicalDevice(instance.handle(), requiredExtensions, requiredFeatures);
 	createLogicalDevice(requiredExtensions, requiredFeatures);
 	createCommandPool();
 }

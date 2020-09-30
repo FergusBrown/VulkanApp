@@ -9,6 +9,7 @@
 #include "SwapChain.h"
 #include "Image.h"
 #include "ImageView.h"
+#include "Instance.h"
 #include "Buffer.h"
 #include "CommandBuffer.h"
 #include "Sampler.h"
@@ -34,11 +35,11 @@ int VulkanRenderer::init(GLFWwindow* newWindow)
 	try {
 		setupThreadPool();
 		createInstance();				// LEAVE
-		setupDebugMessenger();			// LEAVE
+		//setupDebugMessenger();			// LEAVE
 		createSurface();				// LEAVE
 		createDevice();					// COMPLETE
 		findDesiredQueueFamilies();
-		createSwapChain();				// COMPLETE
+		createSwapchain();				// COMPLETE
 		createPerFrameObjects();		// TODO : still need to create frame with descriptor sets, command buffers etc
 		createRenderPass();				// Change to use rendertarget and subpass objects
 		createDescriptorSetLayouts();
@@ -136,50 +137,26 @@ void VulkanRenderer::cleanup()
 	vkDestroyPipeline(mDevice->logicalDevice(), graphicsPipeline, nullptr);
 	vkDestroyPipelineLayout(mDevice->logicalDevice(), pipelineLayout, nullptr);
 	vkDestroyRenderPass(mDevice->logicalDevice(), mRenderPass, nullptr);
-
-	if (enableValidationLayers) {
-		DestroyDebugUtilsMessengerEXT(mInstance, debugMessenger, nullptr);
-	}
 }
 
 VulkanRenderer::~VulkanRenderer()
 {
-	vkDestroySurfaceKHR(mInstance, mSurface, nullptr);
-	vkDestroyInstance(mInstance, nullptr);
+	vkDestroySurfaceKHR(mInstance->handle(), mSurface, nullptr);
+	//vkDestroyInstance(mInstance, nullptr);
 }
 
 void VulkanRenderer::setupThreadPool()
 {
-	mThreadCount = std::thread::hardware_concurrency();
+	// TODO : revert
+	//mThreadCount = std::thread::hardware_concurrency();
+	mThreadCount = 1;
 	mThreadPool.resize(mThreadCount);
 }
 
 void VulkanRenderer::createInstance()
 {
-	// 
-	if (enableValidationLayers && !checkValidationLayerSupport()) {
-		throw std::runtime_error("validation layers requested, but not available!");
-	}
-
-	// Information about the application itself
-	// Most data here does not affect the program and is for developer convenience
-	VkApplicationInfo appInfo = {};
-	appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-	appInfo.pApplicationName = "Vulkan App";				// Custom name of the application
-	appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);	// Custom version of the application
-	appInfo.pEngineName = "No Engine";						// Custom engine name
-	appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);		// Custom engine version
-	appInfo.apiVersion = VK_API_VERSION_1_2;				// The Vulkan Version
-
-	// Creation information for a VkInstance (Vulkan Instance)
-	VkInstanceCreateInfo createInfo = {};
-	createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
-	createInfo.pApplicationInfo = &appInfo;
-
-
-
-	// Create list to hold mInstance extensions - we must query vulkan for these values
-	std::vector<const char*> instanceExtensions = std::vector<const char*>();
+	// Create vector to hold instance extensions - we must query for these values
+	std::vector<const char*> requiredInstanceExtensions = {};
 
 	uint32_t glfwExtensionCount = 0;						// GLFW may require multiple extensions
 	const char** glfwExtensions;							// Extensions passed as array of cstrings, so need pointer (the array) to pinter (the cstring)
@@ -190,43 +167,10 @@ void VulkanRenderer::createInstance()
 	// Add GLFW extensions to list of extensions
 	for (size_t i = 0; i < glfwExtensionCount; ++i)
 	{
-		instanceExtensions.push_back(glfwExtensions[i]);
+		requiredInstanceExtensions.push_back(glfwExtensions[i]);
 	}
 
-	if (enableValidationLayers) {
-		instanceExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
-	}
-
-	// Check mInstance extensions are supported
-	if (!checkInstanceExtensionSupport(&instanceExtensions))
-	{
-		throw std::runtime_error("VkInstance does not support required extrensions!");
-	}
-
-	createInfo.enabledExtensionCount = static_cast<uint32_t>(instanceExtensions.size());			// Cast to uint32_t as size returns a type t
-	createInfo.ppEnabledExtensionNames = instanceExtensions.data();
-
-	// Setup validation layers that the mInstance will use
-	VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo;
-	if (enableValidationLayers) {
-		createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
-		createInfo.ppEnabledLayerNames = validationLayers.data();
-
-		populateDebugMessengerCreateInfo(debugCreateInfo);
-		createInfo.pNext = (VkDebugUtilsMessengerCreateInfoEXT*)&debugCreateInfo;
-	}
-	else {
-		createInfo.enabledLayerCount = 0;
-		createInfo.ppEnabledLayerNames = nullptr;
-	}
-
-	// Create mInstance - must remember to destroy this object in memory later
-	VkResult result = vkCreateInstance(&createInfo, nullptr, &mInstance);
-
-	if (result != VK_SUCCESS)
-	{
-		throw std::runtime_error("Failed to create a Vulkan instance");
-	}
+	mInstance = std::make_unique<Instance>("Vulkan App", requiredInstanceExtensions);
 
 }
 
@@ -234,7 +178,7 @@ void VulkanRenderer::createInstance()
 void VulkanRenderer::createSurface()
 {
 	// Create Surface (creates a surface create info struct, runs the create surface function, returns result)
-	VkResult result = glfwCreateWindowSurface(mInstance, mWindow, nullptr, &mSurface);
+	VkResult result = glfwCreateWindowSurface(mInstance->handle(), mWindow, nullptr, &mSurface);
 
 
 	if (result != VK_SUCCESS)
@@ -254,7 +198,7 @@ void VulkanRenderer::createDevice()
 	VkPhysicalDeviceFeatures requiredFeatures = {};
 	requiredFeatures.samplerAnisotropy = VK_TRUE;
 
-	mDevice = std::make_unique<Device>(mInstance, mSurface, requiredExtensions, requiredFeatures);
+	mDevice = std::make_unique<Device>(*mInstance, mSurface, requiredExtensions, requiredFeatures);
 }
 
 // This should be redefined per application
@@ -264,7 +208,7 @@ void VulkanRenderer::findDesiredQueueFamilies()
 	mGraphicsQueueFamily = mDevice->getQueueFamilyIndex(VK_QUEUE_GRAPHICS_BIT);
 }
 
-void VulkanRenderer::createSwapChain()
+void VulkanRenderer::createSwapchain()
 {
 	VkExtent2D windowExtent;
 	getWindowExtent(windowExtent);
@@ -993,8 +937,8 @@ void VulkanRenderer::recordCommands(CommandBuffer& primaryCmdBuffer, uint32_t cu
 		}
 
 		// Push lambda function to threadpool for running
-		auto futureResult = mThreadPool.push([=, &frame, &primaryCmdBuffer](size_t threadIndex) {
-			return recordSecondaryCommandBuffers(&primaryCmdBuffer, frame, objectStart, objectEnd, threadIndex, currentImage);
+		auto futureResult = mThreadPool.push([=, &primaryCmdBuffer](size_t threadIndex) {
+			return recordSecondaryCommandBuffers(&primaryCmdBuffer, objectStart, objectEnd, threadIndex);
 		});
 
 		futureSecondaryCommandBuffers.push_back(std::move(futureResult));
@@ -1032,11 +976,13 @@ void VulkanRenderer::recordCommands(CommandBuffer& primaryCmdBuffer, uint32_t cu
 }
 
 
-CommandBuffer* VulkanRenderer::recordSecondaryCommandBuffers(CommandBuffer* primaryCommandBuffer, Frame& frame, uint32_t objectStart, uint32_t objectEnd, size_t threadIndex, uint32_t currentImage)
+CommandBuffer* VulkanRenderer::recordSecondaryCommandBuffers(CommandBuffer* primaryCommandBuffer, uint32_t objectStart, uint32_t objectEnd, size_t threadIndex)
 {
+	auto& frame = mFrames[activeFrameIndex];
+
 	auto& queue = mDevice->queue(mGraphicsQueueFamily, 0);
 
-	CommandBuffer& cmdBuffer = frame.requestCommandBuffer(queue, VK_COMMAND_BUFFER_LEVEL_SECONDARY, threadIndex);
+	CommandBuffer& cmdBuffer = frame->requestCommandBuffer(queue, VK_COMMAND_BUFFER_LEVEL_SECONDARY, threadIndex);
 
 	cmdBuffer.beginRecording(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT 
 		| VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT, primaryCommandBuffer);
@@ -1065,7 +1011,7 @@ CommandBuffer* VulkanRenderer::recordSecondaryCommandBuffers(CommandBuffer* prim
 
 			cmdBuffer.bindIndexBuffer(thisMesh->indexBuffer(), 0, VK_INDEX_TYPE_UINT32);
 
-			std::vector<std::reference_wrapper<const DescriptorSet>> descriptorSetGroup{ *mUniformDescriptorSets[currentImage],
+			std::vector<std::reference_wrapper<const DescriptorSet>> descriptorSetGroup{ *mUniformDescriptorSets[activeFrameIndex],
 				*mTextureDescriptorSets[thisMesh->texId()] };
 
 			cmdBuffer.bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout,
@@ -1095,41 +1041,41 @@ void VulkanRenderer::allocateDynamicBufferTransferSpace()
 	*/
 }
 
-bool VulkanRenderer::checkInstanceExtensionSupport(std::vector<const char*>* checkExtensions)
-{
-	// Need to get number of extensions to create array of correct size to hold extensions
-	uint32_t extensionCount = 0;
-	vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);		// Note this is enumerationg over INSTANCE exceptions
-
-	// Create a list of VkExtensionProperties using count
-	std::vector<VkExtensionProperties> extensions(extensionCount);
-	vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, extensions.data());
-
-	// Check if given extensions are in list of available extensions
-	for (const auto& checkExtension : *checkExtensions)
-	{
-		bool hasExtension = false;
-		for (const auto& extension : extensions)
-		{
-			if (strcmp(checkExtension, extension.extensionName))
-			{
-				hasExtension = true;
-				break;
-			}
-		}
-
-		// Extension not available therefore application will not run
-		if (!hasExtension)
-		{
-			return false;
-		}
-
-		// All extensions exist
-		return true;
-	}
-
-
-}
+//bool VulkanRenderer::checkInstanceExtensionSupport(std::vector<const char*>* checkExtensions)
+//{
+//	// Need to get number of extensions to create array of correct size to hold extensions
+//	uint32_t extensionCount = 0;
+//	vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);		// Note this is enumerationg over INSTANCE exceptions
+//
+//	// Create a list of VkExtensionProperties using count
+//	std::vector<VkExtensionProperties> extensions(extensionCount);
+//	vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, extensions.data());
+//
+//	// Check if given extensions are in list of available extensions
+//	for (const auto& checkExtension : *checkExtensions)
+//	{
+//		bool hasExtension = false;
+//		for (const auto& extension : extensions)
+//		{
+//			if (strcmp(checkExtension, extension.extensionName))
+//			{
+//				hasExtension = true;
+//				break;
+//			}
+//		}
+//
+//		// Extension not available therefore application will not run
+//		if (!hasExtension)
+//		{
+//			return false;
+//		}
+//
+//		// All extensions exist
+//		return true;
+//	}
+//
+//
+//}
 
 VkFormat VulkanRenderer::chooseSupportedFormat(const std::vector<VkFormat>& formats, VkImageTiling tiling, VkFormatFeatureFlags featureFlags)
 {
@@ -1291,31 +1237,31 @@ int VulkanRenderer::createModel(int modelDataIndex)
 	return modelList.size() - 1;
 }
 
-// Checks that all of the requested layers are available
-bool VulkanRenderer::checkValidationLayerSupport() {
-	uint32_t layerCount;
-	vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
-
-	std::vector<VkLayerProperties> availableLayers(layerCount);
-	vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
-
-	for (const char* layerName : validationLayers) {
-		bool layerFound = false;
-
-		for (const auto& layerProperties : availableLayers) {
-			if (strcmp(layerName, layerProperties.layerName) == 0) {
-				layerFound = true;
-				break;
-			}
-		}
-
-		if (!layerFound) {
-			return false;
-		}
-	}
-
-	return true;
-}
+//// Checks that all of the requested layers are available
+//bool VulkanRenderer::checkValidationLayerSupport() {
+//	uint32_t layerCount;
+//	vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
+//
+//	std::vector<VkLayerProperties> availableLayers(layerCount);
+//	vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
+//
+//	for (const char* layerName : validationLayers) {
+//		bool layerFound = false;
+//
+//		for (const auto& layerProperties : availableLayers) {
+//			if (strcmp(layerName, layerProperties.layerName) == 0) {
+//				layerFound = true;
+//				break;
+//			}
+//		}
+//
+//		if (!layerFound) {
+//			return false;
+//		}
+//	}
+//
+//	return true;
+//}
 
 void VulkanRenderer::getWindowExtent(VkExtent2D& windowExtent)
 {
@@ -1328,28 +1274,28 @@ void VulkanRenderer::getWindowExtent(VkExtent2D& windowExtent)
 	windowExtent.height = static_cast<uint32_t>(height);
 }
 
-void VulkanRenderer::setupDebugMessenger()
-{
-	if (!enableValidationLayers) return;
-
-	VkDebugUtilsMessengerCreateInfoEXT createInfo;
-	populateDebugMessengerCreateInfo(createInfo);
-
-
-	if (CreateDebugUtilsMessengerEXT(mInstance, &createInfo, nullptr, &debugMessenger) != VK_SUCCESS) {
-		throw std::runtime_error("failed to set up debug messenger!");
-	}
-}
-
-void VulkanRenderer::populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo)
-{
-	createInfo = {};
-	createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
-	//createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
-	createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
-	createInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
-	createInfo.pfnUserCallback = debugCallback;
-}
+//void VulkanRenderer::setupDebugMessenger()
+//{
+//	if (!enableValidationLayers) return;
+//
+//	VkDebugUtilsMessengerCreateInfoEXT createInfo;
+//	populateDebugMessengerCreateInfo(createInfo);
+//
+//
+//	if (CreateDebugUtilsMessengerEXT(mInstance, &createInfo, nullptr, &debugMessenger) != VK_SUCCESS) {
+//		throw std::runtime_error("failed to set up debug messenger!");
+//	}
+//}
+//
+//void VulkanRenderer::populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo)
+//{
+//	createInfo = {};
+//	createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+//	//createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+//	createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+//	createInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+//	createInfo.pfnUserCallback = debugCallback;
+//}
 
 
 
