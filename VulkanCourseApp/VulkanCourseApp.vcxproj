@@ -173,6 +173,7 @@
     <ClCompile Include="Sampler.cpp" />
     <ClCompile Include="SemaphorePool.cpp" />
     <ClCompile Include="Subpass.cpp" />
+    <ClCompile Include="Surface.cpp" />
     <ClCompile Include="Swapchain.cpp" />
     <ClCompile Include="Texture.cpp" />
     <ClCompile Include="VulkanRenderer.cpp" />
@@ -212,6 +213,7 @@
     <ClInclude Include="Sampler.h" />
     <ClInclude Include="SemaphorePool.h" />
     <ClInclude Include="Subpass.h" />
+    <ClInclude Include="Surface.h" />
     <ClInclude Include="Swapchain.h" />
     <ClInclude Include="Texture.h" />
     <ClInclude Include="Utilities.h" />

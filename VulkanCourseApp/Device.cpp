@@ -110,6 +110,11 @@ void Device::endAndSubmitTemporaryCommandBuffer(CommandBuffer& commandBuffer)
 	//vkFreeCommandBuffers(mLogicalDevice, mPrimaryCommandPool->handle(), 1, &commandBuffer);
 }
 
+VkResult Device::waitIdle() const
+{
+	return vkDeviceWaitIdle(mLogicalDevice);
+}
+
 
 
 

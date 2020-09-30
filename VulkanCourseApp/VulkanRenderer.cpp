@@ -13,6 +13,7 @@
 #include "Buffer.h"
 #include "CommandBuffer.h"
 #include "Sampler.h"
+#include "Surface.h"
 #include "DescriptorPool.h"
 #include "DescriptorSetLayout.h"
 #include "DescriptorResourceReference.h"
@@ -140,7 +141,12 @@ void VulkanRenderer::cleanup()
 
 VulkanRenderer::~VulkanRenderer()
 {
-	vkDestroySurfaceKHR(mInstance->handle(), mSurface, nullptr);
+	if (mDevice)
+	{
+		mDevice->waitIdle();
+	}
+
+	//vkDestroySurfaceKHR(mInstance->handle(), mSurface, nullptr);
 	//vkDestroyInstance(mInstance, nullptr);
 }
 
@@ -176,14 +182,17 @@ void VulkanRenderer::createInstance()
 // Create interface to the window
 void VulkanRenderer::createSurface()
 {
-	// Create Surface (creates a surface create info struct, runs the create surface function, returns result)
-	VkResult result = glfwCreateWindowSurface(mInstance->handle(), mWindow, nullptr, &mSurface);
+	VkSurfaceKHR surface;
 
+	// Create Surface (creates a surface create info struct, runs the create surface function, returns result)
+	VkResult result = glfwCreateWindowSurface(mInstance->handle(), mWindow, nullptr, &surface);
 
 	if (result != VK_SUCCESS)
 	{
-		throw std::runtime_error("Failed to create a surface!");
+		throw std::runtime_error("Failed to create a Surface!");
 	}
+
+	mSurface = std::make_unique<Surface>(*mInstance, surface);
 }
 
 // TODO : should not be creating the device extensions and features here
@@ -197,7 +206,7 @@ void VulkanRenderer::createDevice()
 	VkPhysicalDeviceFeatures requiredFeatures = {};
 	requiredFeatures.samplerAnisotropy = VK_TRUE;
 
-	mDevice = std::make_unique<Device>(*mInstance, mSurface, requiredExtensions, requiredFeatures);
+	mDevice = std::make_unique<Device>(*mInstance, mSurface->handle(), requiredExtensions, requiredFeatures);
 }
 
 // This should be redefined per application
@@ -212,7 +221,7 @@ void VulkanRenderer::createSwapchain()
 	VkExtent2D windowExtent;
 	getWindowExtent(windowExtent);
 
-	mSwapchain = std::make_unique<Swapchain>(*mDevice, windowExtent, mSurface, VK_PRESENT_MODE_MAILBOX_KHR, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT);
+	mSwapchain = std::make_unique<Swapchain>(*mDevice, windowExtent, mSurface->handle(), VK_PRESENT_MODE_MAILBOX_KHR, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT);
 }
 
 // Prepare rendertargets and frames
@@ -240,8 +249,6 @@ void VulkanRenderer::createPerFrameObjects()
 	{
 		// IMAGES + RENDERTARGET + RESOURCE REFERENCE
 		
-		
-
 		// 0 - swapchain image
 		Image swapchainImage(*mDevice,
 			image,
@@ -256,16 +263,12 @@ void VulkanRenderer::createPerFrameObjects()
 			VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT,
 			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
-		
-
 		// 2 - depth image
 		Image depthImage(*mDevice,
 			swapchainExtent,
 			mDepthFormat,
 			VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT,
 			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-
-		
 
 
 		std::vector<Image> renderTargetImages;

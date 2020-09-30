@@ -21,6 +21,8 @@ CommandPool::CommandPool(Device& device, uint32_t queueFamilyIndex) :
 
 CommandPool::~CommandPool()
 {
+	//reset();
+
 	if (mHandle != VK_NULL_HANDLE)
 	{
 		vkDestroyCommandPool(mDevice.logicalDevice(), mHandle, nullptr);

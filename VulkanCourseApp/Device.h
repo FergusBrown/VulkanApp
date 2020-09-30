@@ -31,6 +31,7 @@ public:
 	// - Management
 	std::unique_ptr<CommandBuffer> createAndBeginTemporaryCommandBuffer(VkCommandBufferLevel level = VK_COMMAND_BUFFER_LEVEL_PRIMARY);
 	void endAndSubmitTemporaryCommandBuffer(CommandBuffer& commandBuffer);
+	VkResult waitIdle() const;
 	//void submitCommandBuffer(CommandBuffer commandBuffer);
 
 private:

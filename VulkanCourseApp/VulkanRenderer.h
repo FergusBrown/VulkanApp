@@ -29,6 +29,7 @@ class Instance;
 class Buffer;
 class CommandBuffer;
 class Sampler;
+class Surface;
 class DescriptorPool;
 class DescriptorSetLayout;
 class DescriptorResourceReference;
@@ -82,8 +83,9 @@ private:
 	// - Main
 	std::unique_ptr<Instance> mInstance;
 
-	VkSurfaceKHR mSurface;
-	std::unique_ptr<Device> mDevice;
+	//VkSurfaceKHR mSurface;
+	std::unique_ptr<Surface> mSurface{ nullptr };
+	std::unique_ptr<Device> mDevice{ nullptr };
 	uint32_t mGraphicsQueueFamily;
 
 	std::unique_ptr<Swapchain> mSwapchain;
@@ -162,7 +164,6 @@ private:
 	// - Create Functions
 	void setupThreadPool();
 	void createInstance();
-	void setupDebugMessenger();
 	void createSurface();
 	void createDevice();
 	void findDesiredQueueFamilies();
@@ -186,8 +187,6 @@ private:
 	// - Record Functions
 	void recordCommands(CommandBuffer& primaryCmdBuffer, uint32_t currentImage);
 	CommandBuffer* recordSecondaryCommandBuffers(CommandBuffer* primaryCommandBuffer, uint32_t objectStart, uint32_t objectEnd, size_t threadIndex);
-	// -- Create Helper Functions
-	//void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
 
 	// - Allocate Functions
 	void allocateDynamicBufferTransferSpace();
@@ -202,8 +201,6 @@ private:
 
 	// -- Create Functions
 	VkShaderModule createShaderModule(const std::vector<char>& code);
-
-	
 
 	int createTexture(std::string fileName);
 	int createTextureDescriptor(const Texture& texture);
