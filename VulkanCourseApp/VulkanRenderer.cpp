@@ -53,7 +53,7 @@ int VulkanRenderer::init(GLFWwindow* newWindow)
 		//createDescriptorResourceReferences();
 		createUniformDescriptorSets();
 		createInputDescriptorSets();
-		createSynchronation();			// TODO : abstract to a pool
+		//createSynchronation();			// TODO : abstract to a pool
 		createCamera(90.0f);
 
 		//createTexture("default_checker.png");
@@ -93,6 +93,11 @@ void VulkanRenderer::updateCameraView(mat4 newView)
 
 void VulkanRenderer::draw()
 {
+	auto& previousFrame = mFrames[activeFrameIndex];
+
+	VkSemaphore imageAcquired = previousFrame->requestSemaphore();
+
+	// TODO : get this semaphore form previous frame
 	// Get next active frame
 	VkResult result = mSwapchain->acquireNextImageIndex(imageAcquired, activeFrameIndex);
 
@@ -111,13 +116,15 @@ void VulkanRenderer::draw()
 	VkSemaphore renderFinished = activeFrame->requestSemaphore();
 	VkFence drawFence = activeFrame->requestFence();
 
-	CommandBuffer& primaryCmdBuffer = mDevice->requestCommandBuffer(VK_COMMAND_BUFFER_LEVEL_PRIMARY);
+	const Queue& queue = mDevice->queue(mGraphicsQueueFamily, 0);
+
+	CommandBuffer& primaryCmdBuffer = activeFrame->requestCommandBuffer(queue, VK_COMMAND_BUFFER_LEVEL_PRIMARY);
 
 	recordCommands(primaryCmdBuffer, activeFrameIndex);		// Only record commands once the image at imageIndex is available (not being used by the queue)
 
 	updateUniformBuffers(activeFrameIndex);
 
-	const Queue& queue = mDevice->queue(mGraphicsQueueFamily, 0);
+	
 
 	queue.submit(imageAcquired, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, renderFinished,
 		primaryCmdBuffer, drawFence);
@@ -762,18 +769,18 @@ void VulkanRenderer::createGraphicsPipeline()
 }
 
 
-void VulkanRenderer::createSynchronation()
-{
-	// Semaphore creation information
-	VkSemaphoreCreateInfo semaphoreCreateInfo = {};
-	semaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-
-	VkResult result = vkCreateSemaphore(mDevice->logicalDevice(), &semaphoreCreateInfo, nullptr, &imageAcquired);
-	if (result != VK_SUCCESS)
-	{
-		throw std::runtime_error("Failed to create a Semaphore!");
-	}
-}
+//void VulkanRenderer::createSynchronation()
+//{
+//	//// Semaphore creation information
+//	//VkSemaphoreCreateInfo semaphoreCreateInfo = {};
+//	//semaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+//
+//	//VkResult result = vkCreateSemaphore(mDevice->logicalDevice(), &semaphoreCreateInfo, nullptr, &imageAcquired);
+//	//if (result != VK_SUCCESS)
+//	//{
+//	//	throw std::runtime_error("Failed to create a Semaphore!");
+//	//}
+//}
 
 void VulkanRenderer::createFramebuffers()
 {

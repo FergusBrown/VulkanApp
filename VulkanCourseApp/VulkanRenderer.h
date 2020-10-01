@@ -147,10 +147,6 @@ private:
 
 	VkRenderPass mRenderPass;
 
-	// - Synchronisation
-	VkSemaphore imageAcquired;
-
-
 	// - Multithreading
 	// Max. number of concurrent threads
 	uint32_t mThreadCount;
@@ -174,7 +170,7 @@ private:
 	void createPushConstantRange();
 	void createGraphicsPipeline();
 	void createFramebuffers();
-	void createSynchronation();
+	//void createSynchronation();
 	void createTextureSampler();
 	void createUniformBuffers();
 	void createDescriptorPools();
