@@ -153,6 +153,9 @@ VulkanRenderer::~VulkanRenderer()
 		mDevice->waitIdle();
 	}
 
+	modelList.clear();
+	modelDataList.clear();
+
 	//vkDestroySurfaceKHR(mInstance->handle(), mSurface, nullptr);
 	//vkDestroyInstance(mInstance, nullptr);
 }
@@ -1195,8 +1198,11 @@ int VulkanRenderer::loadMeshModelData(std::string modelFile)
 	std::vector<Mesh*> modelMeshes = MeshModelData::LoadNode(*mDevice, scene->mRootNode, scene, matToTex);
 
 	// Create mesh model and add to list
-	MeshModelData meshModelData = MeshModelData(modelMeshes);
-	modelDataList.push_back(meshModelData);
+	/*MeshModelData meshModelData = MeshModelData(modelMeshes);
+	modelDataList.push_back(meshModelData);*/
+	
+	//MeshModelData meshModelData = MeshModelData(modelMeshes);
+	modelDataList.emplace_back(modelMeshes);
 
 	return modelDataList.size() - 1;
 }

@@ -16,7 +16,9 @@ Device::Device(Instance& instance, VkSurfaceKHR surface, const std::vector<const
 
 Device::~Device()
 {
-	vkDeviceWaitIdle(mLogicalDevice);
+	mPrimaryCommandPool.reset();
+
+	waitIdle();
 	vkDestroyDevice(mLogicalDevice, nullptr);
 }
 

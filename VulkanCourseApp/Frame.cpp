@@ -24,6 +24,11 @@ Frame::Frame(Device& device, std::unique_ptr<RenderTarget>&& renderTarget, uint3
 
 //Frame::~Frame()
 //{
+//
+//}
+
+//Frame::~Frame()
+//{
 //	reset();
 //}
 
