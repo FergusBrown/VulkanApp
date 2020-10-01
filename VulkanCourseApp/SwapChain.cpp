@@ -70,7 +70,11 @@ Swapchain::Swapchain(Device& device,
 
 Swapchain::~Swapchain()
 {
-	vkDestroySwapchainKHR(mDevice.logicalDevice(), mHandle, nullptr);
+	if (mHandle != VK_NULL_HANDLE)
+	{
+		vkDestroySwapchainKHR(mDevice.logicalDevice(), mHandle, nullptr);
+	}
+	
 }
 
 Device& Swapchain::device() const

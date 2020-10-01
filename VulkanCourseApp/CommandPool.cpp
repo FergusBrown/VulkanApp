@@ -21,7 +21,8 @@ CommandPool::CommandPool(Device& device, uint32_t queueFamilyIndex) :
 
 CommandPool::~CommandPool()
 {
-	//reset();
+	mPrimaryCommandBuffers.clear();
+	mSecondaryCommandBuffers.clear();
 
 	if (mHandle != VK_NULL_HANDLE)
 	{
