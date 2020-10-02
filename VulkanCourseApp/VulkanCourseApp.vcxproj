@@ -100,7 +100,7 @@
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)/../../externals/CTPL;C:/VulkanSDK/1.2.141.2/Include;$(SolutionDir)/../../externals/GLM/glm;$(SolutionDir)/../../externals/ASSIMP/include;$(SolutionDir)/../../externals/stb;$(SolutionDir)/../../externals/GLFW/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(SolutionDir)/../../externals/CTPL;C:/VulkanSDK/1.2.141.2/Include;$(SolutionDir)/../../externals/GLM/glm;$(SolutionDir)/../../externals/ASSIMP/include;$(SolutionDir)/../../externals/stb;$(SolutionDir)/../../externals/GLFW/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
@@ -132,7 +132,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)/../../externals/CTPL;C:/VulkanSDK/1.2.141.2/Include;$(SolutionDir)/../../externals/GLM/glm;$(SolutionDir)/../../externals/ASSIMP/include;$(SolutionDir)/../../externals/stb;$(SolutionDir)/../../externals/GLFW/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(SolutionDir)/../../externals/CTPL;C:/VulkanSDK/1.2.141.2/Include;$(SolutionDir)/../../externals/GLM/glm;$(SolutionDir)/../../externals/ASSIMP/include;$(SolutionDir)/../../externals/stb;$(SolutionDir)/../../externals/GLFW/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
@@ -163,19 +163,20 @@
     <ClCompile Include="InputHandlerMouse.cpp" />
     <ClCompile Include="Instance.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="Mesh.cpp" />
-    <ClCompile Include="MeshModelData.cpp" />
-    <ClCompile Include="MeshModel.cpp" />
     <ClCompile Include="Pawn.cpp" />
     <ClCompile Include="PhysicalDevice.cpp" />
     <ClCompile Include="Queue.cpp" />
     <ClCompile Include="RenderTarget.cpp" />
     <ClCompile Include="Sampler.cpp" />
+    <ClCompile Include="SceneGraph\Component.cpp" />
+    <ClCompile Include="SceneGraph\Components\Mesh.cpp" />
+    <ClCompile Include="SceneGraph\Node.cpp" />
     <ClCompile Include="SemaphorePool.cpp" />
     <ClCompile Include="Subpass.cpp" />
     <ClCompile Include="Surface.cpp" />
     <ClCompile Include="Swapchain.cpp" />
     <ClCompile Include="Texture.cpp" />
+    <ClCompile Include="SceneGraph\Components\Transform.cpp" />
     <ClCompile Include="VulkanRenderer.cpp" />
     <ClCompile Include="Window.cpp" />
   </ItemGroup>
@@ -202,20 +203,22 @@
     <ClInclude Include="InputHandlerMouse.h" />
     <ClInclude Include="Instance.h" />
     <ClInclude Include="Light.h" />
-    <ClInclude Include="Mesh.h" />
-    <ClInclude Include="MeshModelData.h" />
-    <ClInclude Include="MeshModel.h" />
     <ClInclude Include="Pawn.h" />
     <ClInclude Include="PhysicalDevice.h" />
     <ClInclude Include="PointLight.h" />
     <ClInclude Include="Queue.h" />
     <ClInclude Include="RenderTarget.h" />
     <ClInclude Include="Sampler.h" />
+    <ClInclude Include="glmCommon.h" />
+    <ClInclude Include="SceneGraph\Component.h" />
+    <ClInclude Include="SceneGraph\Components\Mesh.h" />
+    <ClInclude Include="SceneGraph\Node.h" />
     <ClInclude Include="SemaphorePool.h" />
     <ClInclude Include="Subpass.h" />
     <ClInclude Include="Surface.h" />
     <ClInclude Include="Swapchain.h" />
     <ClInclude Include="Texture.h" />
+    <ClInclude Include="SceneGraph\Components\Transform.h" />
     <ClInclude Include="Utilities.h" />
     <ClInclude Include="VulkanRenderer.h" />
     <ClInclude Include="VulkanValidation.h" />

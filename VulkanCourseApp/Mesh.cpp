@@ -3,6 +3,7 @@
 #include "Device.h"
 #include "Buffer.h"
 #include "CommandBuffer.h"
+#include "SceneGraph\Components\Mesh.h"
 
 Mesh::Mesh(Device& device,
 	std::vector<Vertex>* vertices, std::vector<uint32_t> * indices,
@@ -120,3 +121,5 @@ void Mesh::copyBuffer(Device& device, Buffer& srcBuffer, Buffer& dstBuffer)
 
 	device.endAndSubmitTemporaryCommandBuffer(*commandBuffer);
 }
+
+

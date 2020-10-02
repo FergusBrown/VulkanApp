@@ -43,11 +43,17 @@
     <Filter Include="Source Files\Other">
       <UniqueIdentifier>{0b7e9e41-9ff4-4d2e-9135-46fef4b8a14f}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\Meshes">
-      <UniqueIdentifier>{45e0dafa-adc4-4bf3-b59c-71b7ff8efbb7}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\Meshes">
       <UniqueIdentifier>{de266efd-7417-4f5a-a189-dab374f8f71c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Meshes Old">
+      <UniqueIdentifier>{45e0dafa-adc4-4bf3-b59c-71b7ff8efbb7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Scene Graph">
+      <UniqueIdentifier>{21505d47-6a8b-4f1b-8dbf-a68a0d312024}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Scene Graph">
+      <UniqueIdentifier>{da8e0f3d-3053-4f6d-8905-c94eae0d14c0}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -74,15 +80,6 @@
     </ClCompile>
     <ClCompile Include="Device.cpp">
       <Filter>Source Files\Renderer</Filter>
-    </ClCompile>
-    <ClCompile Include="MeshModelData.cpp">
-      <Filter>Source Files\Meshes</Filter>
-    </ClCompile>
-    <ClCompile Include="Mesh.cpp">
-      <Filter>Source Files\Meshes</Filter>
-    </ClCompile>
-    <ClCompile Include="MeshModel.cpp">
-      <Filter>Source Files\Meshes</Filter>
     </ClCompile>
     <ClCompile Include="Image.cpp">
       <Filter>Source Files\Renderer</Filter>
@@ -148,6 +145,18 @@
       <Filter>Source Files\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="Surface.cpp">
+      <Filter>Source Files\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="SceneGraph\Components\Mesh.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SceneGraph\Component.cpp">
+      <Filter>Source Files\Scene Graph</Filter>
+    </ClCompile>
+    <ClCompile Include="SceneGraph\Node.cpp">
+      <Filter>Source Files\Scene Graph</Filter>
+    </ClCompile>
+    <ClCompile Include="SceneGraph\Components\Transform.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -199,15 +208,6 @@
     </ClInclude>
     <ClInclude Include="Common.h">
       <Filter>Header Files\Renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="Mesh.h">
-      <Filter>Header Files\Meshes</Filter>
-    </ClInclude>
-    <ClInclude Include="MeshModel.h">
-      <Filter>Header Files\Meshes</Filter>
-    </ClInclude>
-    <ClInclude Include="MeshModelData.h">
-      <Filter>Header Files\Meshes</Filter>
     </ClInclude>
     <ClInclude Include="Image.h">
       <Filter>Header Files\Renderer</Filter>
@@ -270,6 +270,21 @@
       <Filter>Header Files\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="Surface.h">
+      <Filter>Header Files\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneGraph\Components\Mesh.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneGraph\Component.h">
+      <Filter>Header Files\Scene Graph</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneGraph\Node.h">
+      <Filter>Header Files\Scene Graph</Filter>
+    </ClInclude>
+    <ClInclude Include="glmCommon.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneGraph\Components\Transform.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
