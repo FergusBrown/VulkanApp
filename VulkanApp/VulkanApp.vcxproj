@@ -181,6 +181,7 @@
     <ClCompile Include="Renderer\Swapchain.cpp" />
     <ClCompile Include="Renderer\Texture.cpp" />
     <ClCompile Include="Renderer\VulkanRenderer.cpp" />
+    <ClCompile Include="Renderer\ShaderModule.cpp" />
     <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -225,6 +226,7 @@
     <ClInclude Include="Renderer\Texture.h" />
     <ClInclude Include="Renderer\Utilities.h" />
     <ClInclude Include="Renderer\VulkanRenderer.h" />
+    <ClInclude Include="Renderer\ShaderModule.h" />
     <ClInclude Include="Window.h" />
   </ItemGroup>
   <ItemGroup>
