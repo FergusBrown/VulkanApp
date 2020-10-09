@@ -72,7 +72,7 @@ private:
 	VkSharingMode			mSharingMode{};
 
 	// - Associated with image
-	std::unique_ptr<DeviceMemory> mMemory;
+	std::unique_ptr<DeviceMemory> mMemory{ nullptr };
 	//VkImageView mImageView{ VK_NULL_HANDLE };
 
 	// - Image view management

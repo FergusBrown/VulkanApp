@@ -1,17 +1,18 @@
 #pragma once
 #include "Common.h"
 
-class Buffer;
+#include "Buffer.h"
 class CommandPool;
 class DescriptorSet;
 class Framebuffer;
 class Image;
 class RenderTarget;
+class RenderPass;
 
 // TODO : modify once renderpass object has been implemented
 struct RenderPassBinding
 {
-	VkRenderPass* renderPass = nullptr;
+	RenderPass* renderPass = nullptr;
 
 	Framebuffer* framebuffer = nullptr;
 };
@@ -34,7 +35,7 @@ public:
 	// - Command buffer operations
 	void beginRecording(VkCommandBufferUsageFlags flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT, CommandBuffer* primaryCommandBuffer = nullptr);
 	void beginRenderPass(const RenderTarget& renderTarget,
-		VkRenderPass& renderPass,
+		RenderPass& renderPass,
 		Framebuffer& framebuffer,
 		const std::vector<VkClearValue>& clearValues,
 		VkSubpassContents subpassContentsRecordingStrategy = VK_SUBPASS_CONTENTS_INLINE);

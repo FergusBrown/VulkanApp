@@ -14,8 +14,6 @@ RenderTarget::RenderTarget(std::vector<Image>&& images) :
 {
 	for (auto& image : mImages)
 	{
-
-
 		mImageViews.emplace_back(image, VK_IMAGE_VIEW_TYPE_2D);
 
 		mAttachments.emplace_back(image.format(), image.sampleCount(), image.usage());
@@ -42,14 +40,14 @@ const std::vector<Attachment>& RenderTarget::attachments() const
 	return mAttachments;
 }
 
-const std::vector<uint32_t>& RenderTarget::inputAttachmentIndices() const
+const std::vector<uint32_t>& RenderTarget::inputAttachments() const
 {
-	return mInputAttachmentIndices;
+	return mInputAttachments;
 }
 
-const std::vector<uint32_t>& RenderTarget::outputAttachmentsIndices() const
+const std::vector<uint32_t>& RenderTarget::outputAttachments() const
 {
-	return mOutputAttachmentIndices;
+	return mOutputAttachments;
 }
 
 void RenderTarget::setLayout(uint32_t attachmentIndex, VkImageLayout layout)
@@ -57,12 +55,12 @@ void RenderTarget::setLayout(uint32_t attachmentIndex, VkImageLayout layout)
 	mAttachments[attachmentIndex].initialLayout = layout;
 }
 
-void RenderTarget::setInputAttachmentIndices(std::vector<uint32_t> inputAttachmentIndices)
+void RenderTarget::setInputAttachments(const std::vector<uint32_t>& inputAttachments)
 {
-	mInputAttachmentIndices = inputAttachmentIndices;
+	mInputAttachments = inputAttachments;
 }
 
-void RenderTarget::setOutputAttachmentIndices(std::vector<uint32_t> outputAttachmentIndices)
+void RenderTarget::setOutputAttachments(const std::vector<uint32_t>& outputAttachments)
 {
-	mOutputAttachmentIndices = outputAttachmentIndices;
+	mOutputAttachments = outputAttachments;
 }

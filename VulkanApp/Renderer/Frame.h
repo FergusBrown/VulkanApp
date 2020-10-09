@@ -7,15 +7,14 @@
 #include "FencePool.h"
 #include "SemaphorePool.h"
 
-//class CommandPool;
+class Buffer;
 class CommandBuffer;
 class Device;
 class DescriptorPool;
 class DescriptorSet;
-//class FencePool;
+class DescriptorSetLayout;
 class Queue;
 class RenderTarget;
-//class SemaphorePool;
 
 
 // This is a container for data which must be held by every frame
@@ -23,7 +22,7 @@ class RenderTarget;
 class Frame
 {
 public:
-	Frame(Device& device, std::unique_ptr<RenderTarget>&& renderTarget, uint32_t threadCount = 1);
+	Frame(Device& device, std::unique_ptr<RenderTarget>&& renderTarget, size_t threadCount = 1);
 	~Frame() = default;
 
 	// - Getters
@@ -37,6 +36,13 @@ public:
 	// -- Command Buffers
 	CommandBuffer& requestCommandBuffer(const Queue& queue, VkCommandBufferLevel level, size_t threadIndex = 0);
 
+	// TODO : this functionality needs implemented
+	// -- Descriptor Sets
+	DescriptorSet& requestDescriptorSet(DescriptorSetLayout& descriptorSetLayout,
+		const BindingMap<VkDescriptorImageInfo>& imageInfos = {},
+		const BindingMap<VkDescriptorBufferInfo>& bufferInfos = {},
+		size_t threadIndex = 0);
+
 	// -- Synchronisation
 	VkFence requestFence();
 	VkSemaphore requestSemaphore();
@@ -47,26 +53,21 @@ private:
 	Device& mDevice;
 
 	// - Descriptors
-	/*std::vector<VkDescriptorPool> mDescriptorPools;
-	std::vector<VkDescriptorSet> mDescriptorSets;*/
-
-	// - Synchronisation
-	// TODO : add fence and semaphore pool
-	/*VkSemaphore mImageAvailable;
-	VkSemaphore mRenderFinished;
-	VkFence		mDrawFence;*/
-
-	// - Thread Pool
-	//uint32_t mThreadCount;
-	//ctpl::thread_pool mThreadPool;
 
 	struct ThreadData {
+		// Command Pools
 		std::vector<std::unique_ptr<CommandPool>> commandPools;			// per thread vector of command pools: Each index holds a pool for a different queue type
-		//std::vector<std::unique_ptr<DescriptorPool>> descriptorPools;
-		//std::vector<std::unique_ptr<DescriptorSet>> descriptorSets;
+		
+		// Descriptors			
+		std::vector<std::unique_ptr<DescriptorPool>> descriptorPools;
+		std::vector<std::unique_ptr<DescriptorSet>> descriptorSets;
+
+		// Buffers
+		std::vector<std::unique_ptr<Buffer>> buffers;
 	};
 
-	std::vector<ThreadData> mThreadData;
+	size_t mThreadCount{ 1 };
+	std::unordered_map<size_t, ThreadData> mThreadData;
 
 	// - Render target
 	std::unique_ptr<RenderTarget> mRenderTarget;
@@ -78,11 +79,14 @@ private:
 	// - Thread Pool
 	//void createThreadData();
 
-	// - Command Pool
-	std::unique_ptr<CommandPool>& requestCommandPool(const Queue& queue, size_t threadIndex = 0);
-
 	// - Synchronisation
 	FencePool mFencePool;
 	SemaphorePool mSemaphorePool;
+
+	// - Support
+	// -- Command Pools
+	std::unique_ptr<CommandPool>& requestCommandPool(const Queue& queue, size_t threadIndex = 0);
+
+	// -- Descriptor Pools
 };
 

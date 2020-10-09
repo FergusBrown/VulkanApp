@@ -4,6 +4,7 @@
 
 class CommandBuffer;
 class CommandPool;
+class Instance;
 class PhysicalDevice;
 class Queue;
 
@@ -12,7 +13,7 @@ class Device
 {
 public:
 	// Create logical device based on list of requested extensions
-	Device(VkInstance instance, VkSurfaceKHR surface, const std::vector<const char*>& requiredExtensions, VkPhysicalDeviceFeatures& requiredFeatures);
+	Device(Instance& instance, VkSurfaceKHR surface, const std::vector<const char*>& requiredExtensions, VkPhysicalDeviceFeatures& requiredFeatures);
 	~Device();
 
 	// - Getters
@@ -30,6 +31,7 @@ public:
 	// - Management
 	std::unique_ptr<CommandBuffer> createAndBeginTemporaryCommandBuffer(VkCommandBufferLevel level = VK_COMMAND_BUFFER_LEVEL_PRIMARY);
 	void endAndSubmitTemporaryCommandBuffer(CommandBuffer& commandBuffer);
+	VkResult waitIdle() const;
 	//void submitCommandBuffer(CommandBuffer commandBuffer);
 
 private:
@@ -50,6 +52,7 @@ private:
 	// Functions
 	// - Get Physical Device referece
 	void getPhysicalDevice(VkInstance instance, const std::vector<const char*>& requiredExtensions, VkPhysicalDeviceFeatures& requiredFeatures);
+	
 	// -- Support
 	/*QueueFamilyIndices getQueueFamilies();*/
 	//VkBool32 checkPresentationSupport(uint32_t queueFamilyIndex);

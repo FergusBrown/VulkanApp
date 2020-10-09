@@ -1,12 +1,13 @@
 #include "CommandBuffer.h"
 
-#include "Buffer.h"
+//#include "Buffer.h"
 #include "CommandPool.h"
 #include "DescriptorSet.h"
 #include "Device.h"
 #include "Framebuffer.h"
 #include "Image.h"
 #include "RenderTarget.h"
+#include "RenderPass.h"
 
 CommandBuffer::CommandBuffer(CommandPool& commandPool, VkCommandBufferLevel level) :
 	mCommandPool(commandPool), 
@@ -77,7 +78,7 @@ void CommandBuffer::beginRecording(VkCommandBufferUsageFlags flags, CommandBuffe
 		// Inheritance create info allows secondary buffers to inherit render pass state
 		VkCommandBufferInheritanceInfo inheritanceInfo = {};
 		inheritanceInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO;
-		inheritanceInfo.renderPass = *currentRenderPass.renderPass;
+		inheritanceInfo.renderPass = currentRenderPass.renderPass->handle();
 		inheritanceInfo.framebuffer = currentRenderPass.framebuffer->handle();
 		inheritanceInfo.subpass = 0;	// TODO : this must be changed
 		beginInfo.pInheritanceInfo = &inheritanceInfo;
@@ -96,7 +97,7 @@ void CommandBuffer::beginRecording(VkCommandBufferUsageFlags flags, CommandBuffe
 // This should be recorded with a primary command buffer
 // TODO : need to set this up so that the renderpass and framebuffer refs can be const
 void CommandBuffer::beginRenderPass(const RenderTarget& renderTarget,
-	VkRenderPass& renderPass,
+	RenderPass& renderPass,
 	Framebuffer& framebuffer, 
 	const std::vector<VkClearValue>& clearValues, 
 	VkSubpassContents subpassContentsRecordingStrategy)
@@ -110,7 +111,7 @@ void CommandBuffer::beginRenderPass(const RenderTarget& renderTarget,
 	// Create begin info
 	VkRenderPassBeginInfo renderPassBeginInfo = {};
 	renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-	renderPassBeginInfo.renderPass = *mRenderPassBinding.renderPass;			// Render pass to begin
+	renderPassBeginInfo.renderPass = mRenderPassBinding.renderPass->handle();			// Render pass to begin
 	renderPassBeginInfo.framebuffer = mRenderPassBinding.framebuffer->handle();
 	renderPassBeginInfo.renderArea.offset = { 0, 0 };							// Start point of render pass in pixels
 	renderPassBeginInfo.renderArea.extent = renderTarget.extent();				// Size of region to run render pass on (starting at offset)

@@ -2,7 +2,7 @@
 #include <vector>
 #include <iostream>
 
-#include "VulkanRenderer.h"
+#include "Renderer/VulkanRenderer.h"
 #include "Window.h"
 #include "Pawn.h"
 #include "InputHandlerMouse.h"
@@ -28,33 +28,31 @@ int main()
 	float lastTime = 0.0f;
 
 	Pawn player = Pawn();
-	vulkanRenderer.updateCameraView(player.generateView());
+	glm::mat4 cameraView = player.generateView();
+	vulkanRenderer.updateCameraView(cameraView);
 	//int frog = vulkanRenderer.loadMeshModelData("Models/12268_banjofrog_v1_L3.obj");
-	int sphereData = vulkanRenderer.loadMeshModelData("Models/sphere.obj");
-	int sphere = vulkanRenderer.createModel(sphereData);
+	int sphere = vulkanRenderer.createModel("Models/sphere.obj");
 	mat4 newModel = glm::translate(mat4(1.0f), vec3(0.0f, 2.0f, 0.0f));
 	vulkanRenderer.updateModel(sphere, newModel);
 	
-	int torusData = vulkanRenderer.loadMeshModelData("Models/torus.obj");
 	std::vector<int> torusInstances;
-	torusInstances.push_back(vulkanRenderer.createModel(torusData));
+	torusInstances.push_back(vulkanRenderer.createModel("Models/torus.obj"));
 	mat4 torusModel = glm::translate(mat4(1.0f), vec3(-2.0f, 2.0f, -2.0f));
 	vulkanRenderer.updateModel(torusInstances[0], torusModel);
 
-	int index = torusInstances[0] + 1;
-	for (int i = 0; i < 100; ++i)
-	{
-		for (int j = 0; j < 10; ++j)
-		{
-			torusInstances.push_back(vulkanRenderer.createModel(torusData));
-			mat4 tempModel = glm::translate(mat4(1.0f), vec3(-50.0f + i, 4.0f + j, -2.0f));
-			vulkanRenderer.updateModel(index, tempModel);
-			++index;
-		}
-	}
+	//int index = torusInstances[0] + 1;
+	//for (int i = 0; i < 100; ++i)
+	//{
+	//	for (int j = 0; j < 10; ++j)
+	//	{
+	//		torusInstances.push_back(vulkanRenderer.createModel(torusData));
+	//		mat4 tempModel = glm::translate(mat4(1.0f), vec3(-50.0f + i, 4.0f + j, -2.0f));
+	//		vulkanRenderer.updateModel(index, tempModel);
+	//		++index;
+	//	}
+	//}
 
-	int planeData = vulkanRenderer.loadMeshModelData("Models/blank_plane.obj");
-	int plane = vulkanRenderer.createModel(planeData);
+	int plane = vulkanRenderer.createModel("Models/blank_plane.obj");
 	mat4 rotateMatrix = glm::rotate(mat4(1.0f), glm::radians(90.0f), vec3(0.0f, -1.0f, 0.0f));
 	vulkanRenderer.updateModel(plane, rotateMatrix);
 
@@ -84,9 +82,10 @@ int main()
 				command->execute(player);
 			}
 		}
-		vulkanRenderer.updateCameraView(player.generateView());
+		cameraView = player.generateView();
+		vulkanRenderer.updateCameraView(cameraView);
 
-		torusModel *= glm::rotate(mat4(1.0f), deltaTime, vec3(1.0f, 0.0f, -1.0f));
+		torusModel *= glm::rotate(glm::mat4(1.0f), deltaTime, glm::vec3(1.0f, 0.0f, -1.0f));
 		vulkanRenderer.updateModel(torusInstances[0], torusModel);
 
 

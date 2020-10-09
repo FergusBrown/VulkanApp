@@ -118,10 +118,10 @@ Image::~Image()
 {
 	
 
-	// If memory null then object was created from an exteernal VkImage
-	if (mHandle != VK_NULL_HANDLE)
+	// If memory nullptr then object was created from an external VkImage (from swapchain)
+	// Therefore, only destroy image if it is not from swapchain
+	if (mHandle != VK_NULL_HANDLE && mMemory)
 	{
-		//vkDestroyImageView(mDevice.logicalDevice(), mImageView, nullptr);
 		vkDestroyImage(mDevice.logicalDevice(), mHandle, nullptr);
 		
 	}

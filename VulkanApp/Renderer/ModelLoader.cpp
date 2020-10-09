@@ -1,39 +1,8 @@
-#include "MeshModelData.h"
+#include "ModelLoader.h"
 
-#include "Device.h"
 #include "Mesh.h"
 
-MeshModelData::MeshModelData(std::vector<Mesh*> newMeshList)
-{
-	meshList = newMeshList;
-}
-
-size_t MeshModelData::getMeshCount()
-{
-	return meshList.size();
-}
-
-Mesh* MeshModelData::getMesh(size_t index)
-{
-	if (index >= meshList.size())
-	{
-		throw std::runtime_error("Attempted to access invalid Mesh index!");
-	}
-	return meshList[index];
-
-}
-
-
-//void MeshModelData::destroyMeshModel()
-//{
-//	for (auto* mesh : meshList)
-//	{
-//		mesh->destroyBuffers();
-//		delete mesh;
-//	}
-//}
-
-std::vector<std::string> MeshModelData::LoadMaterials(const aiScene* scene)
+std::vector<std::string> LoadMaterials(const aiScene* scene)
 {
 	// Create 1:1 sized list of textures
 	std::vector<std::string> textureList(scene->mNumMaterials);
@@ -54,7 +23,7 @@ std::vector<std::string> MeshModelData::LoadMaterials(const aiScene* scene)
 			if (material->GetTexture(aiTextureType_DIFFUSE, 0, &path) == AI_SUCCESS)
 			{
 				// Cut off any directory information already present
-				int idx = std::string(path.data).rfind("\\"); 
+				int idx = std::string(path.data).rfind("\\");
 				std::string fileName = std::string(path.data).substr(idx + 1);
 
 				textureList[i] = fileName;
@@ -65,27 +34,35 @@ std::vector<std::string> MeshModelData::LoadMaterials(const aiScene* scene)
 	return textureList;
 }
 
-std::vector<Mesh*> MeshModelData::LoadNode(Device& device, aiNode* node, const aiScene* scene, std::vector<int> matToTex)
+std::vector<std::unique_ptr<Mesh>> LoadNode(Device& device, aiNode* node, const aiScene* scene, std::vector<int> matToTex)
 {
-	std::vector<Mesh*> meshList;
+	std::vector<std::unique_ptr<Mesh>> meshList;
 
 	// Go through mesh at this node and create it, then add it to out meshList;
 	for (size_t i = 0; i < node->mNumMeshes; ++i)
 	{
-		meshList.push_back(LoadMesh(device, scene->mMeshes[node->mMeshes[i]], scene, matToTex));
+		std::unique_ptr<Mesh> meshPtr = LoadMesh(device, scene->mMeshes[node->mMeshes[i]], scene, matToTex);
+
+		meshList.push_back(std::move(meshPtr));
 	}
 
 	// Go through each node attached to this node and load it, then append their meshes to this node's mesh list
 	for (size_t i = 0; i < node->mNumChildren; ++i)
 	{
-		std::vector<Mesh*> newList = LoadNode(device, node->mChildren[i], scene, matToTex);
-		meshList.insert(meshList.end(), newList.begin(), newList.end());
+		std::vector<std::unique_ptr<Mesh>> newList = LoadNode(device, node->mChildren[i], scene, matToTex);
+
+		for (auto& meshPtr : newList)
+		{
+			meshList.push_back(std::move(meshPtr));
+		}
+
+		//meshList.insert(meshList.end(), newList.begin(), newList.end());
 	}
 
 	return meshList;
 }
 
-Mesh* MeshModelData::LoadMesh(Device& device, aiMesh* mesh, const aiScene* scene, std::vector<int> matToTex)
+std::unique_ptr<Mesh> LoadMesh(Device& device, aiMesh* mesh, const aiScene* scene, std::vector<int> matToTex)
 {
 	std::vector<Vertex> vertices;
 	std::vector<uint32_t> indices;
@@ -127,7 +104,7 @@ Mesh* MeshModelData::LoadMesh(Device& device, aiMesh* mesh, const aiScene* scene
 	}
 
 	// Create new mesh with details and return it
-	Mesh* newMesh = new Mesh(device, &vertices, &indices, matToTex[mesh->mMaterialIndex]);
+	std::unique_ptr<Mesh> newMesh = std::make_unique<Mesh>(device, &vertices, &indices, matToTex[mesh->mMaterialIndex]);
 
 	return newMesh;
 }

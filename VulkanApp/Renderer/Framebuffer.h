@@ -3,14 +3,14 @@
 
 class Device;
 class RenderTarget;
-//class RenderTarget;
+class RenderPass;
 
 // Object used to create and contain a framebuffer which maps the renderpass output to rendertarget images
 class Framebuffer
 {
 public:
 	//Framebuffer(Device& device, const VkExtent2D& extent, const std::vector<VkImageView>& imageViews, VkRenderPass renderPass);
-	Framebuffer(Device& device, VkRenderPass renderPass, const RenderTarget& renderTarget);
+	Framebuffer(Device& device, const RenderPass& renderPass, const RenderTarget& renderTarget);
 	~Framebuffer();
 
 	// - Getters

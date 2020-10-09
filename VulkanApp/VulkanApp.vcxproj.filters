@@ -51,9 +51,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="VulkanRenderer.cpp">
-      <Filter>Source Files\Renderer</Filter>
-    </ClCompile>
     <ClCompile Include="InputHandlerMouse.cpp">
       <Filter>Source Files\Input</Filter>
     </ClCompile>
@@ -66,95 +63,101 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files\Other</Filter>
     </ClCompile>
-    <ClCompile Include="Frame.cpp">
-      <Filter>Source Files\Renderer</Filter>
+    <ClCompile Include="Light.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="RenderTarget.cpp">
-      <Filter>Source Files\Renderer</Filter>
+    <ClCompile Include="Renderer\Buffer.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Device.cpp">
-      <Filter>Source Files\Renderer</Filter>
+    <ClCompile Include="Renderer\CommandBuffer.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MeshModelData.cpp">
-      <Filter>Source Files\Meshes</Filter>
+    <ClCompile Include="Renderer\CommandPool.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Mesh.cpp">
-      <Filter>Source Files\Meshes</Filter>
+    <ClCompile Include="Renderer\Common.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MeshModel.cpp">
-      <Filter>Source Files\Meshes</Filter>
+    <ClCompile Include="Renderer\DescriptorPool.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Image.cpp">
-      <Filter>Source Files\Renderer</Filter>
+    <ClCompile Include="Renderer\DescriptorResourceReference.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Subpass.cpp">
-      <Filter>Source Files\Renderer</Filter>
+    <ClCompile Include="Renderer\DescriptorSet.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Framebuffer.cpp">
-      <Filter>Source Files\Renderer</Filter>
+    <ClCompile Include="Renderer\DescriptorSetLayout.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Swapchain.cpp">
-      <Filter>Source Files\Renderer</Filter>
+    <ClCompile Include="Renderer\Device.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="CommandBuffer.cpp">
-      <Filter>Source Files\Renderer</Filter>
+    <ClCompile Include="Renderer\DeviceMemory.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="CommandPool.cpp">
-      <Filter>Source Files\Renderer</Filter>
+    <ClCompile Include="Renderer\FencePool.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DescriptorPool.cpp">
-      <Filter>Source Files\Renderer</Filter>
+    <ClCompile Include="Renderer\Frame.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DescriptorSet.cpp">
-      <Filter>Source Files\Renderer</Filter>
+    <ClCompile Include="Renderer\Framebuffer.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DescriptorSetLayout.cpp">
-      <Filter>Source Files\Renderer</Filter>
+    <ClCompile Include="Renderer\Image.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Sampler.cpp">
-      <Filter>Source Files\Renderer</Filter>
+    <ClCompile Include="Renderer\ImageView.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Buffer.cpp">
-      <Filter>Source Files\Renderer</Filter>
+    <ClCompile Include="Renderer\Instance.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DescriptorResourceReference.cpp">
-      <Filter>Source Files\Renderer</Filter>
+    <ClCompile Include="Renderer\Mesh.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Texture.cpp">
-      <Filter>Source Files\Renderer</Filter>
+    <ClCompile Include="Renderer\MeshModel.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DeviceMemory.cpp">
-      <Filter>Source Files\Renderer</Filter>
+    <ClCompile Include="Renderer\ModelLoader.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Queue.cpp">
-      <Filter>Source Files\Renderer</Filter>
+    <ClCompile Include="Renderer\PhysicalDevice.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="PhysicalDevice.cpp">
-      <Filter>Source Files\Renderer</Filter>
+    <ClCompile Include="Renderer\Queue.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ImageView.cpp">
-      <Filter>Source Files\Renderer</Filter>
+    <ClCompile Include="Renderer\RenderPass.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Common.cpp">
-      <Filter>Source Files\Renderer</Filter>
+    <ClCompile Include="Renderer\RenderTarget.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="FencePool.cpp">
-      <Filter>Source Files\Renderer</Filter>
+    <ClCompile Include="Renderer\Sampler.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SemaphorePool.cpp">
-      <Filter>Source Files\Renderer</Filter>
+    <ClCompile Include="Renderer\SemaphorePool.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\Subpass.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\Surface.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\Swapchain.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\Texture.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\VulkanRenderer.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Utilities.h">
-      <Filter>Header Files\Renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="VulkanRenderer.h">
-      <Filter>Header Files\Renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="VulkanValidation.h">
-      <Filter>Header Files\Renderer</Filter>
-    </ClInclude>
     <ClInclude Include="Light.h">
       <Filter>Header Files\Shading</Filter>
     </ClInclude>
@@ -182,83 +185,98 @@
     <ClInclude Include="Window.h">
       <Filter>Header Files\Other</Filter>
     </ClInclude>
-    <ClInclude Include="RenderTarget.h">
-      <Filter>Header Files\Renderer</Filter>
+    <ClInclude Include="Renderer\Buffer.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Frame.h">
-      <Filter>Header Files\Renderer</Filter>
+    <ClInclude Include="Renderer\CommandBuffer.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Device.h">
-      <Filter>Header Files\Renderer</Filter>
+    <ClInclude Include="Renderer\CommandPool.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Common.h">
-      <Filter>Header Files\Renderer</Filter>
+    <ClInclude Include="Renderer\Common.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Mesh.h">
-      <Filter>Header Files\Meshes</Filter>
+    <ClInclude Include="Renderer\DescriptorPool.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="MeshModel.h">
-      <Filter>Header Files\Meshes</Filter>
+    <ClInclude Include="Renderer\DescriptorResourceReference.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="MeshModelData.h">
-      <Filter>Header Files\Meshes</Filter>
+    <ClInclude Include="Renderer\DescriptorSet.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Image.h">
-      <Filter>Header Files\Renderer</Filter>
+    <ClInclude Include="Renderer\DescriptorSetLayout.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Subpass.h">
-      <Filter>Header Files\Renderer</Filter>
+    <ClInclude Include="Renderer\Device.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Framebuffer.h">
-      <Filter>Header Files\Renderer</Filter>
+    <ClInclude Include="Renderer\DeviceMemory.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Swapchain.h">
-      <Filter>Header Files\Renderer</Filter>
+    <ClInclude Include="Renderer\FencePool.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CommandBuffer.h">
-      <Filter>Header Files\Renderer</Filter>
+    <ClInclude Include="Renderer\Frame.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CommandPool.h">
-      <Filter>Header Files\Renderer</Filter>
+    <ClInclude Include="Renderer\Framebuffer.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DescriptorPool.h">
-      <Filter>Header Files\Renderer</Filter>
+    <ClInclude Include="Renderer\Image.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DescriptorSet.h">
-      <Filter>Header Files\Renderer</Filter>
+    <ClInclude Include="Renderer\ImageView.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DescriptorSetLayout.h">
-      <Filter>Header Files\Renderer</Filter>
+    <ClInclude Include="Renderer\Instance.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Sampler.h">
-      <Filter>Header Files\Renderer</Filter>
+    <ClInclude Include="Renderer\Mesh.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Buffer.h">
-      <Filter>Header Files\Renderer</Filter>
+    <ClInclude Include="Renderer\MeshModel.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DescriptorResourceReference.h">
-      <Filter>Header Files\Renderer</Filter>
+    <ClInclude Include="Renderer\ModelLoader.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Texture.h">
-      <Filter>Header Files\Renderer</Filter>
+    <ClInclude Include="Renderer\PhysicalDevice.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DeviceMemory.h">
-      <Filter>Header Files\Renderer</Filter>
+    <ClInclude Include="Renderer\Queue.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Queue.h">
-      <Filter>Header Files\Renderer</Filter>
+    <ClInclude Include="Renderer\RenderPass.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="PhysicalDevice.h">
-      <Filter>Header Files\Renderer</Filter>
+    <ClInclude Include="Renderer\RenderTarget.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ImageView.h">
-      <Filter>Header Files\Renderer</Filter>
+    <ClInclude Include="Renderer\Sampler.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="FencePool.h">
-      <Filter>Header Files\Renderer</Filter>
+    <ClInclude Include="Renderer\SemaphorePool.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="SemaphorePool.h">
-      <Filter>Header Files\Renderer</Filter>
+    <ClInclude Include="Renderer\Subpass.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\Surface.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\Swapchain.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\Texture.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\Utilities.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\VulkanRenderer.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

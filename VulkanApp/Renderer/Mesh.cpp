@@ -1,7 +1,7 @@
 #include "Mesh.h"
 
 #include "Device.h"
-#include "Buffer.h"
+//#include "Buffer.h"
 #include "CommandBuffer.h"
 
 Mesh::Mesh(Device& device,
@@ -39,7 +39,7 @@ int Mesh::vertexCount() const
 	return mVertexCount;
 }
 
-const Buffer& Mesh::vertexBuffer()
+Buffer& Mesh::vertexBuffer()
 {
 	std::lock_guard<std::mutex> lock(mVertexMutex);
 	return *mVertexBuffer;
@@ -50,7 +50,7 @@ int Mesh::indexCount() const
 	return mIndexCount;
 }
 
-const Buffer& Mesh::indexBuffer()
+Buffer& Mesh::indexBuffer()
 {
 	std::lock_guard<std::mutex> lock(mIndexMutex);
 	return *mIndexBuffer;

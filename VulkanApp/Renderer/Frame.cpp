@@ -1,30 +1,20 @@
 #include "Frame.h"
 
 #include "CommandBuffer.h"
-//#include "CommandPool.h"
 #include "DescriptorPool.h"
 #include "DescriptorSet.h"
+#include "DescriptorSetLayout.h"
 #include "Device.h"
-//#include "FencePool.h"
 #include "Queue.h"
 #include "RenderTarget.h"
-//#include "SemaphorePool.h"
 
-Frame::Frame(Device& device, std::unique_ptr<RenderTarget>&& renderTarget, uint32_t threadCount) :
+Frame::Frame(Device& device, std::unique_ptr<RenderTarget>&& renderTarget, size_t threadCount) :
 	mDevice(device), mRenderTarget(std::move(renderTarget)),
-	mFencePool(device), mSemaphorePool(device)
+	mFencePool(device), mSemaphorePool(device),
+	mThreadCount(threadCount)
 {
-	//mThreadPool.resize(mThreadCount);
-	mThreadData.resize(threadCount);
-
-	// THREAD SPECIFIC DATA : COMMAND + DESCRIPTOR POOLS
-	//createThreadData();
 
 }
-
-//Frame::~Frame()
-//{
-//}
 
 Device& Frame::device() const
 {
@@ -36,10 +26,6 @@ const RenderTarget& Frame::renderTarget() const
 	return *mRenderTarget;
 }
 
-//CommandPool& Frame::commandPool(uint32_t threadIndex)
-//{
-//	return *mThreadData[threadIndex].commandPools;
-//}
 
 void Frame::reset()
 {
@@ -48,8 +34,9 @@ void Frame::reset()
 	mSemaphorePool.reset();
 
 	// Reset thread data
-	for (auto& thread : mThreadData)
+	for (size_t i = 0; i < mThreadCount; ++i)
 	{
+		auto& thread = mThreadData[i];
 		for (auto& pool : thread.commandPools)
 		{
 			pool->reset();
@@ -63,6 +50,11 @@ CommandBuffer& Frame::requestCommandBuffer(const Queue& queue, VkCommandBufferLe
 
 	return commandPool->requestCommandBuffer(level);
 }
+
+//DescriptorSet& Frame::requestDescriptorSet(DescriptorSetLayout& descriptorSetLayout, const BindingMap<VkDescriptorImageInfo>& imageInfos, const BindingMap<VkDescriptorBufferInfo>& bufferInfos, size_t threadIndex)
+//{
+//	// TODO: insert return statement here
+//}
 
 VkFence Frame::requestFence()
 {
@@ -83,15 +75,6 @@ void Frame::wait()
 	}
 }
 
-//void Frame::createThreadData()
-//{
-//
-//	// TODO : only create command pool when requested
-//	for (auto& thread : mThreadData)
-//	{
-//		//thread.commandPool = std::make_unique<CommandPool>(mDevice, mDevice.queueFamilyIndices().graphicsFamily);
-//	}
-//}
 
 // Check if a pool for the requested queue exists
 // If it does exist then return it
@@ -114,22 +97,3 @@ std::unique_ptr<CommandPool>& Frame::requestCommandPool(const Queue& queue, size
 
 	return commandPools.back();
 }
-
-//void Frame::createSynchronisation()
-//{
-//	// Fence creation information
-//	VkFenceCreateInfo fenceCreateInfo = {};
-//	fenceCreateInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-//	fenceCreateInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;			// Create fence as signaled (open)
-//
-//	// Semaphore creation information
-//	VkSemaphoreCreateInfo semaphoreCreateInfo = {};
-//	semaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-//
-//	if (vkCreateSemaphore(mDevice.logicalDevice(), &semaphoreCreateInfo, nullptr, &mImageAvailable) != VK_SUCCESS ||
-//		vkCreateSemaphore(mDevice.logicalDevice(), &semaphoreCreateInfo, nullptr, &mRenderFinished) != VK_SUCCESS ||
-//		vkCreateFence(mDevice.logicalDevice(), &fenceCreateInfo, nullptr, &mDrawFence) != VK_SUCCESS)
-//	{
-//		throw std::runtime_error("Failed to create a Semaphore and/or Fence!");
-//	}
-//}

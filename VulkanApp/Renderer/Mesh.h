@@ -1,18 +1,9 @@
 #pragma once
 #include "Common.h"
 
-//#include "Utilities.h" // was used for vertex struct def. That has since been moved here
-
-
-
 class Device;
-class Buffer;
-
-// This struct is bad!!
-//struct Model {
-//	glm::mat4 model;
-//};
-
+//class Buffer;
+#include "Buffer.h"
 struct Vertex
 {
 	glm::vec3 pos;	// Vertex Position (x,y,z)
@@ -24,7 +15,7 @@ class Mesh
 {
 public:
 	Mesh() = delete;
-	Mesh(Device& device, std::vector<Vertex>* vertices, std::vector<uint32_t> * indices,
+	Mesh(Device& device, std::vector<Vertex>* vertices, std::vector<uint32_t>* indices,
 		int newTexId);
 	~Mesh() = default;
 	
@@ -35,10 +26,10 @@ public:
 	int texId() const;
 
 	int vertexCount() const;
-	const Buffer& vertexBuffer();
+	Buffer& vertexBuffer();
 	
 	int indexCount() const;
-	const Buffer& indexBuffer();
+	Buffer& indexBuffer();
 
 	
 

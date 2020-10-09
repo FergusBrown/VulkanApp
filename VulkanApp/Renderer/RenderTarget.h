@@ -5,6 +5,7 @@ class Device;
 class Image;
 class ImageView;
 
+// Parameters associated with an attachment
 struct Attachment {
 	VkFormat format;
 
@@ -31,15 +32,15 @@ public:
 	const std::vector<ImageView>& imageViews() const; // Note that only image views are exposed
 	const std::vector<Attachment>& attachments() const;
 
-	const std::vector<uint32_t>& inputAttachmentIndices() const;
-	const std::vector<uint32_t>& outputAttachmentsIndices() const;
+	const std::vector<uint32_t>& inputAttachments() const;
+	const std::vector<uint32_t>& outputAttachments() const;
 
 	// - Setters
 	void setLayout(uint32_t attachmentIndex, VkImageLayout layout);
 
-	// OBSOLETE?
-	void setInputAttachmentIndices(std::vector<uint32_t> newIndices);
-	void setOutputAttachmentIndices(std::vector<uint32_t> newIndices);
+	// Set target attachments for current subpass
+	void setInputAttachments(const std::vector<uint32_t>& inputAttachments = {});
+	void setOutputAttachments(const std::vector<uint32_t>& outputAttachments = {});
 private:
 	Device& mDevice;
 
@@ -50,9 +51,8 @@ private:
 
 	std::vector<Attachment> mAttachments;
 
-	std::vector<uint32_t> mInputAttachmentIndices;
+	std::vector<uint32_t> mInputAttachments{};
 
-	std::vector<uint32_t> mOutputAttachmentIndices;
-
+	std::vector<uint32_t> mOutputAttachments{ 0 };
 };
 

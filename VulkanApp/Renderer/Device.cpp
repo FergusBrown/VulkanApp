@@ -2,20 +2,23 @@
 
 #include "CommandBuffer.h"
 #include "CommandPool.h"
+#include "Instance.h"
 #include "PhysicalDevice.h"
 #include "Queue.h"
 
-Device::Device(VkInstance instance, VkSurfaceKHR surface, const std::vector<const char*>& requiredExtensions, VkPhysicalDeviceFeatures& requiredFeatures)
+Device::Device(Instance& instance, VkSurfaceKHR surface, const std::vector<const char*>& requiredExtensions, VkPhysicalDeviceFeatures& requiredFeatures)
 	:mSurface(surface)
 {
-	getPhysicalDevice(instance, requiredExtensions, requiredFeatures);
+	getPhysicalDevice(instance.handle(), requiredExtensions, requiredFeatures);
 	createLogicalDevice(requiredExtensions, requiredFeatures);
 	createCommandPool();
 }
 
 Device::~Device()
 {
-	vkDeviceWaitIdle(mLogicalDevice);
+	mPrimaryCommandPool.reset();
+
+	waitIdle();
 	vkDestroyDevice(mLogicalDevice, nullptr);
 }
 
@@ -107,6 +110,11 @@ void Device::endAndSubmitTemporaryCommandBuffer(CommandBuffer& commandBuffer)
 	// CHECK : command buffer should now leave scope and be automatically freed
 	// FREE COMMAND BUFFER
 	//vkFreeCommandBuffers(mLogicalDevice, mPrimaryCommandPool->handle(), 1, &commandBuffer);
+}
+
+VkResult Device::waitIdle() const
+{
+	return vkDeviceWaitIdle(mLogicalDevice);
 }
 
 
