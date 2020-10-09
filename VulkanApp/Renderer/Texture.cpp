@@ -25,25 +25,10 @@ const Device& Texture::device() const
 	return mDevice;
 }
 
-//const Image& Texture::image() const
-//{
-//	return *mImage;
-//}
-
-//const VkImage& Texture::image() const
-//{
-//	return mImage->handle();
-//}
-
 const ImageView& Texture::imageView() const
 {
 	return *mImageView;
 }
-
-//VkDeviceMemory Texture::memory() const
-//{
-//	return mImage->memory();
-//}
 
 uint32_t Texture::textureID() const
 {

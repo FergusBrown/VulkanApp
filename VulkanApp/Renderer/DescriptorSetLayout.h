@@ -3,13 +3,6 @@
 
 class Device;
 
-//enum class ShaderResourceType
-//{
-//	ImageSampler,
-//	UniformBuffer,
-//	InputAttachment
-//};
-
 struct ShaderResource {
 	uint32_t				binding;
 	VkDescriptorType		descriptorType;

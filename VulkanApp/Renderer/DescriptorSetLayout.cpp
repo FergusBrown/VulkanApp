@@ -5,16 +5,13 @@
 DescriptorSetLayout::DescriptorSetLayout(Device& device, uint32_t setIndex, std::vector<ShaderResource>& shaderResources) :
 	mDevice(device), mSetIndex(setIndex)
 {
-	//std::vector<VkDescriptorSetLayoutBinding> bindings;
-
 	// Create bindings
 	for (auto& resource : shaderResources)
 	{
 		createDescriptorSetLayoutBinding(resource);
 	}
 
-	createDescriptorSetLayout();
-	//createDescriptorSetLayout(bindings);
+	createDescriptorSetLayout();;
 }
 
 DescriptorSetLayout::~DescriptorSetLayout()

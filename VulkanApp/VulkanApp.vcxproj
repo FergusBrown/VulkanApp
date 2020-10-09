@@ -149,6 +149,8 @@
     <ClCompile Include="Light.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Pawn.cpp" />
+    <ClCompile Include="Renderer\PipelineLayout.cpp" />
+    <ClCompile Include="Renderer\Pipeline.cpp" />
     <ClCompile Include="Renderer\Buffer.cpp" />
     <ClCompile Include="Renderer\CommandBuffer.cpp" />
     <ClCompile Include="Renderer\CommandPool.cpp" />
@@ -189,6 +191,8 @@
     <ClInclude Include="InputHandlerMouse.h" />
     <ClInclude Include="Light.h" />
     <ClInclude Include="Pawn.h" />
+    <ClInclude Include="Renderer\PipelineLayout.h" />
+    <ClInclude Include="Renderer\Pipeline.h" />
     <ClInclude Include="PointLight.h" />
     <ClInclude Include="Renderer\Buffer.h" />
     <ClInclude Include="Renderer\CommandBuffer.h" />
