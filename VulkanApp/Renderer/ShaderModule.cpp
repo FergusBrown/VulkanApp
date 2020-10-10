@@ -2,8 +2,10 @@
 
 #include "Device.h"
 
-ShaderModule::ShaderModule(Device& device, const std::vector<char>& shaderCode) :
-	mDevice(device)
+ShaderModule::ShaderModule(Device& device, 
+	const std::vector<char>& shaderCode,
+	VkShaderStageFlagBits stageFlagBits) :
+	mDevice(device), mStageFlagBits(stageFlagBits)
 {
 	// Shader module creation info
 	VkShaderModuleCreateInfo shaderModuleCreateInfo = {};
@@ -11,8 +13,7 @@ ShaderModule::ShaderModule(Device& device, const std::vector<char>& shaderCode) 
 	shaderModuleCreateInfo.codeSize = shaderCode.size();										// Size of code
 	shaderModuleCreateInfo.pCode = reinterpret_cast<const uint32_t*>(shaderCode.data());		// Pointer to code (of uint32_t pointer type)
 
-	VkShaderModule shaderModule;
-	VkResult result = vkCreateShaderModule(mDevice.logicalDevice(), &shaderModuleCreateInfo, nullptr, &shaderModule);
+	VkResult result = vkCreateShaderModule(mDevice.logicalDevice(), &shaderModuleCreateInfo, nullptr, &mHandle);
 	if (result != VK_SUCCESS)
 	{
 		throw std::runtime_error("Failed to create a Shader Module!");
@@ -27,7 +28,20 @@ ShaderModule::~ShaderModule()
 	}
 }
 
+ShaderModule::ShaderModule(ShaderModule&& other) noexcept :
+	mDevice(other.mDevice),
+	mHandle(other.mHandle),
+	mStageFlagBits(other.mStageFlagBits)
+{
+	other.mHandle = VK_NULL_HANDLE;
+}
+
 VkShaderModule ShaderModule::handle() const
 {
 	return mHandle;
+}
+
+VkShaderStageFlagBits ShaderModule::stageFlagBits() const
+{
+	return mStageFlagBits;
 }

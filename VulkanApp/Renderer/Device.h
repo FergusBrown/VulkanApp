@@ -40,10 +40,6 @@ private:
 	VkDevice mLogicalDevice;
 	VkSurfaceKHR mSurface;
 
-	//QueueFamilyIndices mQueueFamilyIndices;
-	//VkQueue mGraphicsQueue;
-	//VkQueue mPresentationQueue;
-
 	std::vector<std::vector<Queue>> mQueues;
 
 	// Command pool associated with the primary queue
@@ -53,12 +49,6 @@ private:
 	// - Get Physical Device referece
 	void getPhysicalDevice(VkInstance instance, const std::vector<const char*>& requiredExtensions, VkPhysicalDeviceFeatures& requiredFeatures);
 	
-	// -- Support
-	/*QueueFamilyIndices getQueueFamilies();*/
-	//VkBool32 checkPresentationSupport(uint32_t queueFamilyIndex);
-	//bool checkDeviceSuitable(VkPhysicalDevice device, const std::vector<const char*>& deviceExtensions);
-	//bool checkDeviceExtensionSupport(VkPhysicalDevice device, const std::vector<const char*>& deviceExtensions);
-
 	// - Object creation
 	void createLogicalDevice(const std::vector<const char*>& requiredExtensions, VkPhysicalDeviceFeatures& requiredFeatures);
 	void createCommandPool();

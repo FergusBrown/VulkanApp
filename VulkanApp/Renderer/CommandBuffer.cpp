@@ -6,6 +6,8 @@
 #include "Device.h"
 #include "Framebuffer.h"
 #include "Image.h"
+#include "Pipeline.h"
+#include "PipelineLayout.h"
 #include "RenderTarget.h"
 #include "RenderPass.h"
 
@@ -125,9 +127,10 @@ void CommandBuffer::beginRenderPass(const RenderTarget& renderTarget,
 	// VK_SUBPASS_CONTENTS_INLINE						: only record to primary command buffers for this subpass
 	// VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFERS	: only record to secondary command buffers for this subpass then execute with primary command buffer
 }
-void CommandBuffer::bindPipeline(VkPipelineBindPoint bindPoint, VkPipeline& pipeline)
+
+void CommandBuffer::bindPipeline(VkPipelineBindPoint bindPoint, const Pipeline& pipeline)
 {
-	vkCmdBindPipeline(mHandle, bindPoint, pipeline);
+	vkCmdBindPipeline(mHandle, bindPoint, pipeline.handle());
 }
 
 
@@ -147,7 +150,7 @@ void CommandBuffer::bindIndexBuffer(const Buffer& buffer, VkDeviceSize offset, V
 	vkCmdBindIndexBuffer(mHandle, buffer.handle(), offset, indexType);
 }
 
-void CommandBuffer::bindDescriptorSets(VkPipelineBindPoint pipelineBindPoint, VkPipelineLayout pipelineLayout, uint32_t firstSet, const std::vector<std::reference_wrapper<const DescriptorSet>>& descriptorSets)
+void CommandBuffer::bindDescriptorSets(VkPipelineBindPoint pipelineBindPoint, const PipelineLayout& pipelineLayout, uint32_t firstSet, const std::vector<std::reference_wrapper<const DescriptorSet>>& descriptorSets)
 {
 	// Transform vector to hold descriptor handles
 	std::vector<VkDescriptorSet> descriptorHandles(descriptorSets.size(), VK_NULL_HANDLE);
@@ -155,7 +158,7 @@ void CommandBuffer::bindDescriptorSets(VkPipelineBindPoint pipelineBindPoint, Vk
 		[](const DescriptorSet& descriptorSet) { return descriptorSet.handle(); });
 
 	// Bind descriptor sets
-	vkCmdBindDescriptorSets(mHandle, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 
+	vkCmdBindDescriptorSets(mHandle, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout.handle(), 
 		firstSet, static_cast<uint32_t>(descriptorHandles.size()), descriptorHandles.data(), 0, nullptr);
 }
 

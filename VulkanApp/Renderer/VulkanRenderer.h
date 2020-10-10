@@ -29,6 +29,8 @@ class DescriptorPool;
 class DescriptorSetLayout;
 class DescriptorResourceReference;
 class DescriptorSet;
+class Pipeline;
+class PipelineLayout;
 class RenderPass;
 class RenderTarget;
 class Subpass;
@@ -91,7 +93,7 @@ private:
 	std::unique_ptr<DescriptorSetLayout> mUniformSetLayout;
 	std::unique_ptr<DescriptorSetLayout> mSamplerSetLayout;
 	std::unique_ptr<DescriptorSetLayout> mAttachmentSetLayout;
-	VkPushConstantRange pushConstantRange;
+	VkPushConstantRange mPushConstantRange;
 
 	
 	std::unique_ptr<DescriptorPool> mUniformDescriptorPool;
@@ -119,12 +121,16 @@ private:
 	std::unique_ptr<Sampler> mTextureSampler;
 	std::map <uint32_t, std::unique_ptr<Texture>> mTextures;
 
-	// - Pipeline
-	VkPipeline graphicsPipeline;
+	// - Pipelines + Layouts
+	std::vector<std::unique_ptr<Pipeline>> mPipelines;
+	std::vector<std::unique_ptr<PipelineLayout>> mPipelineLayouts;
+
+
+	/*VkPipeline graphicsPipeline;
 	VkPipelineLayout pipelineLayout;
 	
 	VkPipeline secondPipeline;
-	VkPipelineLayout secondPipelineLayout;
+	VkPipelineLayout secondPipelineLayout;*/
 
 	//VkRenderPass mRenderPass;
 	std::vector<std::unique_ptr<Subpass>> mSubpasses;

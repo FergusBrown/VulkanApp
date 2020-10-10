@@ -17,8 +17,11 @@
 #include "DescriptorSetLayout.h"
 #include "DescriptorResourceReference.h"
 #include "DescriptorSet.h"
+#include "Pipeline.h"
+#include "PipelineLayout.h"
 #include "RenderPass.h"
 #include "RenderTarget.h"
+#include "ShaderModule.h"
 #include "Subpass.h"
 #include "Frame.h"
 #include "Framebuffer.h"
@@ -138,10 +141,10 @@ void VulkanRenderer::cleanup()
 	// Wait until no actions being run on device before destroying
 	vkDeviceWaitIdle(mDevice->logicalDevice());
 
-	vkDestroyPipeline(mDevice->logicalDevice(), secondPipeline, nullptr);
+	/*vkDestroyPipeline(mDevice->logicalDevice(), secondPipeline, nullptr);
 	vkDestroyPipelineLayout(mDevice->logicalDevice(), secondPipelineLayout, nullptr);
 	vkDestroyPipeline(mDevice->logicalDevice(), graphicsPipeline, nullptr);
-	vkDestroyPipelineLayout(mDevice->logicalDevice(), pipelineLayout, nullptr);
+	vkDestroyPipelineLayout(mDevice->logicalDevice(), pipelineLayout, nullptr);*/
 }
 
 VulkanRenderer::~VulkanRenderer()
@@ -395,277 +398,87 @@ void VulkanRenderer::createDescriptorSetLayouts()
 
 void VulkanRenderer::createPushConstantRange()
 {
-	pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;	// Shader stage push constant will go to
-	pushConstantRange.offset = 0;								// Offset into given data to pass to push constant
-	pushConstantRange.size = sizeof(glm::mat4);					// Size of data being passed
+	mPushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;	// Shader stage push constant will go to
+	mPushConstantRange.offset = 0;								// Offset into given data to pass to push constant
+	mPushConstantRange.size = sizeof(glm::mat4);					// Size of data being passed
 }
 
 void VulkanRenderer::createGraphicsPipeline()
 {
-	// Read in SPIR-V code of shaders
-	auto vertexShaderCode = readFile("Shaders/vert.spv");
-	auto fragmentShaderCode = readFile("Shaders/frag.spv");
+	// PIPELINE 1
+	// CREATE SHADER MODULES
+	std::vector<ShaderModule> shaderModules;
 
-	// Create shader modules
-	VkShaderModule vertexShaderModule = createShaderModule(vertexShaderCode);
-	VkShaderModule fragmentShaderModule = createShaderModule(fragmentShaderCode);
+	std::vector<char> vertexCode = readFile("Shaders/vert.spv");
+	shaderModules.emplace_back(*mDevice,
+		vertexCode,
+		VK_SHADER_STAGE_VERTEX_BIT);
 
-	// -- SHADER STAGE CREATION INFORMATION --
-	// Vertex Stage creation information
-	VkPipelineShaderStageCreateInfo vertexShaderCreateInfo = {};
-	vertexShaderCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-	vertexShaderCreateInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;				// Shader stage name
-	vertexShaderCreateInfo.module = vertexShaderModule;						// Shader module to be used by stage
-	vertexShaderCreateInfo.pName = "main";									// Entry point into shader	
+	std::vector<char> fragCode = readFile("Shaders/frag.spv");
+	ShaderModule fragShader(*mDevice,
+		fragCode,
+		VK_SHADER_STAGE_FRAGMENT_BIT);
 
-	// Fragment Stage creation information
-	VkPipelineShaderStageCreateInfo fragmentShaderCreateInfo = {};
-	fragmentShaderCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-	fragmentShaderCreateInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;				// Shader stage name
-	fragmentShaderCreateInfo.module = fragmentShaderModule;						// Shader module to be used by stage
-	fragmentShaderCreateInfo.pName = "main";										// Entry point into shader
+	shaderModules.push_back(std::move(fragShader));
 
-	// Put shader stage creation info into array
-	// Graphics Pipeline creation info requires array of shader stage creates
-	VkPipelineShaderStageCreateInfo shaderStages[] = { vertexShaderCreateInfo, fragmentShaderCreateInfo };
+	/*shaderModules.emplace_back(*mDevice,
+		fragCode,
+		VK_SHADER_STAGE_FRAGMENT_BIT);*/
 
-	// How the data for a single vertex (including info such as position, colour, texture coords, normals, etc) is as a whole
-	VkVertexInputBindingDescription bindingDescription = {};
-	bindingDescription.binding = 0;								// Can bind multiple streams of data, this defines which one
-	bindingDescription.stride = sizeof(Vertex);					// Size of a single vertex object
-	bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;	// How to move between data after each vertex
-																// VK_VERTEX_INPUT_RATE_INDEX		: Move on the the next vertex
-																// VK_VERTEX_INPUT_RATE_INSTANCE	: Move to a vertex for the next mInstance
+	// CREATE PIPELINE LAYOUT
+	std::vector<std::reference_wrapper<DescriptorSetLayout>> descriptorSetLayouts = { *mUniformSetLayout , *mSamplerSetLayout };
 
-	// How the data for an attribute is defined within a vertex
-	std::array<VkVertexInputAttributeDescription, 3> attributeDescriptions;
+	std::unique_ptr<PipelineLayout> firstLayout = std::make_unique<PipelineLayout>(*mDevice, descriptorSetLayouts, mPushConstantRange);
+	
+	// CREATE PIPELINE
+	std::unique_ptr<Pipeline> firstPipeline = 
+		std::make_unique<GraphicsPipeline>(*mDevice,
+			shaderModules,
+			*mSwapchain,
+			*firstLayout,
+			*mRenderPass,
+			0,
+			VK_TRUE,
+			VK_TRUE);
 
-	// Position Attribute
-	attributeDescriptions[0].binding = 0;							// Which binding the data is at (Should be the same as above)
-	attributeDescriptions[0].location = 0;							// Location in shader where data will be read from
-	attributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;	// Format the data will take (also helps define size of data)
-	attributeDescriptions[0].offset = offsetof(Vertex, pos);		// Where this attribute is defined in the data for a single vertex
-
-	// Colour attribute
-	attributeDescriptions[1].binding = 0;
-	attributeDescriptions[1].location = 1;
-	attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
-	attributeDescriptions[1].offset = offsetof(Vertex, col);
-
-	// Texture attribute
-	attributeDescriptions[2].binding = 0;
-	attributeDescriptions[2].location = 2;
-	attributeDescriptions[2].format = VK_FORMAT_R32G32_SFLOAT;
-	attributeDescriptions[2].offset = offsetof(Vertex, tex);
-
-	// -- VERTEX INPUT --
-	VkPipelineVertexInputStateCreateInfo vertexInputCreateInfo = {};
-	vertexInputCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-	vertexInputCreateInfo.vertexBindingDescriptionCount = 1;
-	vertexInputCreateInfo.pVertexBindingDescriptions = &bindingDescription;					// List of vertex binding descriptions (data spacing/stride info)
-	vertexInputCreateInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size());
-	vertexInputCreateInfo.pVertexAttributeDescriptions = attributeDescriptions.data();		// List of Vertex Attribute descriptions (data format and where to bind to and from)
+	// Store pipeline + layout
+	mPipelineLayouts.push_back(std::move(firstLayout));
+	mPipelines.push_back(std::move(firstPipeline));
 
 
-	// -- INPUT ASSEMBLY --
-	VkPipelineInputAssemblyStateCreateInfo inputAssembly = {};
-	inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
-	inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;			// Primitive type to assemble vertices as
-	inputAssembly.primitiveRestartEnable = VK_FALSE;						// Allow overriding of "strip" topology to start new primitives
+	// PIPELINE 2
+	// CREATE SHADER MODULES
+	std::vector<ShaderModule> secondShaderModules = {};
 
+	vertexCode = readFile("Shaders/second_vert.spv");
+	secondShaderModules.emplace_back(*mDevice,
+		vertexCode,
+		VK_SHADER_STAGE_VERTEX_BIT);
 
-	// -- VIEWPORT & SCISSORS
-	// Create a viewport info struct
-	VkViewport viewport = {};
-	viewport.x = 0.0f;									// x start coordinate
-	viewport.y = 0.0f;									// y start coordinate
-	viewport.width = (float)mSwapchain->extent().width;		// width of viewport
-	viewport.height = (float)mSwapchain->extent().height;	// height of viewport
-	viewport.minDepth = 0.0f;							// min framebuffer depth
-	viewport.maxDepth = 1.0f;							// max framebuffer depth
+	fragCode = readFile("Shaders/second_frag.spv");
+	secondShaderModules.emplace_back(*mDevice,
+		fragCode,
+		VK_SHADER_STAGE_FRAGMENT_BIT);
 
-	// Create a scissor info struct
-	VkRect2D scissor = {};
-	scissor.offset = { 0, 0 };				// Offset to use region from
-	scissor.extent = mSwapchain->extent();		// Extent to describe region to use, starting at offset
+	// CREATE PIPELINE LAYOUT
+	std::vector<std::reference_wrapper<DescriptorSetLayout>> secondDescriptorSetLayouts = { *mAttachmentSetLayout };
 
-	VkPipelineViewportStateCreateInfo viewportStateCreateInfo = {};
-	viewportStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
-	viewportStateCreateInfo.viewportCount = 1;
-	viewportStateCreateInfo.pViewports = &viewport;
-	viewportStateCreateInfo.scissorCount = 1;
-	viewportStateCreateInfo.pScissors = &scissor;
+	std::unique_ptr<PipelineLayout> secondLayout = std::make_unique<PipelineLayout>(*mDevice, secondDescriptorSetLayouts);
 
-	/*
-	// -- DYNAMIC STATES --
-	// Dynamic states to enable
-	std::vector<VkDynamicState> dynamicStateEnables;
-	dynamicStateEnables.push_back(VK_DYNAMIC_STATE_VIEWPORT);		// Dynamic Viewport : Can resize in command buffer with vkCmdSetViewport(commandbuffer, 0, 1, &viewport);
-	dynamicStateEnables.push_back(VK_DYNAMIC_STATE_SCISSOR);		// Dynamic Scissor	: Can resize in command buffer with vkCmdSetScissor(commandbuffer, 0, 1, &scissor);
+	// CREATE PIPELINE
+	std::unique_ptr<Pipeline> secondPipeline =
+		std::make_unique<GraphicsPipeline>(*mDevice,
+			secondShaderModules,
+			*mSwapchain,
+			*secondLayout,
+			*mRenderPass,
+			1,
+			VK_FALSE,
+			VK_FALSE);
 
-	// Dynamic State creation info
-	VkPipelineDynamicStateCreateInfo dynamicStateCreateInfo = {};
-	dynamicStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
-	dynamicStateCreateInfo.dynamicStateCount = static_cast<uint32_t>(dynamicStateEnables.size());
-	dynamicStateCreateInfo.pDynamicStates = dynamicStateEnables.data();
-	*/
-
-	// -- RASTERISER --
-	VkPipelineRasterizationStateCreateInfo rasterizerCreateInfo = {};
-	rasterizerCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
-	rasterizerCreateInfo.depthClampEnable = VK_FALSE;			// Change if fragments beyond near/far okanes are clipped (default) or clamped to plane
-	rasterizerCreateInfo.rasterizerDiscardEnable = VK_FALSE;	// Whether to discard data and skip rasterizer. Never creates fragments, only suitable for pipeline without framebuffer
-	rasterizerCreateInfo.polygonMode = VK_POLYGON_MODE_FILL;	// How to handle filling points between vertices ->anything other than fill requires a feature
-	rasterizerCreateInfo.lineWidth = 1.0f;						// How thick lines should be when drawn
-	rasterizerCreateInfo.cullMode = VK_CULL_MODE_BACK_BIT;		// Which face of a tri to cull
-	rasterizerCreateInfo.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;	// Winding to determine which side is front
-	rasterizerCreateInfo.depthBiasEnable = VK_FALSE;			// Whether to add depth bias to fragments (good for stopping "shadow acne" in shadow mapping)
-
-
-	// -- MULTISAMPLING --
-	VkPipelineMultisampleStateCreateInfo multisamplingCreateInfo = {};
-	multisamplingCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
-	multisamplingCreateInfo.sampleShadingEnable = VK_FALSE;						// Enable multisample shading or not
-	multisamplingCreateInfo.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;		// Number of samples to use per fragment
-
-
-	// -- BLENDING --
-	// Blending decides how to blend a new colour being written to a fragment, with the old value
-
-	// Blend Attachment State (how blending is handled)
-	VkPipelineColorBlendAttachmentState colourState = {};
-	colourState.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT	// Colours to apply blending too
-		| VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
-	colourState.blendEnable = VK_TRUE;													// Enable blending
-
-	// Blending uses equation: (srcColorBlendFactor * new colour) colorBlendOp (dstColorBlendFactor * old colour)
-	colourState.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
-	colourState.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
-	colourState.colorBlendOp = VK_BLEND_OP_ADD;
-
-	// Summarised: (VK_BLEND_FACTOR_SRC_ALPHA * new colour) + (VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA * old colour)
-	//			   (new colour alpha * new colour) + ((1 - new colour alpha) * old colour)
-
-	colourState.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
-	colourState.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
-	colourState.alphaBlendOp = VK_BLEND_OP_ADD;
-	// Summarised: (1 * new alpha) + (0 * old alpha) = new alpha
-
-	VkPipelineColorBlendStateCreateInfo colourBlendingCreateInfo = {};
-	colourBlendingCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
-	colourBlendingCreateInfo.logicOpEnable = VK_FALSE;				// Alternative to calculations is to use logical operations
-	colourBlendingCreateInfo.attachmentCount = 1;
-	colourBlendingCreateInfo.pAttachments = &colourState;
-
-	// -- PIPELINE LAYOUT --
-	std::array<VkDescriptorSetLayout, 2> descriptorSetLayouts = { mUniformSetLayout->handle(), mSamplerSetLayout->handle() };
-	VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo = {};
-	pipelineLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-	pipelineLayoutCreateInfo.setLayoutCount = static_cast<uint32_t>(descriptorSetLayouts.size());
-	pipelineLayoutCreateInfo.pSetLayouts = descriptorSetLayouts.data();
-	pipelineLayoutCreateInfo.pushConstantRangeCount = 1;
-	pipelineLayoutCreateInfo.pPushConstantRanges = &pushConstantRange;
-
-	//Create Pipeline Layout
-	VkResult result = vkCreatePipelineLayout(mDevice->logicalDevice(), &pipelineLayoutCreateInfo, nullptr, &pipelineLayout);
-	if (result != VK_SUCCESS)
-	{
-		throw std::runtime_error("Failed to create Pipeline Layout!");
-	}
-
-	// -- DEPTH STENCIL TESTING --
-	// TODO: setup depth stencil testing
-	VkPipelineDepthStencilStateCreateInfo depthStencilCreateInfo = {};
-	depthStencilCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
-	depthStencilCreateInfo.depthTestEnable = VK_TRUE;				// Enable depth checking to determine fragment write
-	depthStencilCreateInfo.depthWriteEnable = VK_TRUE;				// Enable writing to depth buffer (to replace old values)
-	depthStencilCreateInfo.depthCompareOp = VK_COMPARE_OP_LESS;		// Comparison operation that allows and an overwrite (is in front)
-	depthStencilCreateInfo.depthBoundsTestEnable = VK_FALSE;		// Depth bounds test: Does the depth value exist between two bounds
-	depthStencilCreateInfo.stencilTestEnable = VK_FALSE;			// Enable Stencil Test
-
-	// --GRAPHICS PIPELINE CREATION
-	VkGraphicsPipelineCreateInfo pipelineCreateInfo = {};
-	pipelineCreateInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
-	pipelineCreateInfo.stageCount = 2;									// Number of shader stages
-	pipelineCreateInfo.pStages = shaderStages;							// List of shader stages
-	pipelineCreateInfo.pVertexInputState = &vertexInputCreateInfo;		// All the fixed function pipeline stages
-	pipelineCreateInfo.pInputAssemblyState = &inputAssembly;
-	pipelineCreateInfo.pViewportState = &viewportStateCreateInfo;
-	pipelineCreateInfo.pDynamicState = nullptr;
-	pipelineCreateInfo.pRasterizationState = &rasterizerCreateInfo;
-	pipelineCreateInfo.pMultisampleState = &multisamplingCreateInfo;
-	pipelineCreateInfo.pColorBlendState = &colourBlendingCreateInfo;
-	pipelineCreateInfo.pDepthStencilState = &depthStencilCreateInfo;
-	pipelineCreateInfo.layout = pipelineLayout;						// Pipeline layout pipeline should use
-	pipelineCreateInfo.renderPass = mRenderPass->handle();						// Render pass description the pipeline is compatible with
-	pipelineCreateInfo.subpass = 0;									// Subpass of render pass to use with pipeline
-
-	// Pipeline derivatives : Can create multiple pipeline which derive from one another for optimisation
-	pipelineCreateInfo.basePipelineHandle = VK_NULL_HANDLE;		// Existind pipeline to derive from...
-	pipelineCreateInfo.basePipelineIndex = -1;					// or index of pipeline being created to derive from (in case creating multiple at once)
-
-	result = vkCreateGraphicsPipelines(mDevice->logicalDevice(), VK_NULL_HANDLE, 1, &pipelineCreateInfo, nullptr, &graphicsPipeline);
-	if (result != VK_SUCCESS)
-	{
-		throw std::runtime_error("Failed to create a Graphics Pipeline!");
-	}
-
-	// Destroy Shader Modules, no longer needed after Pipeline created
-	vkDestroyShaderModule(mDevice->logicalDevice(), vertexShaderModule, nullptr);
-	vkDestroyShaderModule(mDevice->logicalDevice(), fragmentShaderModule, nullptr);
-
-	// CREATE SECOND PASS PIPELINE
-	// Second pass shaders
-	auto secondVertexShaderCode = readFile("Shaders/second_vert.spv");
-	auto secondFragmentShaderCode = readFile("Shaders/second_frag.spv");
-
-	// Build shaders
-	VkShaderModule secondVertexShaderModule = createShaderModule(secondVertexShaderCode);
-	VkShaderModule secondFragmentShaderModule = createShaderModule(secondFragmentShaderCode);
-
-	vertexShaderCreateInfo.module = secondVertexShaderModule;
-	fragmentShaderCreateInfo.module = secondFragmentShaderModule;
-
-	VkPipelineShaderStageCreateInfo secondShaderStages[] = { vertexShaderCreateInfo, fragmentShaderCreateInfo };
-
-	// No vertex data for second pass
-	vertexInputCreateInfo.vertexBindingDescriptionCount = 0;
-	vertexInputCreateInfo.pVertexBindingDescriptions = nullptr;
-	vertexInputCreateInfo.vertexAttributeDescriptionCount = 0;
-	vertexInputCreateInfo.pVertexAttributeDescriptions = nullptr;
-
-	// Don't want to write to depth buffer
-	depthStencilCreateInfo.depthWriteEnable = VK_FALSE;
-
-
-	VkDescriptorSetLayout descriptorSetLayout = mAttachmentSetLayout->handle();
-	VkPipelineLayoutCreateInfo secondPipelineLayoutCreateInfo = {};
-	secondPipelineLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-	secondPipelineLayoutCreateInfo.setLayoutCount = 1;
-	secondPipelineLayoutCreateInfo.pSetLayouts = &descriptorSetLayout;
-	secondPipelineLayoutCreateInfo.pushConstantRangeCount = 0;
-	secondPipelineLayoutCreateInfo.pPushConstantRanges = nullptr;
-
-	result = vkCreatePipelineLayout(mDevice->logicalDevice(), &secondPipelineLayoutCreateInfo, nullptr, &secondPipelineLayout);
-	if (result != VK_SUCCESS)
-	{
-		throw std::runtime_error("Failed to create Pipeline Layout!");
-	}
-
-	pipelineCreateInfo.pStages = secondShaderStages;		// Update second shader stage list
-	pipelineCreateInfo.layout = secondPipelineLayout;		// Change pipeline layout for input attachment descriptor sets
-	pipelineCreateInfo.subpass = 1;							// Use second subpass
-
-	// Create second pipeline
-	result = vkCreateGraphicsPipelines(mDevice->logicalDevice(), VK_NULL_HANDLE, 1, &pipelineCreateInfo, nullptr, &secondPipeline);
-	if (result != VK_SUCCESS)
-	{
-		throw std::runtime_error("Failed to create a Graphics Pipeline!");
-	}
-
-	// Destroy second shader modules
-	vkDestroyShaderModule(mDevice->logicalDevice(), secondFragmentShaderModule, nullptr);
-	vkDestroyShaderModule(mDevice->logicalDevice(), secondVertexShaderModule, nullptr);
+	// Store pipeline + layout
+	mPipelineLayouts.push_back(std::move(secondLayout));
+	mPipelines.push_back(std::move(secondPipeline));
 }
 
 void VulkanRenderer::createFramebuffers()
@@ -852,11 +665,11 @@ void VulkanRenderer::recordCommands(CommandBuffer& primaryCmdBuffer, uint32_t cu
 	
 	primaryCmdBuffer.nextSubpass(VK_SUBPASS_CONTENTS_INLINE);
 
-	primaryCmdBuffer.bindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, secondPipeline);
+	primaryCmdBuffer.bindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, *mPipelines[1]);
 
 	std::vector<std::reference_wrapper<const DescriptorSet>> descriptorGroup{ *mAttachmentDescriptorSets[currentImage] };
 
-	primaryCmdBuffer.bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, secondPipelineLayout,
+	primaryCmdBuffer.bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, *mPipelineLayouts[1],
 		0, descriptorGroup);
 
 	primaryCmdBuffer.draw(3, 1, 0, 0);
@@ -881,14 +694,14 @@ CommandBuffer* VulkanRenderer::recordSecondaryCommandBuffers(CommandBuffer* prim
 	cmdBuffer.beginRecording(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT 
 		| VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT, primaryCommandBuffer);
 
-	cmdBuffer.bindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
+	cmdBuffer.bindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, *mPipelines[0]);
 
 	for (uint32_t i = objectStart; i < objectEnd; ++i)
 	{
 		MeshModel& thisModel = modelList[i];
 
 		// "Push" constants to given shader stage directly
-		cmdBuffer.pushConstant(pipelineLayout,
+		cmdBuffer.pushConstant(*mPipelineLayouts[0],
 			VK_SHADER_STAGE_VERTEX_BIT,
 			thisModel.modelMatrix());
 
@@ -906,7 +719,7 @@ CommandBuffer* VulkanRenderer::recordSecondaryCommandBuffers(CommandBuffer* prim
 			std::vector<std::reference_wrapper<const DescriptorSet>> descriptorSetGroup{ *mUniformDescriptorSets[activeFrameIndex],
 				*mTextureDescriptorSets[thisMesh.texId()] };
 
-			cmdBuffer.bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout,
+			cmdBuffer.bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, *mPipelineLayouts[0],
 				0, descriptorSetGroup);
 
 			// Execute pipeline

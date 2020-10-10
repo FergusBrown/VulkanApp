@@ -6,6 +6,8 @@ class CommandPool;
 class DescriptorSet;
 class Framebuffer;
 class Image;
+class Pipeline;
+class PipelineLayout;
 class RenderTarget;
 class RenderPass;
 
@@ -39,12 +41,12 @@ public:
 		Framebuffer& framebuffer,
 		const std::vector<VkClearValue>& clearValues,
 		VkSubpassContents subpassContentsRecordingStrategy = VK_SUBPASS_CONTENTS_INLINE);
-	void bindPipeline(VkPipelineBindPoint bindPoint, VkPipeline& pipeline);
+	void bindPipeline(VkPipelineBindPoint bindPoint, const Pipeline& pipeline);
 
 	// TODO : need to update this to be able to take several values
 	// TODO : pipeline layout reference should be bound when the pipeline is bound (should retrieve from the render pass object binding (does not exist at the moment))
 	template<typename T>
-	void pushConstant(VkPipelineLayout pipelineLayout, VkShaderStageFlags shaderStageFlags, const T& value)
+	void pushConstant(const PipelineLayout& pipelineLayout, VkShaderStageFlags shaderStageFlags, const T& value)
 	{
 		// Check size
 		uint32_t size = sizeof(T);
@@ -52,7 +54,7 @@ public:
 
 		// Push constant to shader stage
 		vkCmdPushConstants(mHandle,
-			pipelineLayout,
+			pipelineLayout.handle(),
 			shaderStageFlags,		// Stage to push constants to
 			0,						// Offset of push constants to update
 			size,					// Size of data being pushed	
@@ -63,7 +65,7 @@ public:
 	void bindIndexBuffer(const Buffer& buffer, VkDeviceSize offset, VkIndexType indexType = VK_INDEX_TYPE_UINT32);
 
 	// TODO : update to include dynamic bindings
-	void bindDescriptorSets(VkPipelineBindPoint pipelineBindPoint, VkPipelineLayout pipelineLayout, uint32_t firstSet, const std::vector<std::reference_wrapper<const DescriptorSet>>& descriptorSets);
+	void bindDescriptorSets(VkPipelineBindPoint pipelineBindPoint, const PipelineLayout& pipelineLayout, uint32_t firstSet, const std::vector<std::reference_wrapper<const DescriptorSet>>& descriptorSets);
 
 
 	void draw(uint32_t vertexCount, uint32_t instanceCount, uint32_t firstIndex, uint32_t firstInstance);

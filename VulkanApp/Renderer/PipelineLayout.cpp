@@ -28,6 +28,29 @@ PipelineLayout::PipelineLayout(Device& device,
 	}
 }
 
+PipelineLayout::PipelineLayout(Device& device, const std::vector<std::reference_wrapper<DescriptorSetLayout>>& descriptorSetLayouts) :
+	mDevice(device)
+{
+	std::vector<VkDescriptorSetLayout> layoutHandles(descriptorSetLayouts.size());
+
+	std::transform(descriptorSetLayouts.begin(), descriptorSetLayouts.end(), layoutHandles.begin(),
+		[](const DescriptorSetLayout& descriptorSetLayout) { return descriptorSetLayout.handle(); });
+
+	VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo = {};
+	pipelineLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+	pipelineLayoutCreateInfo.setLayoutCount = static_cast<uint32_t>(layoutHandles.size());
+	pipelineLayoutCreateInfo.pSetLayouts = layoutHandles.data();
+	pipelineLayoutCreateInfo.pushConstantRangeCount = 0;
+	pipelineLayoutCreateInfo.pPushConstantRanges = nullptr;
+
+	//Create Pipeline Layout
+	VkResult result = vkCreatePipelineLayout(mDevice.logicalDevice(), &pipelineLayoutCreateInfo, nullptr, &mHandle);
+	if (result != VK_SUCCESS)
+	{
+		throw std::runtime_error("Failed to create Pipeline Layout!");
+	}
+}
+
 PipelineLayout::~PipelineLayout()
 {
 	if (mHandle != VK_NULL_HANDLE)

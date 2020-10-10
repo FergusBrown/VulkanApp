@@ -6,15 +6,25 @@ class Device;
 class ShaderModule
 {
 public:
-	ShaderModule(Device& device, const std::vector<char>& shaderCode);
+	ShaderModule(Device& device, 
+		const std::vector<char>& shaderCode,
+		VkShaderStageFlagBits stageFlagBitss);
 	~ShaderModule();
+
+	ShaderModule(const ShaderModule&) = delete;
+
+	ShaderModule(ShaderModule&& other) noexcept;
 
 	VkShaderModule handle() const;
 
-	ShaderModule(const ShaderModule&) = delete;
+	VkShaderStageFlagBits stageFlagBits() const;
+
+	
 private:
 	Device& mDevice;
 
 	VkShaderModule mHandle{ VK_NULL_HANDLE };
+
+	VkShaderStageFlagBits mStageFlagBits;
 };
 
