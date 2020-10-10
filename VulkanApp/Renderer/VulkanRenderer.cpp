@@ -415,15 +415,9 @@ void VulkanRenderer::createGraphicsPipeline()
 		VK_SHADER_STAGE_VERTEX_BIT);
 
 	std::vector<char> fragCode = readFile("Shaders/frag.spv");
-	ShaderModule fragShader(*mDevice,
+	shaderModules.emplace_back(*mDevice,
 		fragCode,
 		VK_SHADER_STAGE_FRAGMENT_BIT);
-
-	shaderModules.push_back(std::move(fragShader));
-
-	/*shaderModules.emplace_back(*mDevice,
-		fragCode,
-		VK_SHADER_STAGE_FRAGMENT_BIT);*/
 
 	// CREATE PIPELINE LAYOUT
 	std::vector<std::reference_wrapper<DescriptorSetLayout>> descriptorSetLayouts = { *mUniformSetLayout , *mSamplerSetLayout };

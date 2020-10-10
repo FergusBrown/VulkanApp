@@ -125,14 +125,6 @@ private:
 	std::vector<std::unique_ptr<Pipeline>> mPipelines;
 	std::vector<std::unique_ptr<PipelineLayout>> mPipelineLayouts;
 
-
-	/*VkPipeline graphicsPipeline;
-	VkPipelineLayout pipelineLayout;
-	
-	VkPipeline secondPipeline;
-	VkPipelineLayout secondPipelineLayout;*/
-
-	//VkRenderPass mRenderPass;
 	std::vector<std::unique_ptr<Subpass>> mSubpasses;
 	std::unique_ptr<RenderPass> mRenderPass;
 
