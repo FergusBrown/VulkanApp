@@ -1,5 +1,13 @@
 #include "DepthBufferApp.h"
 
+DepthBufferApp::~DepthBufferApp()
+{
+	if (mDevice)
+	{
+		mDevice->waitIdle();
+	}
+}
+
 void DepthBufferApp::draw()
 {
 	auto& previousFrame = mFrames[activeFrameIndex];

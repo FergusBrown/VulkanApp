@@ -9,7 +9,7 @@ class DepthBufferApp : public VulkanRenderer
 {
 public:
 	DepthBufferApp() = default;
-	~DepthBufferApp() = default;
+	~DepthBufferApp();
 
 	virtual void draw();
 private:
