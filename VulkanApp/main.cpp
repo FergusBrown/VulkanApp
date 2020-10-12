@@ -92,12 +92,6 @@ int main()
 		vulkanRenderer.draw();
 	}
 
-	vulkanRenderer.cleanup();
-
-	// Destroy GLFW window and stop GLFW
-	//glfwDestroyWindow(displayWindow.window);
-	//glfwTerminate();
-
 
 	return 0;
 }

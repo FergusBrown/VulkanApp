@@ -43,9 +43,9 @@ int VulkanRenderer::init(GLFWwindow* newWindow)
 		createSurface();				
 		createDevice();				
 		findDesiredQueueFamilies();
-		createSwapchain();				// COMPLETE
+		createSwapchain();				
 		createPerFrameObjects();		// TODO : still need to create frame with descriptor sets, command buffers etc
-		createRenderPass();				// Change to use rendertarget and subpass objects
+		createRenderPass();	
 		createDescriptorSetLayouts();
 		createPushConstantRange();
 		createGraphicsPipeline();
@@ -122,9 +122,9 @@ void VulkanRenderer::draw()
 
 	CommandBuffer& primaryCmdBuffer = activeFrame->requestCommandBuffer(queue, VK_COMMAND_BUFFER_LEVEL_PRIMARY);
 
-	recordCommands(primaryCmdBuffer, activeFrameIndex);		// Only record commands once the image at imageIndex is available (not being used by the queue)
+	recordCommands(primaryCmdBuffer);		// Only record commands once the image at imageIndex is available (not being used by the queue)
 
-	updateUniformBuffers(activeFrameIndex);
+	updateUniformBuffers();
 
 	
 
@@ -134,17 +134,6 @@ void VulkanRenderer::draw()
 	queue.present(renderFinished, *mSwapchain, activeFrameIndex);
 
 
-}
-
-void VulkanRenderer::cleanup()
-{
-	// Wait until no actions being run on device before destroying
-	vkDeviceWaitIdle(mDevice->logicalDevice());
-
-	/*vkDestroyPipeline(mDevice->logicalDevice(), secondPipeline, nullptr);
-	vkDestroyPipelineLayout(mDevice->logicalDevice(), secondPipelineLayout, nullptr);
-	vkDestroyPipeline(mDevice->logicalDevice(), graphicsPipeline, nullptr);
-	vkDestroyPipelineLayout(mDevice->logicalDevice(), pipelineLayout, nullptr);*/
 }
 
 VulkanRenderer::~VulkanRenderer()
@@ -571,19 +560,19 @@ void VulkanRenderer::createInputDescriptorSets()
 	}
 }
 
-void VulkanRenderer::updateUniformBuffers(uint32_t imageIndex)
+void VulkanRenderer::updateUniformBuffers()
 {
 	// Copy VP data
-	void* data = mUniformBuffers[imageIndex]->map();
+	void* data = mUniformBuffers[activeFrameIndex]->map();
 	memcpy(data, &uboViewProjection, sizeof(UboViewProjection));
-	mUniformBuffers[imageIndex]->unmap();
+	mUniformBuffers[activeFrameIndex]->unmap();
 }
 
 // TODO: changes threads to split load for number of meshes rather than models
-void VulkanRenderer::recordCommands(CommandBuffer& primaryCmdBuffer, uint32_t currentImage) // Current image is swapchain index
+void VulkanRenderer::recordCommands(CommandBuffer& primaryCmdBuffer) // Current image is swapchain index
 {
-	auto& frame = *mFrames[currentImage];
-	auto& framebuffer = mFramebuffers[currentImage];
+	auto& frame = *mFrames[activeFrameIndex];
+	auto& framebuffer = mFramebuffers[activeFrameIndex];
 
 	primaryCmdBuffer.beginRecording();
 
@@ -661,7 +650,7 @@ void VulkanRenderer::recordCommands(CommandBuffer& primaryCmdBuffer, uint32_t cu
 
 	primaryCmdBuffer.bindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, *mPipelines[1]);
 
-	std::vector<std::reference_wrapper<const DescriptorSet>> descriptorGroup{ *mAttachmentDescriptorSets[currentImage] };
+	std::vector<std::reference_wrapper<const DescriptorSet>> descriptorGroup{ *mAttachmentDescriptorSets[activeFrameIndex] };
 
 	primaryCmdBuffer.bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, *mPipelineLayouts[1],
 		0, descriptorGroup);

@@ -42,6 +42,7 @@ class VulkanRenderer
 {
 public:
 	VulkanRenderer();
+	~VulkanRenderer();
 
 	int init(GLFWwindow* newWindow);
 
@@ -53,11 +54,9 @@ public:
 	void createCamera(float FoVinDegrees);
 	void updateCameraView(glm::mat4& newView);
 
-
 	void draw();
-	void cleanup();
 
-	~VulkanRenderer();
+	
 
 private:
 	GLFWwindow* mWindow;
@@ -95,22 +94,22 @@ private:
 	std::unique_ptr<DescriptorSetLayout> mAttachmentSetLayout;
 	VkPushConstantRange mPushConstantRange;
 
-	
+	std::vector<std::unique_ptr<DescriptorResourceReference>> mUniformResources;
+	std::vector<std::unique_ptr<DescriptorResourceReference>> mSamplerResources;
+	std::vector<std::unique_ptr<DescriptorResourceReference>> mAttachmentResources;
+
+	// Abstract below to Frame 
 	std::unique_ptr<DescriptorPool> mUniformDescriptorPool;
 	std::unique_ptr<DescriptorPool> mSamplerDescriptorPool;
 	std::unique_ptr<DescriptorPool> mAttachmentDescriptorPool;
 
-	std::vector<std::unique_ptr<DescriptorResourceReference>> mUniformResources;
-	std::vector<std::unique_ptr<DescriptorResourceReference>> mSamplerResources;
-	std::vector<std::unique_ptr<DescriptorResourceReference>> mAttachmentResources;
-	
 	std::vector<std::unique_ptr<DescriptorSet>> mUniformDescriptorSets;			// Descriptor set holding uniform data
-	std::vector<std::unique_ptr<DescriptorSet>> mTextureDescriptorSets;		// Desctcriptor sets holding texture samplers
+	std::vector<std::unique_ptr<DescriptorSet>> mTextureDescriptorSets;		// Descriptor sets holding texture samplers
 	std::vector<std::unique_ptr<DescriptorSet>> mAttachmentDescriptorSets;		// Descriptor set holding colour/depth images (used for second subpass)
 
 	std::vector<std::unique_ptr<Buffer>> mUniformBuffers;
+	
 	/* ABSTRACTED TO BUFFER CLASS */
-
 	//std::vector<VkBuffer> modelDUniformBuffer;	
 	//std::vector<VkDeviceMemory> modelDUniformBufferMemory;
 	//VkDeviceSize minUniformBufferOffset;
@@ -154,17 +153,16 @@ private:
 	void createInputDescriptorSets();
 
 	// -- Support
-	void updateUniformBuffers(uint32_t imageIndex);
+	void updateUniformBuffers();
 
 	// - Record Functions
-	void recordCommands(CommandBuffer& primaryCmdBuffer, uint32_t currentImage);
+	void recordCommands(CommandBuffer& primaryCmdBuffer);
 	CommandBuffer* recordSecondaryCommandBuffers(CommandBuffer* primaryCommandBuffer, uint32_t objectStart, uint32_t objectEnd, size_t threadIndex);
 
 	// - Allocate Functions
 	void allocateDynamicBufferTransferSpace();
 
 	// - Support Functions
-	
 	// -- Getter Functions
 	void getWindowExtent(VkExtent2D& windowExtent);
 	
