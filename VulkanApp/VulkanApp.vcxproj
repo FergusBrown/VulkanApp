@@ -100,7 +100,7 @@
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)/../../externals/CTPL;C:/VulkanSDK/1.2.141.2/Include;$(SolutionDir)/../../externals/GLM/glm;$(SolutionDir)/../../externals/ASSIMP/include;$(SolutionDir)/../../externals/stb;$(SolutionDir)/../../externals/GLFW/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)/../../externals/CTPL;C:/VulkanSDK/1.2.141.2/Include;$(SolutionDir)/../../externals/GLM/glm;$(SolutionDir)/../../externals/ASSIMP/include;$(SolutionDir)/../../externals/stb;$(SolutionDir)/VulkanApp;$(SolutionDir)/../../externals/GLFW/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
@@ -132,7 +132,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)/../../externals/CTPL;C:/VulkanSDK/1.2.141.2/Include;$(SolutionDir)/../../externals/GLM/glm;$(SolutionDir)/../../externals/ASSIMP/include;$(SolutionDir)/../../externals/stb;$(SolutionDir)/../../externals/GLFW/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)/../../externals/CTPL;C:/VulkanSDK/1.2.141.2/Include;$(SolutionDir)/../../externals/GLM/glm;$(SolutionDir)/../../externals/ASSIMP/include;$(SolutionDir)/../../externals/stb;$(SolutionDir)/VulkanApp;$(SolutionDir)/../../externals/GLFW/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
@@ -145,6 +145,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Applications\DepthBufferApp.cpp" />
+    <ClCompile Include="DeferredRendering.cpp" />
     <ClCompile Include="InputHandlerMouse.cpp" />
     <ClCompile Include="Light.cpp" />
     <ClCompile Include="main.cpp" />
@@ -187,6 +189,8 @@
   <ItemGroup>
     <ClInclude Include="Commands.h" />
     <ClInclude Include="ControlConstants.h" />
+    <ClInclude Include="Applications\DepthBufferApp.h" />
+    <ClInclude Include="DeferredRendering.h" />
     <ClInclude Include="DirectionalLight.h" />
     <ClInclude Include="InputHandler.h" />
     <ClInclude Include="InputHandlerMouse.h" />

@@ -56,12 +56,6 @@ uint32_t CommandBuffer::queueFamilyIndex() const
 	return mCommandPool.queueFamilyIndex();
 }
 
-//void CommandBuffer::bindRenderPass(VkRenderPass* renderpassBinding, Framebuffer* framebufferBinding)
-//{
-//	mRenderPassBinding.renderPass = renderpassBinding;
-//	mRenderPassBinding.framebuffer = framebufferBinding;
-//}
-
 // TODO : update to work with secondary command buffers
 void CommandBuffer::beginRecording(VkCommandBufferUsageFlags flags, CommandBuffer* primaryCommandBuffer)
 {

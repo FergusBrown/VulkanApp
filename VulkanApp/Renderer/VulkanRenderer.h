@@ -14,37 +14,43 @@
 #include "Utilities.h"
 #include "ModelLoader.h"
 
-class Mesh;
-class MeshModel;
+#include "Mesh.h"
+#include "MeshModel.h"
 
-class Device;
-class Swapchain;
-class Image;
-class Instance;
-class Buffer;
-class CommandBuffer;
-class Sampler;
-class Surface;
-class DescriptorPool;
-class DescriptorSetLayout;
-class DescriptorResourceReference;
-class DescriptorSet;
-class Pipeline;
-class PipelineLayout;
-class RenderPass;
-class RenderTarget;
-class Subpass;
-class Frame;
-class Framebuffer;
-class Texture;
+#include "Device.h"
+#include "SwapChain.h"
+#include "Image.h"
+#include "ImageView.h"
+#include "Instance.h"
+#include "Buffer.h"
+#include "CommandBuffer.h"
+#include "Sampler.h"
+#include "Surface.h"
+#include "DescriptorPool.h"
+#include "DescriptorSetLayout.h"
+#include "DescriptorResourceReference.h"
+#include "DescriptorSet.h"
+#include "Pipeline.h"
+#include "PipelineLayout.h"
+#include "RenderPass.h"
+#include "RenderTarget.h"
+#include "ShaderModule.h"
+#include "Subpass.h"
+#include "Frame.h"
+#include "Framebuffer.h"
+#include "Texture.h"
+#include "Queue.h"
+#include "CommandBuffer.h"
 
+// Abstract class to derive vulkan applications from
+// Functionality for model and texture loading and the associated descriptor sets, buffer etc. are implemented here
 class VulkanRenderer
 {
 public:
-	VulkanRenderer();
-	~VulkanRenderer();
+	VulkanRenderer() = default;
+	virtual ~VulkanRenderer();
 
-	int init(GLFWwindow* newWindow);
+	virtual int init(GLFWwindow* newWindow);
 
 	// Model control
 	int createModel(std::string modelFile);
@@ -54,17 +60,15 @@ public:
 	void createCamera(float FoVinDegrees);
 	void updateCameraView(glm::mat4& newView);
 
-	void draw();
+	virtual void draw() = 0;
 
-	
-
-private:
+protected:
 	GLFWwindow* mWindow;
 
 	uint32_t activeFrameIndex{ 0 };
 
 	// Scene objects
-	std::vector<MeshModel> modelList;
+	std::vector<MeshModel> mModelList;
 
 	// Scene Settings
 	struct UboViewProjection {
@@ -91,25 +95,21 @@ private:
 	// - Descriptors
 	std::unique_ptr<DescriptorSetLayout> mUniformSetLayout;
 	std::unique_ptr<DescriptorSetLayout> mSamplerSetLayout;
-	std::unique_ptr<DescriptorSetLayout> mAttachmentSetLayout;
 	VkPushConstantRange mPushConstantRange;
 
 	std::vector<std::unique_ptr<DescriptorResourceReference>> mUniformResources;
 	std::vector<std::unique_ptr<DescriptorResourceReference>> mSamplerResources;
-	std::vector<std::unique_ptr<DescriptorResourceReference>> mAttachmentResources;
 
 	// Abstract below to Frame 
 	std::unique_ptr<DescriptorPool> mUniformDescriptorPool;
 	std::unique_ptr<DescriptorPool> mSamplerDescriptorPool;
-	std::unique_ptr<DescriptorPool> mAttachmentDescriptorPool;
 
 	std::vector<std::unique_ptr<DescriptorSet>> mUniformDescriptorSets;			// Descriptor set holding uniform data
-	std::vector<std::unique_ptr<DescriptorSet>> mTextureDescriptorSets;		// Descriptor sets holding texture samplers
-	std::vector<std::unique_ptr<DescriptorSet>> mAttachmentDescriptorSets;		// Descriptor set holding colour/depth images (used for second subpass)
+	std::vector<std::unique_ptr<DescriptorSet>> mTextureDescriptorSets;			// Descriptor sets holding texture samplers
 
 	std::vector<std::unique_ptr<Buffer>> mUniformBuffers;
 	
-	/* ABSTRACTED TO BUFFER CLASS */
+
 	//std::vector<VkBuffer> modelDUniformBuffer;	
 	//std::vector<VkDeviceMemory> modelDUniformBufferMemory;
 	//VkDeviceSize minUniformBufferOffset;
@@ -135,32 +135,43 @@ private:
 	// Vulkan Functions
 	// - Create Functions
 	void setupThreadPool();
+
 	void createInstance();
 	void createSurface();
 	void createDevice();
-	void findDesiredQueueFamilies();
-	void createSwapchain();
-	void createPerFrameObjects();
-	void createRenderPass();
-	void createDescriptorSetLayouts();
-	void createPushConstantRange();
-	void createGraphicsPipeline();
+	virtual void findDesiredQueueFamilies();
+	virtual void createSwapchain();
+
+	void chooseImageFormats();
+	virtual void createRenderTargetAndFrames()	= 0;
+	virtual void createRenderPass()				= 0;
+
+	void createTextureSamplerDescriptorSetLayout();
+	void createUniformBufferDescriptorSetLayout();
+	virtual void createDescriptorSetLayouts()	= 0;
+	virtual void createPushConstantRange()		= 0;
+
+	virtual void createPipelines()				= 0;
+
 	void createFramebuffers();
+
 	void createTextureSampler();
 	void createUniformBuffers();
-	void createDescriptorPools();
+
+	void createTextureSamplerDescriptorPool();
+	void createUniformBufferDescriptorPool();
+	virtual void createDescriptorPools()		= 0;
+
 	void createUniformDescriptorSets();
-	void createInputDescriptorSets();
+	virtual void createDescriptorSets()			= 0;
 
 	// -- Support
 	void updateUniformBuffers();
-
-	// - Record Functions
-	void recordCommands(CommandBuffer& primaryCmdBuffer);
-	CommandBuffer* recordSecondaryCommandBuffers(CommandBuffer* primaryCommandBuffer, uint32_t objectStart, uint32_t objectEnd, size_t threadIndex);
+	virtual void getRequiredExtenstionAndFeatures(std::vector<const char*>& requiredExtensions,
+		VkPhysicalDeviceFeatures& requiredFeatures);
 
 	// - Allocate Functions
-	void allocateDynamicBufferTransferSpace();
+	//void allocateDynamicBufferTransferSpace();
 
 	// - Support Functions
 	// -- Getter Functions
@@ -169,16 +180,11 @@ private:
 	// -- Choose Functions
 	VkFormat chooseSupportedFormat(const std::vector<VkFormat> &formats, VkImageTiling tiling, VkFormatFeatureFlags featureFlags);
 
-	// -- Create Functions
-	VkShaderModule createShaderModule(const std::vector<char>& code);
-
 	int createTexture(std::string fileName);
 	int createTextureDescriptor(const Texture& texture);
 	
 	// -- Loader Functions
 	stbi_uc* loadTextureFile(std::string fileName, int& width, int& height, VkDeviceSize& imageSize);
-
-	
 	
 };
 

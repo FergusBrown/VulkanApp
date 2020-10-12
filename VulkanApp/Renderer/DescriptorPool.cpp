@@ -39,6 +39,8 @@ DescriptorPool::DescriptorPool(Device& device, const DescriptorSetLayout& descri
 
 DescriptorPool::~DescriptorPool()
 {
+	mDevice.waitIdle(); // TODO : remove this wait
+
 	if (mHandle != VK_NULL_HANDLE)
 	{
 		vkDestroyDescriptorPool(mDevice.logicalDevice(), mHandle, nullptr);
