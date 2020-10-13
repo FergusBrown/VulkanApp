@@ -168,7 +168,7 @@ protected:
 	// -- Support
 	void updateUniformBuffers();
 	virtual void getRequiredExtenstionAndFeatures(std::vector<const char*>& requiredExtensions,
-		VkPhysicalDeviceFeatures& requiredFeatures);
+		VkPhysicalDeviceFeatures& requiredFeatures) = 0;
 
 	// - Allocate Functions
 	//void allocateDynamicBufferTransferSpace();

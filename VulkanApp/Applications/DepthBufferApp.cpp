@@ -292,6 +292,17 @@ void DepthBufferApp::createDescriptorSets()
 	}
 }
 
+// Set required extensions + features
+void DepthBufferApp::getRequiredExtenstionAndFeatures(std::vector<const char*>& requiredExtensions, VkPhysicalDeviceFeatures& requiredFeatures)
+{
+	requiredExtensions = {
+	VK_KHR_SWAPCHAIN_EXTENSION_NAME
+	};
+
+	requiredFeatures = {};
+	requiredFeatures.samplerAnisotropy = VK_TRUE;
+}
+
 // TODO: changes threads to split load for number of meshes rather than models
 void DepthBufferApp::recordCommands(CommandBuffer& primaryCmdBuffer) // Current image is swapchain index
 {

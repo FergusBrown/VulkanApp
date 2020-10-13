@@ -30,7 +30,7 @@ int main()
 	Pawn player = Pawn();
 	glm::mat4 cameraView = player.generateView();
 	vulkanRenderer.updateCameraView(cameraView);
-	//int frog = vulkanRenderer.loadMeshModelData("Models/12268_banjofrog_v1_L3.obj");
+	//int sponza = vulkanRenderer.createModel("Models/sponza.obj");
 	int sphere = vulkanRenderer.createModel("Models/sphere.obj");
 	mat4 newModel = glm::translate(mat4(1.0f), vec3(0.0f, 2.0f, 0.0f));
 	vulkanRenderer.updateModel(sphere, newModel);

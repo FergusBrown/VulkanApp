@@ -41,6 +41,10 @@ private:
 	virtual void createDescriptorPools();
 	virtual void createDescriptorSets();
 
+	// -- Support
+	virtual void getRequiredExtenstionAndFeatures(std::vector<const char*>& requiredExtensions,
+		VkPhysicalDeviceFeatures& requiredFeatures);
+
 	// - Record Functions
 	void recordCommands(CommandBuffer& primaryCmdBuffer);
 	CommandBuffer* recordSecondaryCommandBuffers(CommandBuffer* primaryCommandBuffer, uint32_t objectStart, uint32_t objectEnd, size_t threadIndex);
