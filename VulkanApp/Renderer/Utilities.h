@@ -4,8 +4,8 @@
 
 #include "Common.h"
 
-//const int MAX_FRAME_DRAWS = 2;
-const int MAX_OBJECTS = 2048;
+const int MAX_TEXTURES = 2048;
+const int MAX_OBJECTS = 10;
 
 static std::vector<char> readFile(const std::string& filename)
 {

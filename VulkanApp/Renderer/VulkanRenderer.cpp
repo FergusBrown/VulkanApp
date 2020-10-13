@@ -56,15 +56,15 @@ void VulkanRenderer::createCamera(float FoVinDegrees)
 {
 	const VkExtent2D& extent = mSwapchain->extent();
 
-	uboViewProjection.projection = glm::perspective(glm::radians(FoVinDegrees), (float)extent.width / (float)extent.height, 0.1f, 100.0f);
-	uboViewProjection.view = glm::lookAt(glm::vec3(0.0f, 0.0f, 20.0f), glm::vec3(0.0f, 0.0f, -2.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+	mUBOViewProjection.projection = glm::perspective(glm::radians(FoVinDegrees), (float)extent.width / (float)extent.height, 0.1f, 1000.0f);
+	mUBOViewProjection.view = glm::lookAt(glm::vec3(0.0f, 0.0f, 20.0f), glm::vec3(0.0f, 0.0f, -2.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
-	uboViewProjection.projection[1][1] *= -1;
+	mUBOViewProjection.projection[1][1] *= -1;
 }
 
 void VulkanRenderer::updateCameraView(glm::mat4& newView)
 {
-	uboViewProjection.view = newView;
+	mUBOViewProjection.view = newView;
 }
 
 VulkanRenderer::~VulkanRenderer()
@@ -231,7 +231,7 @@ void VulkanRenderer::createUniformBuffers()
 void VulkanRenderer::createTextureSamplerDescriptorPool()
 {
 	// CREATE SAMPLER DESCRIPTOR POOL
-	mSamplerDescriptorPool = std::make_unique<DescriptorPool>(*mDevice, *mSamplerSetLayout, 1000);
+	mSamplerDescriptorPool = std::make_unique<DescriptorPool>(*mDevice, *mSamplerSetLayout, MAX_TEXTURES);
 }
 
 void VulkanRenderer::createUniformBufferDescriptorPool()
@@ -279,7 +279,7 @@ void VulkanRenderer::updateUniformBuffers()
 {
 	// Copy VP data
 	void* data = mUniformBuffers[activeFrameIndex]->map();
-	memcpy(data, &uboViewProjection, sizeof(UboViewProjection));
+	memcpy(data, &mUBOViewProjection, sizeof(UboViewProjection));
 	mUniformBuffers[activeFrameIndex]->unmap();
 }
 

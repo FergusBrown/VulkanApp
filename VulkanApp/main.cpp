@@ -30,7 +30,10 @@ int main()
 	Pawn player = Pawn();
 	glm::mat4 cameraView = player.generateView();
 	vulkanRenderer.updateCameraView(cameraView);
-	//int sponza = vulkanRenderer.createModel("Models/sponza.obj");
+	int sponza = vulkanRenderer.createModel("Models/sponza.obj");
+	glm::mat4 sponzaModel = glm::scale(glm::mat4(1.0), glm::vec3(0.1, 0.1, 0.1));
+	vulkanRenderer.updateModel(sponza, sponzaModel);
+
 	int sphere = vulkanRenderer.createModel("Models/sphere.obj");
 	mat4 newModel = glm::translate(mat4(1.0f), vec3(0.0f, 2.0f, 0.0f));
 	vulkanRenderer.updateModel(sphere, newModel);

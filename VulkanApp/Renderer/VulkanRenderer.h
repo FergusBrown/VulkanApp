@@ -43,7 +43,8 @@
 #include "CommandBuffer.h"
 
 // Abstract class to derive vulkan applications from
-// Functionality for model and texture loading and the associated descriptor sets, buffer etc. are implemented here
+// Functionality for model and texture loading and the associated descriptor sets, buffers etc. are implemented here
+// A uniform buffer exists to hold the view projection matrix
 class VulkanRenderer
 {
 public:
@@ -67,24 +68,24 @@ protected:
 
 	uint32_t activeFrameIndex{ 0 };
 
-	// Scene objects
+	// List of models made up of a series of meshes
 	std::vector<MeshModel> mModelList;
 
 	// Scene Settings
 	struct UboViewProjection {
 		glm::mat4 projection;
 		glm::mat4 view;
-	} uboViewProjection;
+	} mUBOViewProjection;
 
 	// Vulkan Components
 	// - Main
-	std::unique_ptr<Instance> mInstance;
+	std::unique_ptr<Instance> mInstance{ nullptr };
 
 	std::unique_ptr<Surface> mSurface{ nullptr };
 	std::unique_ptr<Device> mDevice{ nullptr };
-	uint32_t mGraphicsQueueFamily;
+	uint32_t mGraphicsQueueFamily{ 0 };
 
-	std::unique_ptr<Swapchain> mSwapchain;
+	std::unique_ptr<Swapchain> mSwapchain{ nullptr };
 	std::vector<std::unique_ptr<Framebuffer>> mFramebuffers;
 	std::vector<std::unique_ptr<Frame>> mFrames;
 	
@@ -104,7 +105,7 @@ protected:
 	std::unique_ptr<DescriptorPool> mUniformDescriptorPool;
 	std::unique_ptr<DescriptorPool> mSamplerDescriptorPool;
 
-	std::vector<std::unique_ptr<DescriptorSet>> mUniformDescriptorSets;			// Descriptor set holding uniform data
+	std::vector<std::unique_ptr<DescriptorSet>> mUniformDescriptorSets;			// Descriptor set holding uniform data (view projection matrix)
 	std::vector<std::unique_ptr<DescriptorSet>> mTextureDescriptorSets;			// Descriptor sets holding texture samplers
 
 	std::vector<std::unique_ptr<Buffer>> mUniformBuffers;
@@ -147,7 +148,7 @@ protected:
 	virtual void createRenderPass()				= 0;
 
 	void createTextureSamplerDescriptorSetLayout();
-	void createUniformBufferDescriptorSetLayout();
+	virtual void createUniformBufferDescriptorSetLayout();
 	virtual void createDescriptorSetLayouts()	= 0;
 	virtual void createPushConstantRange()		= 0;
 
@@ -159,14 +160,14 @@ protected:
 	void createUniformBuffers();
 
 	void createTextureSamplerDescriptorPool();
-	void createUniformBufferDescriptorPool();
+	virtual void createUniformBufferDescriptorPool();
 	virtual void createDescriptorPools()		= 0;
 
 	void createUniformDescriptorSets();
 	virtual void createDescriptorSets()			= 0;
 
 	// -- Support
-	void updateUniformBuffers();
+	virtual void updateUniformBuffers();
 	virtual void getRequiredExtenstionAndFeatures(std::vector<const char*>& requiredExtensions,
 		VkPhysicalDeviceFeatures& requiredFeatures) = 0;
 
