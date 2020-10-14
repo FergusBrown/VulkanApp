@@ -1,6 +1,7 @@
 #include "Swapchain.h"
 
 #include "Device.h"
+#include "PhysicalDevice.h"
 
 // TODO: check usage is valid
 Swapchain::Swapchain(Device& device, 
@@ -140,7 +141,7 @@ VkResult Swapchain::acquireNextImageIndex(VkSemaphore imageAvailable, uint32_t& 
 
 void Swapchain::getSurfaceSupport(SurfaceSupport& surfaceSupport)
 {
-	VkPhysicalDevice device = mDevice.physicalDevice();
+	VkPhysicalDevice device = mDevice.physicalDevice().handle();
 
 	// -- CAPABILITIES --
 	// Get the surface capabilities for the given surface on the given physical device

@@ -30,6 +30,7 @@
 #include "DescriptorSetLayout.h"
 #include "DescriptorResourceReference.h"
 #include "DescriptorSet.h"
+#include "PhysicalDevice.h"
 #include "Pipeline.h"
 #include "PipelineLayout.h"
 #include "RenderPass.h"

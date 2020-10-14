@@ -17,7 +17,7 @@ public:
 	~Device();
 
 	// - Getters
-	VkPhysicalDevice physicalDevice() const; // TODO : make a physical device class
+	PhysicalDevice& physicalDevice() const;
 	VkDevice logicalDevice() const;
 	CommandPool& primaryCommandPool();
 	const Queue& queue(uint32_t familyIndex, uint32_t index) const;

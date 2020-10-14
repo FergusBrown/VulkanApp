@@ -47,6 +47,10 @@ private:
 
 	// - Record Functions
 	void recordCommands(CommandBuffer& primaryCmdBuffer);
-	CommandBuffer* recordSecondaryCommandBuffers(CommandBuffer* primaryCommandBuffer, uint32_t objectStart, uint32_t objectEnd, size_t threadIndex);
+	CommandBuffer* recordSecondaryCommandBuffers(CommandBuffer* primaryCommandBuffer, 
+		std::vector<std::reference_wrapper<Mesh>> meshList,
+		uint32_t meshStart, 
+		uint32_t meshEnd, 
+		size_t threadIndex);
 };
 

@@ -4,6 +4,7 @@
 class Device;
 //class Buffer;
 #include "Buffer.h"
+
 struct Vertex
 {
 	glm::vec3 pos;	// Vertex Position (x,y,z)
@@ -39,19 +40,13 @@ private:
 	int mTexId;
 
 	int mVertexCount;
-	//VkBuffer vertexBuffer;
-	//VkDeviceMemory vertexBufferMemory;
 	std::unique_ptr<Buffer> mVertexBuffer;
-	std::mutex mVertexMutex;
+	//std::mutex mVertexMutex;
 	
 
 	int mIndexCount;
-	/*VkBuffer indexBuffer;
-	VkDeviceMemory indexBufferMemory;*/
 	std::unique_ptr<Buffer> mIndexBuffer;
-	std::mutex mIndexMutex;
-	//VkPhysicalDevice physicalDevice;
-	//VkDevice device;
+	//std::mutex mIndexMutex;
 	
 
 	void createVertexBuffer(Device& device, std::vector<Vertex>* vertices);

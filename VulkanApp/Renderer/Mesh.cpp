@@ -41,7 +41,7 @@ int Mesh::vertexCount() const
 
 Buffer& Mesh::vertexBuffer()
 {
-	std::lock_guard<std::mutex> lock(mVertexMutex);
+	//std::lock_guard<std::mutex> lock(mVertexMutex);
 	return *mVertexBuffer;
 }
 
@@ -52,7 +52,7 @@ int Mesh::indexCount() const
 
 Buffer& Mesh::indexBuffer()
 {
-	std::lock_guard<std::mutex> lock(mIndexMutex);
+	//std::lock_guard<std::mutex> lock(mIndexMutex);
 	return *mIndexBuffer;
 }
 

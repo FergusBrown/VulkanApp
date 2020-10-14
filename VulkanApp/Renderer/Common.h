@@ -6,15 +6,22 @@
 #include <algorithm>
 #include <array>
 #include <cstring>
+#include <cmath>
 #include <future>
 #include <iostream>
 #include <memory>
 #include <mutex>
 #include <stdexcept>
 #include <set>
-#include <map>				// Ordered map
-#include <unordered_map>	// Hash map
+#include <map>				
+#include <unordered_map>	
 #include <vector>
+
+// *** Max Value Constants ***
+const uint32_t MAX_TEXTURES = 2048;
+const float MAX_LOD		= 15.0f;	// This should support all mip levels for textures of resolution up to 16K resolution
+const uint32_t MAX_OBJECTS	= 10;
+
 
 /// *** BindingMap ***
 /// Used to index descriptors and map them to their binding
@@ -29,3 +36,5 @@ using BindingMap = std::map<uint32_t, std::map<uint32_t, T>>;
 bool isDepthStencilFormat(VkFormat format);
 
 bool isDepthOnlyFormat(VkFormat format);
+
+

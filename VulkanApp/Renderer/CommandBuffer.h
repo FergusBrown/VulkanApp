@@ -76,9 +76,20 @@ public:
 	void nextSubpass(VkSubpassContents subpassContentsRecordingStrategy = VK_SUBPASS_CONTENTS_INLINE);
 
 	// -- Transition and copy operations
-	void transitionImageLayout(VkImage image, VkImageLayout oldLayout, VkImageLayout newLayout);
+	void transitionImageLayout(VkImage image, 
+		VkImageLayout oldLayout,
+		VkImageLayout newLayout, 
+		uint32_t baseMipLevel = 0,
+		uint32_t mipLevelCount = 1);
 	void copyBufferToImage(Buffer& srcBuffer, Image& image);
 	void copyBuffer(Buffer& srcBuffer, Buffer& dstBuffer);
+	void blitImage(Image& srcImage, 
+		VkImageLayout srcLayout,
+		Image& dstImage, 
+		VkImageLayout dstLayout,
+		VkImageBlit blitDescription,
+		uint32_t regionCount = 1,
+		VkFilter filter = VK_FILTER_LINEAR);
 
 	void endRenderPass();
 	void endRecording();

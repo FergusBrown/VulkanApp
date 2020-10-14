@@ -206,7 +206,13 @@ void VulkanRenderer::createFramebuffers()
 
 void VulkanRenderer::createTextureSampler()
 {
-	mTextureSampler = std::make_unique<Sampler>(*mDevice);
+	float maxAnisotropy = mDevice->physicalDevice().properties().limits.maxSamplerAnisotropy;
+
+	mTextureSampler = std::make_unique<Sampler>(*mDevice,
+		VK_TRUE,
+		maxAnisotropy,
+		0.0f,
+		MAX_LOD);	// Max LOD can be as high as possible since it is just used to clamp the computed LOD
 }
 
 void VulkanRenderer::createUniformBuffers()
@@ -305,7 +311,7 @@ VkFormat VulkanRenderer::chooseSupportedFormat(const std::vector<VkFormat>& form
 	{
 		// Get properties for given format on this device
 		VkFormatProperties properties;
-		vkGetPhysicalDeviceFormatProperties(mDevice->physicalDevice(), format, &properties);
+		mDevice->physicalDevice().getFormatProperties(format, properties);
 
 		// Depending on tiling choice, need to check for different bit flag
 		if (tiling == VK_IMAGE_TILING_LINEAR && (properties.linearTilingFeatures & featureFlags) == featureFlags)

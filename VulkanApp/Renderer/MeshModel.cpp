@@ -25,4 +25,9 @@ glm::mat4 MeshModel::modelMatrix() const
 void MeshModel::setModel(glm::mat4& newModel)
 {
 	mModel = newModel;
+
+	for (auto& mesh : mMeshList)
+	{
+		mesh->setModel(newModel);
+	}
 }

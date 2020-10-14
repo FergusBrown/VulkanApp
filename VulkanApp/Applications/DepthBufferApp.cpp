@@ -227,7 +227,6 @@ void DepthBufferApp::createPipelines()
 	mPipelineLayouts.push_back(std::move(firstLayout));
 	mPipelines.push_back(std::move(firstPipeline));
 
-
 	// PIPELINE 2
 	// CREATE SHADER MODULES
 	std::vector<ShaderModule> secondShaderModules = {};
@@ -303,14 +302,12 @@ void DepthBufferApp::getRequiredExtenstionAndFeatures(std::vector<const char*>& 
 	requiredFeatures.samplerAnisotropy = VK_TRUE;
 }
 
-// TODO: changes threads to split load for number of meshes rather than models
 void DepthBufferApp::recordCommands(CommandBuffer& primaryCmdBuffer) // Current image is swapchain index
 {
 	auto& frame = *mFrames[activeFrameIndex];
 	auto& framebuffer = mFramebuffers[activeFrameIndex];
 
 	primaryCmdBuffer.beginRecording();
-
 
 	std::vector<VkClearValue> clearValues;
 	clearValues.resize(frame.renderTarget().imageViews().size());
@@ -325,25 +322,42 @@ void DepthBufferApp::recordCommands(CommandBuffer& primaryCmdBuffer) // Current 
 		clearValues,
 		VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFERS);
 
-	// Split objects to draw equally between threads
-	uint32_t numModels = mModelList.size();
+	// Split meshes to draw equally between threads
 
-	float avgObjectsPerBuffer = static_cast<float>(numModels) / mThreadCount;
-	uint32_t remainderObjects;
-
-
-	uint32_t objectsPerBuffer = static_cast<uint32_t> (std::floor(avgObjectsPerBuffer));
-	if (objectsPerBuffer == 0)
+	// TODO : alter this so that it isn't generated every frame
+	// Create vector of references to meshes
+	std::vector<std::reference_wrapper<Mesh>> meshList;
+	for (auto& model : mModelList)
 	{
-		remainderObjects = numModels;
+		for (size_t i = 0; i < model.meshCount(); ++i)
+		{
+			meshList.push_back(model.mesh(i));
+		}
+	}
+
+	uint32_t meshCount = static_cast<uint32_t>(meshList.size());
+
+	// TODO : alter this so that it isn't generated every frame
+	// Create vector of references to meshes
+
+
+	float avgMeshesPerBuffer = static_cast<float>(meshCount) / mThreadCount;
+	uint32_t remainderMeshes;
+
+
+
+	uint32_t meshesPerBuffer = static_cast<uint32_t> (std::floor(avgMeshesPerBuffer));
+	if (meshesPerBuffer == 0)
+	{
+		remainderMeshes = meshCount;
 	}
 	else
 	{
-		remainderObjects = numModels % objectsPerBuffer;
+		remainderMeshes = meshCount % meshesPerBuffer;
 	}
 
 
-	uint32_t objectStart = 0;
+	uint32_t meshStart = 0;
 
 	// Vector for results of tasks pushed to threadpool
 	std::vector<std::future<CommandBuffer*>> futureSecondaryCommandBuffers;
@@ -351,24 +365,24 @@ void DepthBufferApp::recordCommands(CommandBuffer& primaryCmdBuffer) // Current 
 	for (uint32_t i = 0; i < mThreadCount; ++i)
 	{
 		// Get the end index for the last mesh which will be handled by this buffer
-		uint32_t objectEnd = std::min(numModels, objectStart + objectsPerBuffer);
+		uint32_t meshEnd = std::min(meshCount, meshStart + meshesPerBuffer);
 
 		// If there are still remainder draws then add a draw to this command buffer
 		// Latter command buffers may contain fewer draws
-		if (remainderObjects > 0)
+		if (remainderMeshes > 0)
 		{
-			objectEnd++;
-			remainderObjects--;
+			meshEnd++;
+			remainderMeshes--;
 		}
 
 		// Push lambda function to threadpool for running
 		auto futureResult = mThreadPool.push([=, &primaryCmdBuffer](size_t threadIndex) {
-			return recordSecondaryCommandBuffers(&primaryCmdBuffer, objectStart, objectEnd, threadIndex);
+			return recordSecondaryCommandBuffers(&primaryCmdBuffer, meshList, meshStart, meshEnd, threadIndex);
 			});
 
 		futureSecondaryCommandBuffers.push_back(std::move(futureResult));
 
-		objectStart = objectEnd;
+		meshStart = meshEnd;
 	}
 
 	std::vector<CommandBuffer* > secondaryCommandBufferPtrs;
@@ -401,7 +415,7 @@ void DepthBufferApp::recordCommands(CommandBuffer& primaryCmdBuffer) // Current 
 }
 
 
-CommandBuffer* DepthBufferApp::recordSecondaryCommandBuffers(CommandBuffer* primaryCommandBuffer, uint32_t objectStart, uint32_t objectEnd, size_t threadIndex)
+CommandBuffer* DepthBufferApp::recordSecondaryCommandBuffers(CommandBuffer* primaryCommandBuffer, std::vector<std::reference_wrapper<Mesh>> meshList, uint32_t meshStart, uint32_t meshEnd, size_t threadIndex)
 {
 	auto& frame = mFrames[activeFrameIndex];
 
@@ -414,35 +428,29 @@ CommandBuffer* DepthBufferApp::recordSecondaryCommandBuffers(CommandBuffer* prim
 
 	cmdBuffer.bindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, *mPipelines[0]);
 
-	for (uint32_t i = objectStart; i < objectEnd; ++i)
+	for (uint32_t i = meshStart; i < meshEnd; ++i)
 	{
-		MeshModel& thisModel = mModelList[i];
+		Mesh& thisMesh = meshList[i];
 
 		// "Push" constants to given shader stage directly
 		cmdBuffer.pushConstant(*mPipelineLayouts[0],
 			VK_SHADER_STAGE_VERTEX_BIT,
-			thisModel.modelMatrix());
+			thisMesh.model());
 
+		std::vector<std::reference_wrapper<const Buffer>> vertexBuffers{ thisMesh.vertexBuffer() };	// Buffers to bind
+		std::vector<VkDeviceSize> offsets{ 0 };														// Offsets into buffers being bound
+		cmdBuffer.bindVertexBuffers(0, vertexBuffers, offsets);
 
-		for (size_t j = 0; j < thisModel.meshCount(); ++j)
-		{
-			Mesh& thisMesh = thisModel.mesh(j);
+		cmdBuffer.bindIndexBuffer(thisMesh.indexBuffer(), 0, VK_INDEX_TYPE_UINT32);
 
-			std::vector<std::reference_wrapper<const Buffer>> vertexBuffers{ thisMesh.vertexBuffer() };	// Buffers to bind
-			std::vector<VkDeviceSize> offsets{ 0 };															// Offsets into buffers being bound
-			cmdBuffer.bindVertexBuffers(0, vertexBuffers, offsets);
+		std::vector<std::reference_wrapper<const DescriptorSet>> descriptorSetGroup{ *mUniformDescriptorSets[activeFrameIndex],
+			*mTextureDescriptorSets[thisMesh.texId()] };
 
-			cmdBuffer.bindIndexBuffer(thisMesh.indexBuffer(), 0, VK_INDEX_TYPE_UINT32);
+		cmdBuffer.bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, *mPipelineLayouts[0],
+			0, descriptorSetGroup);
 
-			std::vector<std::reference_wrapper<const DescriptorSet>> descriptorSetGroup{ *mUniformDescriptorSets[activeFrameIndex],
-				*mTextureDescriptorSets[thisMesh.texId()] };
-
-			cmdBuffer.bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, *mPipelineLayouts[0],
-				0, descriptorSetGroup);
-
-			// Execute pipeline
-			cmdBuffer.drawIndexed(thisMesh.indexCount(), 1, 0, 0, 0);
-		}
+		// Execute pipeline
+		cmdBuffer.drawIndexed(thisMesh.indexCount(), 1, 0, 0, 0);
 	}
 
 	// Stop recording to primary command buffers

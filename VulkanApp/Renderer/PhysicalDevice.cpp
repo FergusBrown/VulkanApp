@@ -22,17 +22,17 @@ VkPhysicalDevice PhysicalDevice::handle() const
 	return mHandle;
 }
 
-const VkPhysicalDeviceFeatures PhysicalDevice::features() const
+const VkPhysicalDeviceFeatures& PhysicalDevice::features() const
 {
 	return mFeatures;
 }
 
-const VkPhysicalDeviceProperties PhysicalDevice::properties() const
+const VkPhysicalDeviceProperties& PhysicalDevice::properties() const
 {
 	return mProperties;
 }
 
-const VkPhysicalDeviceMemoryProperties PhysicalDevice::memoryProperties() const
+const VkPhysicalDeviceMemoryProperties& PhysicalDevice::memoryProperties() const
 {
 	return mMemoryProperties;
 }
@@ -100,6 +100,11 @@ uint32_t PhysicalDevice::getQueueFamilyIndex(VkQueueFlagBits queueFlag)
 	}
 
 	throw std::runtime_error("Could not find an index for the requested queue family!");
+}
+
+void PhysicalDevice::getFormatProperties(VkFormat format, VkFormatProperties& formatProperties)
+{
+	vkGetPhysicalDeviceFormatProperties(mHandle, format, &formatProperties);
 }
 
 VkBool32 PhysicalDevice::checkDeviceExtensionSupport(const std::vector<const char*>& deviceExtensions)

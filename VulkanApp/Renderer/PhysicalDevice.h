@@ -11,13 +11,15 @@ public:
 
 	// - Getters
 	VkPhysicalDevice handle() const;
-	const VkPhysicalDeviceFeatures features() const;
-	const VkPhysicalDeviceProperties properties() const;
-	const VkPhysicalDeviceMemoryProperties memoryProperties() const;
+	const VkPhysicalDeviceFeatures& features() const;
+	const VkPhysicalDeviceProperties& properties() const;
+	const VkPhysicalDeviceMemoryProperties& memoryProperties() const;
 
+	// - Query device
 	VkBool32 checkDeviceSuitable(const std::vector<const char*>& requiredExtensions, VkPhysicalDeviceFeatures& requiredFeatures, VkSurfaceKHR presentationSurface);
 	VkBool32 checkQueueFamilyPresentationSupport(uint32_t queueFamilyIndex, VkSurfaceKHR surface);
 	uint32_t getQueueFamilyIndex(VkQueueFlagBits queueFlag);
+	void getFormatProperties(VkFormat format, VkFormatProperties& formatProperties);
 	
 
 private:

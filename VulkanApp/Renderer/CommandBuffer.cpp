@@ -188,7 +188,7 @@ void CommandBuffer::nextSubpass(VkSubpassContents subpassContentsRecordingStrate
 // TODO : pass in struct to define resource range - currently this will only work for images which match the values here
 // TODO : expand functionality to allow for other types of transitions
 // Set up image memory barriers and transition image from one layout to another
-void CommandBuffer::transitionImageLayout(VkImage image, VkImageLayout oldLayout, VkImageLayout newLayout)
+void CommandBuffer::transitionImageLayout(VkImage image, VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t baseMipLevel, uint32_t mipLevelCount)
 {
 	// Create buffer
 	//VkCommandBuffer commandBuffer = beginCommandBuffer(device, commandPool);
@@ -201,8 +201,8 @@ void CommandBuffer::transitionImageLayout(VkImage image, VkImageLayout oldLayout
 	imageMemoryBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;			// Queue family to transition to
 	imageMemoryBarrier.image = image;											// Image being accessed and modified as part of barrier
 	imageMemoryBarrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;	// Aspect of image being altered
-	imageMemoryBarrier.subresourceRange.baseMipLevel = 0;						// First mip level to start alterations on
-	imageMemoryBarrier.subresourceRange.levelCount = 1;							// Number of mip levels to alter starting from baseMipLevel
+	imageMemoryBarrier.subresourceRange.baseMipLevel = baseMipLevel;			// First mip level to start alterations on
+	imageMemoryBarrier.subresourceRange.levelCount = mipLevelCount;	// Number of mip levels to alter starting from baseMipLevel
 	imageMemoryBarrier.subresourceRange.baseArrayLayer = 0;						// First Layer to start alterations on
 	imageMemoryBarrier.subresourceRange.layerCount = 1;							// Number of layers to alter starting from baseArrayLayer
 
@@ -213,21 +213,52 @@ void CommandBuffer::transitionImageLayout(VkImage image, VkImageLayout oldLayout
 	// If transitioning from new image to image ready to receive data...
 	if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
 	{
-		imageMemoryBarrier.srcAccessMask = 0;									// Memory access stage transition must happen after...
-		imageMemoryBarrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;		// Memory access stage transition must happen before...
+		imageMemoryBarrier.srcAccessMask = 0;									// No source memory dependency
+		imageMemoryBarrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;		// Destination requires write access to an image or buffer in a copy or clear operation
 
-		srcStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;		// pipeline stage transition must happen after
-		dstStage = VK_PIPELINE_STAGE_TRANSFER_BIT;			// pipeline stage transition must happen before
+		srcStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;		// No source stage dependecy (TOP indicates a previous pipeline execution)
+		dstStage = VK_PIPELINE_STAGE_TRANSFER_BIT;			// Transition must happen before TRANSFER stage
 
 	}
 	// If transitioning from transfer destination to shader readable
 	else if (oldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
 	{
-		imageMemoryBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-		imageMemoryBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+		imageMemoryBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;	// Source requires write access to an image or buffer in a copy or clear operation
+		imageMemoryBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;		// Destination requires read access to a shader resource
 
-		srcStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
-		dstStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+		srcStage = VK_PIPELINE_STAGE_TRANSFER_BIT;							// Transition must happen before TRANSFER stage
+		dstStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;					// Transition must happen after FRAGMENT_SHADER stage
+	} 
+	// If transitioning from transfer source to shader readable
+	else if (oldLayout == VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+	{
+		imageMemoryBarrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;		// Source requires read access to an image or buffer in a copy or clear operation
+		imageMemoryBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;		// Destination requires read access to a shader resource
+
+		srcStage = VK_PIPELINE_STAGE_TRANSFER_BIT;							// Transition must happen before TRANSFER stage
+		dstStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;					// Transition must happen after FRAGMENT_SHADER stage
+	}
+	// If transitioning from transfer destination to source
+	else if (oldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL)
+	{
+		imageMemoryBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;	// Source requires write access to an image or buffer in a copy or clear operation
+		imageMemoryBarrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;		// Destination requires requires read access to an image or buffer in a copy or clear operation
+
+		srcStage = VK_PIPELINE_STAGE_TRANSFER_BIT;							// Transition must happen before TRANSFER stage
+		dstStage = VK_PIPELINE_STAGE_TRANSFER_BIT;							// Transition must happen after TRANSFER stage
+		// TODO : src and dst stage the same so operation must happen during this stage?
+	}
+	else if(oldLayout == VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
+	{
+		imageMemoryBarrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;		// Source requires write access to an image or buffer in a copy or clear operation
+		imageMemoryBarrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;	// Destination requires requires read access to an image or buffer in a copy or clear operation
+
+		srcStage = VK_PIPELINE_STAGE_TRANSFER_BIT;							// Transition must happen before TRANSFER stage
+		dstStage = VK_PIPELINE_STAGE_TRANSFER_BIT;							// Transition must happen after TRANSFER stage
+	}
+	else
+	{
+		throw std::runtime_error("The requested layout transition is not currently supported by this application!");
 	}
 	
 
@@ -274,6 +305,27 @@ void CommandBuffer::copyBuffer(Buffer& srcBuffer, Buffer& dstBuffer)
 	vkCmdCopyBuffer(mHandle, srcBuffer.handle(), dstBuffer.handle(), 1, &bufferCopyRegion);
 
 }
+
+void CommandBuffer::blitImage(Image& srcImage,
+	VkImageLayout srcLayout, 
+	Image& dstImage, 
+	VkImageLayout dstLayout, 
+	VkImageBlit blitDescription,
+	uint32_t regionCount,
+	VkFilter filter)
+{
+	vkCmdBlitImage(
+		mHandle,
+		srcImage.handle(),
+		srcLayout,
+		dstImage.handle(),
+		dstLayout,
+		regionCount,
+		&blitDescription,
+		filter);
+}
+
+
 
 void CommandBuffer::endRenderPass()
 {

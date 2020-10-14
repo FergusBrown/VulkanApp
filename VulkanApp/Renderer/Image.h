@@ -40,8 +40,6 @@ public:
 
 	~Image();
 
-	
-
 	// - Getters
 	Device& device() const;
 	const VkImage& handle() const;
@@ -52,6 +50,7 @@ public:
 	VkSampleCountFlagBits sampleCount() const;
 	VkImageUsageFlags usage() const;
 	VkDeviceMemory memory() const;
+	VkImageLayout layout() const;
 
 	// - Image Management
 	////

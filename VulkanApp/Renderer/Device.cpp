@@ -22,10 +22,9 @@ Device::~Device()
 	vkDestroyDevice(mLogicalDevice, nullptr);
 }
 
-// NOTE: all these types are just pointers so return by value
-VkPhysicalDevice Device::physicalDevice() const
+PhysicalDevice& Device::physicalDevice() const
 {
-    return mPhysicalDevice->handle();
+    return *mPhysicalDevice;
 }
 
 VkDevice Device::logicalDevice() const

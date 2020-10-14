@@ -1,6 +1,7 @@
 #include "DeviceMemory.h"
 
 #include "Device.h"
+#include "PhysicalDevice.h"
 
 DeviceMemory::DeviceMemory(Device& device, VkMemoryPropertyFlags properties, VkMemoryRequirements& memRequirements) :
 	mDevice(device)
@@ -11,7 +12,7 @@ DeviceMemory::DeviceMemory(Device& device, VkMemoryPropertyFlags properties, VkM
 	memoryAllocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 	memoryAllocInfo.allocationSize = memRequirements.size;
 	memoryAllocInfo.memoryTypeIndex =
-		findMemoryTypeIndex(mDevice.physicalDevice(), memRequirements.memoryTypeBits,					// Index of memory type on Physical device that has required bit flags
+		findMemoryTypeIndex(mDevice.physicalDevice().handle(), memRequirements.memoryTypeBits,			// Index of memory type on Physical device that has required bit flags
 			properties);																				// VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT	: CPU can interact with memory
 																										// VK_MEMORY_PROPERTY_HOST_COHERENT_BIT	: Allows placement of data straight into buffer after mapping (otherwise would have to specify manually)
 
