@@ -2,14 +2,15 @@
 #include "Renderer/VulkanRenderer.h"
 
 // A simple application using:
+// - Basic Shading
 // - Depth buffer
 // - Multiple subpasses
 // - Multithreaded command buffer submission
-class DepthBufferApp : public VulkanRenderer
+class BasicApp : public VulkanRenderer
 {
 public:
-	DepthBufferApp() = default;
-	~DepthBufferApp();
+	BasicApp() = default;
+	~BasicApp();
 
 	virtual void draw();
 private:

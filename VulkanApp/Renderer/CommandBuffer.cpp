@@ -76,7 +76,7 @@ void CommandBuffer::beginRecording(VkCommandBufferUsageFlags flags, CommandBuffe
 		inheritanceInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO;
 		inheritanceInfo.renderPass = currentRenderPass.renderPass->handle();
 		inheritanceInfo.framebuffer = currentRenderPass.framebuffer->handle();
-		inheritanceInfo.subpass = 0;	// TODO : this must be changed
+		inheritanceInfo.subpass = 0;	
 		beginInfo.pInheritanceInfo = &inheritanceInfo;
 	}
 

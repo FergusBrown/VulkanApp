@@ -7,9 +7,9 @@ class Device;
 
 struct Vertex
 {
-	glm::vec3 pos;	// Vertex Position (x,y,z)
-	glm::vec3 col;	// Vertex Colour
-	glm::vec2 tex; // Texture Coords (u, v)
+	glm::vec3 position;			// Vertex Position (x, y ,z)
+	glm::vec3 normal;			// Vertex Normal (x, y, x)
+	glm::vec2 uv;				// Texture Coords (u, v)
 };
 
 class Mesh
@@ -32,8 +32,6 @@ public:
 	int indexCount() const;
 	Buffer& indexBuffer();
 
-	
-
 private:
 	glm::mat4 mModel;
 
@@ -41,13 +39,9 @@ private:
 
 	int mVertexCount;
 	std::unique_ptr<Buffer> mVertexBuffer;
-	//std::mutex mVertexMutex;
-	
 
 	int mIndexCount;
 	std::unique_ptr<Buffer> mIndexBuffer;
-	//std::mutex mIndexMutex;
-	
 
 	void createVertexBuffer(Device& device, std::vector<Vertex>* vertices);
 	void createIndexBuffer(Device& device, std::vector<uint32_t>* indices);

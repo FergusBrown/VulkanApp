@@ -165,7 +165,7 @@
     <ClCompile Include="Renderer\ShaderModule.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Applications\DepthBufferApp.cpp">
+    <ClCompile Include="Applications\BasicApp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -299,7 +299,7 @@
     <ClInclude Include="Renderer\ShaderModule.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Applications\DepthBufferApp.h">
+    <ClInclude Include="Applications\BasicApp.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

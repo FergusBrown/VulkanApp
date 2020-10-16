@@ -73,7 +73,7 @@ protected:
 	std::vector<MeshModel> mModelList;
 
 	// Scene Settings
-	struct UboViewProjection {
+	struct ViewProjection {
 		glm::mat4 projection;
 		glm::mat4 view;
 	} mUBOViewProjection;
@@ -148,6 +148,7 @@ protected:
 	virtual void createRenderTargetAndFrames()	= 0;
 	virtual void createRenderPass()				= 0;
 
+	// DESCRIPTOR SET LAYOUTS
 	void createTextureSamplerDescriptorSetLayout();
 	virtual void createUniformBufferDescriptorSetLayout();
 	virtual void createDescriptorSetLayouts()	= 0;

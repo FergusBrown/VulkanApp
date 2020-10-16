@@ -29,6 +29,20 @@ std::vector<std::string> LoadMaterials(const aiScene* scene)
 				textureList[i] = fileName;
 			}
 		}
+
+		// Check for a Normal Texture 
+		//if (material->GetTextureCount(aiTextureType_NORMALS))
+		//{
+		//	aiString path;
+		//	if (material->GetTexture(aiTextureType_NORMALS, 0, &path) == AI_SUCCESS)
+		//	{
+		//		// Cut off any directory information already present
+		//		int idx = std::string(path.data).rfind("\\");
+		//		std::string fileName = std::string(path.data).substr(idx + 1);
+
+		//		textureList[i] = fileName;
+		//	}
+		//}
 	}
 
 	return textureList;
@@ -74,20 +88,23 @@ std::unique_ptr<Mesh> LoadMesh(Device& device, aiMesh* mesh, const aiScene* scen
 	for (size_t i = 0; i < mesh->mNumVertices; ++i)
 	{
 		// Set position
-		vertices[i].pos = { mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z };
+		vertices[i].position = { mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z };
+
+		// Set normal
+		vertices[i].normal = { mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z };
 
 		// Set tex coords (if they exist)
 		if (mesh->mTextureCoords[0])
 		{
-			vertices[i].tex = { mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y };
+			vertices[i].uv = { mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y };
 		}
 		else
 		{
-			vertices[i].tex = { 0.0f, 0.0f };
+			vertices[i].uv = { 0.0f, 0.0f };
 		}
 
-		// Set colour (just use white for now)
-		vertices[i].col = { 1.0f, 1.0f, 1.0f };
+		// Set colour
+		//vertices[i].col = { 1.0f, 1.0f, 1.0f };
 	}
 
 	// Iterate over indices through faces and copy across

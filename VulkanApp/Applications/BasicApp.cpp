@@ -1,6 +1,6 @@
-#include "DepthBufferApp.h"
+#include "BasicApp.h"
 
-DepthBufferApp::~DepthBufferApp()
+BasicApp::~BasicApp()
 {
 	if (mDevice)
 	{
@@ -8,7 +8,7 @@ DepthBufferApp::~DepthBufferApp()
 	}
 }
 
-void DepthBufferApp::draw()
+void BasicApp::draw()
 {
 	auto& previousFrame = mFrames[activeFrameIndex];
 
@@ -48,7 +48,7 @@ void DepthBufferApp::draw()
 }
 
 // Prepare rendertargets and frames
-void DepthBufferApp::createRenderTargetAndFrames()
+void BasicApp::createRenderTargetAndFrames()
 {
 	//auto& device = mSwapchain->device();
 	auto& swapchainExtent = mSwapchain->extent();
@@ -116,7 +116,7 @@ void DepthBufferApp::createRenderTargetAndFrames()
 	}
 }
 
-void DepthBufferApp::createRenderPass()
+void BasicApp::createRenderPass()
 {
 	// Attachment 0 = Swapchain
 	// Attachment 1 = Colour
@@ -163,7 +163,7 @@ void DepthBufferApp::createRenderPass()
 
 }
 
-void DepthBufferApp::createDescriptorSetLayouts()
+void BasicApp::createDescriptorSetLayouts()
 {
 	// INPUT ATTACHMENTS
 	ShaderResource depthAttachment(0,
@@ -184,14 +184,14 @@ void DepthBufferApp::createDescriptorSetLayouts()
 	mAttachmentSetLayout = (std::make_unique<DescriptorSetLayout>(*mDevice, 2, attachmentResources));
 }
 
-void DepthBufferApp::createPushConstantRange()
+void BasicApp::createPushConstantRange()
 {
 	mPushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;	// Shader stage push constant will go to
 	mPushConstantRange.offset = 0;								// Offset into given data to pass to push constant
 	mPushConstantRange.size = sizeof(glm::mat4);					// Size of data being passed
 }
 
-void DepthBufferApp::createPipelines()
+void BasicApp::createPipelines()
 {
 	// PIPELINE 1
 	// CREATE SHADER MODULES
@@ -264,13 +264,13 @@ void DepthBufferApp::createPipelines()
 
 
 
-void DepthBufferApp::createDescriptorPools()
+void BasicApp::createDescriptorPools()
 {
 	// CREATE INPUT ATTACHMENT DESCRIPTOR POOL
 	mAttachmentDescriptorPool = std::make_unique<DescriptorPool>(*mDevice, *mAttachmentSetLayout, mSwapchain->imageCount());
 }
 
-void DepthBufferApp::createDescriptorSets()
+void BasicApp::createDescriptorSets()
 {
 	// CREATE SETS
 	for (size_t i = 0; i < mSwapchain->imageCount(); ++i)
@@ -292,7 +292,7 @@ void DepthBufferApp::createDescriptorSets()
 }
 
 // Set required extensions + features
-void DepthBufferApp::getRequiredExtenstionAndFeatures(std::vector<const char*>& requiredExtensions, VkPhysicalDeviceFeatures& requiredFeatures)
+void BasicApp::getRequiredExtenstionAndFeatures(std::vector<const char*>& requiredExtensions, VkPhysicalDeviceFeatures& requiredFeatures)
 {
 	requiredExtensions = {
 	VK_KHR_SWAPCHAIN_EXTENSION_NAME
@@ -302,7 +302,7 @@ void DepthBufferApp::getRequiredExtenstionAndFeatures(std::vector<const char*>& 
 	requiredFeatures.samplerAnisotropy = VK_TRUE;
 }
 
-void DepthBufferApp::recordCommands(CommandBuffer& primaryCmdBuffer) // Current image is swapchain index
+void BasicApp::recordCommands(CommandBuffer& primaryCmdBuffer) // Current image is swapchain index
 {
 	auto& frame = *mFrames[activeFrameIndex];
 	auto& framebuffer = mFramebuffers[activeFrameIndex];
@@ -415,7 +415,7 @@ void DepthBufferApp::recordCommands(CommandBuffer& primaryCmdBuffer) // Current 
 }
 
 
-CommandBuffer* DepthBufferApp::recordSecondaryCommandBuffers(CommandBuffer* primaryCommandBuffer, std::vector<std::reference_wrapper<Mesh>> meshList, uint32_t meshStart, uint32_t meshEnd, size_t threadIndex)
+CommandBuffer* BasicApp::recordSecondaryCommandBuffers(CommandBuffer* primaryCommandBuffer, std::vector<std::reference_wrapper<Mesh>> meshList, uint32_t meshStart, uint32_t meshEnd, size_t threadIndex)
 {
 	auto& frame = mFrames[activeFrameIndex];
 

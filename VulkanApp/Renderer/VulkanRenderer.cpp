@@ -32,7 +32,6 @@ int VulkanRenderer::init(GLFWwindow* newWindow)
 		createDescriptorSets();
 		createCamera(90.0f);
 
-		//createTexture("default_checker.png");
 		createTexture("default_black.png");
 
 	}
@@ -218,7 +217,7 @@ void VulkanRenderer::createTextureSampler()
 void VulkanRenderer::createUniformBuffers()
 {
 	// ViewProjection Buffer size
-	VkDeviceSize vpBufferSize = sizeof(UboViewProjection);
+	VkDeviceSize vpBufferSize = sizeof(ViewProjection);
 
 	// Create uniform buffers
 	for (size_t i = 0; i < mSwapchain->details().imageCount; ++i)
@@ -263,7 +262,7 @@ void VulkanRenderer::createUniformDescriptorSets()
 		mUniformResources.push_back(std::make_unique<DescriptorResourceReference>());
 		mUniformResources.back()->bindBuffer(*mUniformBuffers[i],
 			0,
-			sizeof(UboViewProjection),
+			sizeof(ViewProjection),
 			0,
 			0);
 
@@ -285,7 +284,7 @@ void VulkanRenderer::updateUniformBuffers()
 {
 	// Copy VP data
 	void* data = mUniformBuffers[activeFrameIndex]->map();
-	memcpy(data, &mUBOViewProjection, sizeof(UboViewProjection));
+	memcpy(data, &mUBOViewProjection, sizeof(ViewProjection));
 	mUniformBuffers[activeFrameIndex]->unmap();
 }
 

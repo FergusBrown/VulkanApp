@@ -145,7 +145,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Applications\DepthBufferApp.cpp" />
+    <ClCompile Include="Applications\BasicApp.cpp" />
     <ClCompile Include="InputHandlerMouse.cpp" />
     <ClCompile Include="Light.cpp" />
     <ClCompile Include="main.cpp" />
@@ -188,7 +188,7 @@
   <ItemGroup>
     <ClInclude Include="Commands.h" />
     <ClInclude Include="ControlConstants.h" />
-    <ClInclude Include="Applications\DepthBufferApp.h" />
+    <ClInclude Include="Applications\BasicApp.h" />
     <ClInclude Include="DirectionalLight.h" />
     <ClInclude Include="InputHandler.h" />
     <ClInclude Include="InputHandlerMouse.h" />
