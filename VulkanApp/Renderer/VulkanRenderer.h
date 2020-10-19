@@ -96,23 +96,14 @@ protected:
 
 	// - Descriptors
 	// -- Layouts
-	//std::vector<std::unique_ptr<DescriptorSetLayout>> mPerViewDescriptorSetLayouts;
 	std::unique_ptr<DescriptorSetLayout> mPerMaterialDescriptorSetLayout;
 	VkPushConstantRange mPushConstantRange;		// push constant acts as per draw descriptor set 
 
-	// -- Resource References
-	//std::vector<std::vector<std::unique_ptr<DescriptorResourceReference>>> mPerViewResources;
-	//std::vector<std::unique_ptr<DescriptorResourceReference>> mPerMaterialResources;
-
 	// -- Pool
-	//std::vector<std::unique_ptr<DescriptorPool>> mPerViewDescriptorPools;
 	std::unique_ptr<DescriptorPool> mPerMaterialDescriptorPool;
 
 	// -- Sets
-	//std::vector<std::unique_ptr<DescriptorSet>> mPerViewDescriptorSets;			// Descriptor set holding per view (view projection matrix, light positions)
 	std::vector<std::unique_ptr<DescriptorSet>> mPerMaterialDescriptorSets;		// Descriptor sets holding texture samplers
-
-	//std::vector<std::unique_ptr<Buffer>> mUniformBuffers;
 
 	// - Assets
 	std::unique_ptr<Sampler> mTextureSampler;

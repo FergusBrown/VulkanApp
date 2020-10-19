@@ -306,20 +306,9 @@ void BasicApp::createPerFrameDescriptorSets()
 
 
 
-//void BasicApp::createDescriptorPools()
-//{
-//	// CREATE INPUT ATTACHMENT DESCRIPTOR POOL
-//	mAttachmentDescriptorPool = std::make_unique<DescriptorPool>(*mDevice, *mAttachmentSetLayout, mSwapchain->imageCount());
-//}
-
 void BasicApp::updatePerFrameResources()
 {
 	mFrames[activeFrameIndex]->updateBuffer(mUniformBufferIndex, mUBOViewProjection);
-
-	//// Copy VP data
-	//void* data = mUniformBuffers[activeFrameIndex]->map();
-	//memcpy(data, &mUBOViewProjection, sizeof(ViewProjection));
-	//mUniformBuffers[activeFrameIndex]->unmap();
 }
 
 // Set required extensions + features

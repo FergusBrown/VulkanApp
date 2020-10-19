@@ -215,36 +215,6 @@ void VulkanRenderer::createPerMaterialDescriptorPool()
 	mPerMaterialDescriptorPool = std::make_unique<DescriptorPool>(*mDevice, *mPerMaterialDescriptorSetLayout, MAX_MATERIALS);
 }
 
-
-//void VulkanRenderer::createPerFrameDescriptorSets()
-//{
-//	size_t imageCount = static_cast<size_t>(mSwapchain->details().imageCount);
-//
-//	// CREATE SETS 
-//	for (size_t i = 0; i < imageCount; ++i)
-//	{
-//
-//		DescriptorResourceReference frameResource;
-//		frameResource.bindBuffer(*mUniformBuffers[i],
-//			0,
-//			sizeof(ViewProjection),
-//			0,
-//			0);
-//
-//		VkDescriptorBufferInfo vpBufferInfo = {};
-//		frameResources[i]->generateDescriptorBufferInfo(vpBufferInfo, 0, 0);
-//		BindingMap<VkDescriptorBufferInfo> uniformBufferInfos;
-//
-//		uniformBufferInfos[0][0] = vpBufferInfo;
-//
-//		mPerViewDescriptorSets.push_back(std::make_unique<DescriptorSet>(*mDevice, *mPerViewDescriptorSetLayout, *mPerViewDescriptorPool, uniformBufferInfos));
-//
-//		// Update the descriptor sets with new buffer/binding info
-//		std::vector<uint32_t> bindingsToUpdate = { 0 };
-//		mPerViewDescriptorSets.back()->update(bindingsToUpdate);
-//	}
-//}
-
 VkFormat VulkanRenderer::chooseSupportedFormat(const std::vector<VkFormat>& formats, VkImageTiling tiling, VkFormatFeatureFlags featureFlags)
 {
 	// Loop through the options and find a compatible one
