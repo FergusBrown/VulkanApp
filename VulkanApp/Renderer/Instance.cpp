@@ -1,16 +1,5 @@
 #include "Instance.h"
 
-// Validation layer variables
-const std::vector<const char*> validationLayers = {
-	"VK_LAYER_KHRONOS_validation"
-};
-
-#ifdef NDEBUG
-const bool enableValidationLayers = false;
-#else
-const bool enableValidationLayers = true;
-#endif
-
 // TODO : pass in validation layer settings
 Instance::Instance(std::string applicationName,
 	std::vector<const char*>& requiredInstanceExtensions)

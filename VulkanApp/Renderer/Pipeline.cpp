@@ -56,28 +56,27 @@ GraphicsPipeline::GraphicsPipeline(Device& device,
 
 	// TODO : rework the below
 	VkPipelineVertexInputStateCreateInfo vertexInputCreateInfo = {};
+	VkVertexInputBindingDescription bindingDescription = {};
+	std::array<VkVertexInputAttributeDescription, 3> attributeDescriptions;
 	if (vertexInput)
 	{
 		// -- BINDING DESCRIPTION
 
 		// How the data for a single vertex (including info such as position, colour, texture coords, normals, etc) is as a whole
-		VkVertexInputBindingDescription bindingDescription = {};
+		
 		bindingDescription.binding = 0;								// Can bind multiple streams of data, this defines which one
 		bindingDescription.stride = sizeof(Vertex);					// Size of a single vertex object
 		bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;	// How to move between data after each vertex
 																	// VK_VERTEX_INPUT_RATE_INDEX		: Move on the the next vertex
 																	// VK_VERTEX_INPUT_RATE_INSTANCE	: Move to a vertex for the next mInstance
-
 		// How the data for an attribute is defined within a vertex
-		std::array<VkVertexInputAttributeDescription, 3> attributeDescriptions;
-
 		// Position Attribute
 		attributeDescriptions[0].binding = 0;							// Which binding the data is at (Should be the same as above)
 		attributeDescriptions[0].location = 0;							// Location in shader where data will be read from
 		attributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;	// Format the data will take (also helps define size of data)
 		attributeDescriptions[0].offset = offsetof(Vertex, position);		// Where this attribute is defined in the data for a single vertex
 
-		// Colour attribute
+		// Normal attribute
 		attributeDescriptions[1].binding = 0;
 		attributeDescriptions[1].location = 1;
 		attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;

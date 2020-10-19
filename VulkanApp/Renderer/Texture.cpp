@@ -133,8 +133,6 @@ bool Texture::checkMipmapGenerationSupport(VkFormat format)
 	{
 		return false;
 	}
-
-	
 }
 // Generate mipmaps through blit operations
 void Texture::generateMipmaps(uint32_t mipLevels, uint32_t width, uint32_t height, CommandBuffer& commandBuffer)

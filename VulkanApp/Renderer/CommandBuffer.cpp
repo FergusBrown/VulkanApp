@@ -56,7 +56,6 @@ uint32_t CommandBuffer::queueFamilyIndex() const
 	return mCommandPool.queueFamilyIndex();
 }
 
-// TODO : update to work with secondary command buffers
 void CommandBuffer::beginRecording(VkCommandBufferUsageFlags flags, CommandBuffer* primaryCommandBuffer)
 {
 	// Information to begin the command buffer record
@@ -64,6 +63,8 @@ void CommandBuffer::beginRecording(VkCommandBufferUsageFlags flags, CommandBuffe
 	beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 	beginInfo.flags = flags;		// We're only using the command buffer once so set up for one time submit
 
+	// Create ingeritance info if secondary buffer
+	VkCommandBufferInheritanceInfo inheritanceInfo = {};
 	if (mLevel == VK_COMMAND_BUFFER_LEVEL_SECONDARY)
 	{
 		assert(primaryCommandBuffer && "A Primary Command Buffer ptr must be provided in order to begin recording with a Secondary Command Buffer!");
@@ -72,7 +73,6 @@ void CommandBuffer::beginRecording(VkCommandBufferUsageFlags flags, CommandBuffe
 		assert((currentRenderPass.renderPass && currentRenderPass.framebuffer) && "Cannot begin recording with a Secondary Command Buffer with no RenderPass binding! Have you called beginRenderPass?");
 
 		// Inheritance create info allows secondary buffers to inherit render pass state
-		VkCommandBufferInheritanceInfo inheritanceInfo = {};
 		inheritanceInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO;
 		inheritanceInfo.renderPass = currentRenderPass.renderPass->handle();
 		inheritanceInfo.framebuffer = currentRenderPass.framebuffer->handle();
