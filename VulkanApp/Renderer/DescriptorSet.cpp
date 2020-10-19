@@ -56,6 +56,8 @@ const BindingMap<VkDescriptorBufferInfo>& DescriptorSet::bufferInfos() const
 
 // If passed vector is empty then update all bindings, otherwise only update selected bindings
 // Before updating, check if binding is already updated
+// Updating bindings changes the buffer/image which a binding refers to
+// This should only be called after the object is initialised or after a call of reset() with new image and buffer infos
 void DescriptorSet::update(const std::vector<uint32_t>& bindingsToUpdate)
 {
 	std::vector<VkWriteDescriptorSet> writeOperationsToPerform;

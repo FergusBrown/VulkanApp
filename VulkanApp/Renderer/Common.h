@@ -18,7 +18,7 @@
 #include <vector>
 
 // *** Max Value Constants ***
-const uint32_t MAX_TEXTURES = 2048;
+const uint32_t MAX_MATERIALS = 2048;
 const float MAX_LOD		= 15.0f;	// This should support all mip levels for textures of resolution up to 16K resolution
 const uint32_t MAX_OBJECTS	= 10;
 

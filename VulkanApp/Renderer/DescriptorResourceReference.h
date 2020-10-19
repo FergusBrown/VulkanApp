@@ -32,6 +32,8 @@ public:
 	void reset();
 	void generateDescriptorImageInfo(VkDescriptorImageInfo& imageInfo, uint32_t bindingIndex, uint32_t arrayIndex);
 	void generateDescriptorBufferInfo(VkDescriptorBufferInfo& bufferInfo, uint32_t bindingIndex, uint32_t arrayIndex);
+	void generateDescriptorInfos(BindingMap<VkDescriptorImageInfo>& imageInfos, BindingMap<VkDescriptorBufferInfo>& bufferInfos);
+
 
 	void bindBuffer(const Buffer& buffer, const uint32_t offset, const uint32_t range, const uint32_t bindingIndex, const uint32_t arrayIndex);
 	void bindImage(const ImageView& imageView, const Sampler& sampler, const uint32_t bindingIndex, const uint32_t arrayIndex);

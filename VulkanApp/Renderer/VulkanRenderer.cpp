@@ -8,28 +8,30 @@ int VulkanRenderer::init(GLFWwindow* newWindow)
 
 	try {
 		setupThreadPool();
+
 		createInstance();				
 		createSurface();				
 		createDevice();				
 		findDesiredQueueFamilies();
+
 		chooseImageFormats();
 		createSwapchain();				
 		createRenderTargetAndFrames();
 		createRenderPass();	
-		createTextureSamplerDescriptorSetLayout();
-		createUniformBufferDescriptorSetLayout();
-		createDescriptorSetLayouts();
+
+		createPerFrameDescriptorSetLayouts();
+		createPerMaterialDescriptorSetLayout();
 		createPushConstantRange();
+
 		createPipelines();
 		createFramebuffers();
+
 		createTextureSampler();
-		//allocateDynamicBufferTransferSpace();
-		createUniformBuffers();
-		createTextureSamplerDescriptorPool();
-		createUniformBufferDescriptorPool();
-		createDescriptorPools();
-		createUniformDescriptorSets();
-		createDescriptorSets();
+		createPerFrameResources();
+
+		createPerMaterialDescriptorPool();
+		
+		createPerFrameDescriptorSets();
 		createCamera(90.0f);
 
 		createTexture("default_black.png");
@@ -162,7 +164,7 @@ void VulkanRenderer::chooseImageFormats()
 		VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
 }
 
-void VulkanRenderer::createTextureSamplerDescriptorSetLayout()
+void VulkanRenderer::createPerMaterialDescriptorSetLayout()
 {
 	// TEXTURE SAMPLER
 	ShaderResource textureSampler(0,
@@ -174,22 +176,14 @@ void VulkanRenderer::createTextureSamplerDescriptorSetLayout()
 
 	samplerResources.push_back(textureSampler);
 
-	mSamplerSetLayout = (std::make_unique<DescriptorSetLayout>(*mDevice, 1, samplerResources));
+	mPerMaterialDescriptorSetLayout = (std::make_unique<DescriptorSetLayout>(*mDevice, 1, samplerResources));
 }
 
-void VulkanRenderer::createUniformBufferDescriptorSetLayout()
+void VulkanRenderer::createPushConstantRange()
 {
-	// UNIFORM BUFFER
-	ShaderResource vpBuffer(0,
-		VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-		1,
-		VK_SHADER_STAGE_VERTEX_BIT);
-
-	std::vector<ShaderResource> vpResources;
-
-	vpResources.push_back(vpBuffer);
-
-	mUniformSetLayout = std::make_unique<DescriptorSetLayout>(*mDevice, 0, vpResources);
+	mPushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;		// Shader stage push constant will go to
+	mPushConstantRange.offset = 0;									// Offset into given data to pass to push constant
+	mPushConstantRange.size = sizeof(glm::mat4);					// Size of data being passed
 }
 
 
@@ -214,93 +208,41 @@ void VulkanRenderer::createTextureSampler()
 		MAX_LOD);	// Max LOD can be as high as possible since it is just used to clamp the computed LOD
 }
 
-void VulkanRenderer::createUniformBuffers()
-{
-	// ViewProjection Buffer size
-	VkDeviceSize vpBufferSize = sizeof(ViewProjection);
 
-	// Create uniform buffers
-	for (size_t i = 0; i < mSwapchain->details().imageCount; ++i)
-	{
-		mUniformBuffers.push_back(std::make_unique<Buffer>(*mDevice,
-			vpBufferSize,
-			VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT));
-	}
-	
-	// TODO : MAP RESOURCE SET
-	// TODO: perform in descriptor set creation?
-
-}
-
-void VulkanRenderer::createTextureSamplerDescriptorPool()
+void VulkanRenderer::createPerMaterialDescriptorPool()
 {
 	// CREATE SAMPLER DESCRIPTOR POOL
-	mSamplerDescriptorPool = std::make_unique<DescriptorPool>(*mDevice, *mSamplerSetLayout, MAX_TEXTURES);
+	mPerMaterialDescriptorPool = std::make_unique<DescriptorPool>(*mDevice, *mPerMaterialDescriptorSetLayout, MAX_MATERIALS);
 }
 
-void VulkanRenderer::createUniformBufferDescriptorPool()
-{
-	// CREATE UNIFORM DESCRIPTOR POOL
-	mUniformDescriptorPool = std::make_unique<DescriptorPool>(*mDevice, *mUniformSetLayout, mSwapchain->imageCount());
-}
 
-//void VulkanRenderer::createDescriptorPools()
+//void VulkanRenderer::createPerFrameDescriptorSets()
 //{
-//	
+//	size_t imageCount = static_cast<size_t>(mSwapchain->details().imageCount);
 //
-//	// CREATE INPUT ATTACHMENT DESCRIPTOR POOL
-//	mAttachmentDescriptorPool = std::make_unique<DescriptorPool>(*mDevice, *mAttachmentSetLayout, mSwapchain->imageCount());
+//	// CREATE SETS 
+//	for (size_t i = 0; i < imageCount; ++i)
+//	{
 //
-//}
-
-void VulkanRenderer::createUniformDescriptorSets()
-{
-	// CREATE SETS 
-	for (size_t i = 0; i < mSwapchain->details().imageCount; ++i)
-	{
-		mUniformResources.push_back(std::make_unique<DescriptorResourceReference>());
-		mUniformResources.back()->bindBuffer(*mUniformBuffers[i],
-			0,
-			sizeof(ViewProjection),
-			0,
-			0);
-
-		VkDescriptorBufferInfo vpBufferInfo = {};
-		mUniformResources[i]->generateDescriptorBufferInfo(vpBufferInfo, 0, 0);
-		BindingMap<VkDescriptorBufferInfo> uniformBufferInfos;
-
-		uniformBufferInfos[0][0] = vpBufferInfo;
-
-		mUniformDescriptorSets.push_back(std::make_unique<DescriptorSet>(*mDevice, *mUniformSetLayout, *mUniformDescriptorPool, uniformBufferInfos));
-
-		// Update the descriptor sets with new buffer/binding info
-		std::vector<uint32_t> bindingsToUpdate = { 0 };
-		mUniformDescriptorSets.back()->update(bindingsToUpdate);
-	}
-}
-
-void VulkanRenderer::updateUniformBuffers()
-{
-	// Copy VP data
-	void* data = mUniformBuffers[activeFrameIndex]->map();
-	memcpy(data, &mUBOViewProjection, sizeof(ViewProjection));
-	mUniformBuffers[activeFrameIndex]->unmap();
-}
-
-
-
-
-//void VulkanRenderer::allocateDynamicBufferTransferSpace()
-//{
-//	/*
-//	// Calculate alignment of model data
-//	modelUniformAlignment = (sizeof(UboModel) + minUniformBufferOffset - 1)
-//							& ~(minUniformBufferOffset - 1);
+//		DescriptorResourceReference frameResource;
+//		frameResource.bindBuffer(*mUniformBuffers[i],
+//			0,
+//			sizeof(ViewProjection),
+//			0,
+//			0);
 //
-//	// Create space in memory to hold dynamic buffer that is aligned to our required alignment and holds MAX_OBJECTS
-//	modelTransferSpace = (UboModel*)_aligned_malloc(modelUniformAlignment * MAX_OBJECTS, modelUniformAlignment);
-//	*/
+//		VkDescriptorBufferInfo vpBufferInfo = {};
+//		frameResources[i]->generateDescriptorBufferInfo(vpBufferInfo, 0, 0);
+//		BindingMap<VkDescriptorBufferInfo> uniformBufferInfos;
+//
+//		uniformBufferInfos[0][0] = vpBufferInfo;
+//
+//		mPerViewDescriptorSets.push_back(std::make_unique<DescriptorSet>(*mDevice, *mPerViewDescriptorSetLayout, *mPerViewDescriptorPool, uniformBufferInfos));
+//
+//		// Update the descriptor sets with new buffer/binding info
+//		std::vector<uint32_t> bindingsToUpdate = { 0 };
+//		mPerViewDescriptorSets.back()->update(bindingsToUpdate);
+//	}
 //}
 
 VkFormat VulkanRenderer::chooseSupportedFormat(const std::vector<VkFormat>& formats, VkImageTiling tiling, VkFormatFeatureFlags featureFlags)
@@ -352,24 +294,23 @@ int VulkanRenderer::createTexture(std::string fileName)
 int VulkanRenderer::createTextureDescriptor(const Texture& texture)
 {
 	// Create descriptor resource reference
-	// TODO : make this a map?
-	mSamplerResources.push_back(std::make_unique<DescriptorResourceReference>());
-	mSamplerResources.back()->bindImage(texture.imageView(), *mTextureSampler, 0, 0);
+	DescriptorResourceReference materialResource;
+	materialResource.bindImage(texture.imageView(), *mTextureSampler, 0, 0);
 	
 	VkDescriptorImageInfo imageInfo = {};
-	mSamplerResources.back()->generateDescriptorImageInfo(imageInfo, 0, 0);
+	materialResource.generateDescriptorImageInfo(imageInfo, 0, 0);
 
 	BindingMap<VkDescriptorImageInfo> imageInfos;
 	imageInfos[0][0] = imageInfo;
 
-	mTextureDescriptorSets.push_back(std::make_unique<DescriptorSet>(*mDevice, *mSamplerSetLayout, *mSamplerDescriptorPool, imageInfos));
+	mPerMaterialDescriptorSets.push_back(std::make_unique<DescriptorSet>(*mDevice, *mPerMaterialDescriptorSetLayout, *mPerMaterialDescriptorPool, imageInfos));
 
 	// Update the descriptor sets with new buffer/binding info
 	std::vector<uint32_t> bindingsToUpdate = { 0 };
-	mTextureDescriptorSets.back()->update(bindingsToUpdate);
+	mPerMaterialDescriptorSets.back()->update(bindingsToUpdate);
 
 	// Return descriptor set location
-	return mTextureDescriptorSets.size() - 1;
+	return mPerMaterialDescriptorSets.size() - 1;
 
 
 }

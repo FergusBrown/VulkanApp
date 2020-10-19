@@ -4,7 +4,7 @@
 #include "DescriptorSetLayout.h"
 
 PipelineLayout::PipelineLayout(Device& device,
-	const std::vector<std::reference_wrapper<DescriptorSetLayout>>& descriptorSetLayouts,
+	const std::vector<std::reference_wrapper<const DescriptorSetLayout>>& descriptorSetLayouts,
 	const VkPushConstantRange& pushConstantRange) :
 	mDevice(device)
 {
@@ -28,7 +28,7 @@ PipelineLayout::PipelineLayout(Device& device,
 	}
 }
 
-PipelineLayout::PipelineLayout(Device& device, const std::vector<std::reference_wrapper<DescriptorSetLayout>>& descriptorSetLayouts) :
+PipelineLayout::PipelineLayout(Device& device, const std::vector<std::reference_wrapper<const DescriptorSetLayout>>& descriptorSetLayouts) :
 	mDevice(device)
 {
 	std::vector<VkDescriptorSetLayout> layoutHandles(descriptorSetLayouts.size());

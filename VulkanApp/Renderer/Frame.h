@@ -15,6 +15,7 @@ class DescriptorSet;
 class DescriptorSetLayout;
 class Queue;
 class RenderTarget;
+struct ShaderResource;
 
 
 // This is a container for data which must be held by every frame
@@ -28,20 +29,32 @@ public:
 	// - Getters
 	Device& device() const;
 	const RenderTarget& renderTarget() const;
-	//CommandPool& commandPool(uint32_t threadIndex = 0);
+	const DescriptorSetLayout& descriptorSetLayout(uint32_t pipelineIndex = 0);
+	const DescriptorSet& descriptorSet(uint32_t pipelineIndex = 0, size_t threadIndex = 0);
 
 	// - Frame management
 	void reset();
 
-	// -- Command Buffers
+	// - Command Buffers
 	CommandBuffer& requestCommandBuffer(const Queue& queue, VkCommandBufferLevel level, size_t threadIndex = 0);
 
-	// TODO : this functionality needs implemented
-	// -- Descriptor Sets
-	DescriptorSet& requestDescriptorSet(DescriptorSetLayout& descriptorSetLayout,
-		const BindingMap<VkDescriptorImageInfo>& imageInfos = {},
-		const BindingMap<VkDescriptorBufferInfo>& bufferInfos = {},
-		size_t threadIndex = 0);
+	// - Descriptor Sets
+	void createDescriptorSetLayout(std::vector<ShaderResource>& shaderResources, uint32_t pipelineIndex, uint32_t setIndex = 0);
+	void createDescriptorSet(uint32_t pipelineIndex, const BindingMap<uint32_t>& imageIndices = {}, const BindingMap<uint32_t>& bufferIndices = {});
+
+	// - Buffers
+	uint32_t createBuffer(VkDeviceSize bufferSize,
+		VkBufferUsageFlags usage,
+		VkMemoryPropertyFlags properties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+
+	template<typename T>
+	void updateBuffer(uint32_t bufferIndex, T& data)
+	{
+		// Copy VP data
+		void* dst = mBuffers[bufferIndex]->map();
+		memcpy(dst, &data, sizeof(T));
+		mBuffers[bufferIndex]->unmap();
+	}
 
 	// -- Synchronisation
 	VkFence requestFence();
@@ -52,18 +65,13 @@ private:
 	// Variables
 	Device& mDevice;
 
-	// - Descriptors
-
 	struct ThreadData {
 		// Command Pools
 		std::vector<std::unique_ptr<CommandPool>> commandPools;			// per thread vector of command pools: Each index holds a pool for a different queue type
 		
-		// Descriptors			
-		std::vector<std::unique_ptr<DescriptorPool>> descriptorPools;
-		std::vector<std::unique_ptr<DescriptorSet>> descriptorSets;
-
-		// Buffers
-		std::vector<std::unique_ptr<Buffer>> buffers;
+		// Descriptors - each index maps to a pipeline	
+		std::unordered_map<uint32_t, std::unique_ptr<DescriptorPool>> descriptorPools;
+		std::unordered_map<uint32_t, std::unique_ptr<DescriptorSet>> descriptorSets;
 	};
 
 	size_t mThreadCount{ 1 };
@@ -72,12 +80,12 @@ private:
 	// - Render target
 	std::unique_ptr<RenderTarget> mRenderTarget;
 
-	// - Descriptors
-	std::vector<std::unique_ptr<DescriptorPool>> descriptorPools;
-	std::vector<std::unique_ptr<DescriptorSet>> descriptorSets;
+	// - Descriptor Set Layouts - Index maps to a pipeline
+	std::unordered_map<uint32_t, std::unique_ptr<DescriptorSetLayout>> mDescriptorSetLayouts;
 
-	// - Thread Pool
-	//void createThreadData();
+	// - Buffers
+	// TODO : update this to support dynamic buffers
+	std::vector<std::unique_ptr<Buffer>> mBuffers;
 
 	// - Synchronisation
 	FencePool mFencePool;
@@ -86,7 +94,4 @@ private:
 	// - Support
 	// -- Command Pools
 	std::unique_ptr<CommandPool>& requestCommandPool(const Queue& queue, size_t threadIndex = 0);
-
-	// -- Descriptor Pools
 };
-

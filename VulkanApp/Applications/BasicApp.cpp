@@ -39,7 +39,7 @@ void BasicApp::draw()
 
 	recordCommands(primaryCmdBuffer);		// Only record commands once the image at imageIndex is available (not being used by the queue)
 
-	updateUniformBuffers();
+	updatePerFrameResources();
 
 	queue.submit(imageAcquired, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, renderFinished,
 		primaryCmdBuffer, drawFence);
@@ -80,6 +80,7 @@ void BasicApp::createRenderTargetAndFrames()
 			swapchainUsage);
 
 		// 1 - colour image
+		mColourAttachmentIndex = 1;
 		Image colourImage(*mDevice,
 			swapchainExtent,
 			mColourFormat,
@@ -87,6 +88,7 @@ void BasicApp::createRenderTargetAndFrames()
 			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
 		// 2 - depth image
+		mDepthAttachmentIndex = 2;
 		Image depthImage(*mDevice,
 			swapchainExtent,
 			mDepthFormat,
@@ -102,17 +104,6 @@ void BasicApp::createRenderTargetAndFrames()
 		// Create Render Target + Frame
 		std::unique_ptr<RenderTarget> renderTarget = std::make_unique<RenderTarget>(std::move(renderTargetImages));
 		mFrames.push_back(std::make_unique<Frame>(*mDevice, std::move(renderTarget), mThreadCount));
-
-		// TODO: make creation of resource references more readable e.g. save image indices in variables
-		// Create resource reference for descriptor sets
-		auto& imageViews = mFrames.back()->renderTarget().imageViews();
-		mAttachmentResources.push_back(std::make_unique<DescriptorResourceReference>());
-		mAttachmentResources.back()->bindInputImage(imageViews[1],
-			0,
-			0);
-		mAttachmentResources.back()->bindInputImage(imageViews[2],
-			1,
-			0);
 	}
 }
 
@@ -163,8 +154,22 @@ void BasicApp::createRenderPass()
 
 }
 
-void BasicApp::createDescriptorSetLayouts()
+// Create layouts which will be updated at most once per frame
+// A layout must be created for each pipeline
+void BasicApp::createPerFrameDescriptorSetLayouts()
 {
+	// Pipeline 1 
+	// UNIFORM BUFFER (VP matrix)
+	ShaderResource vpBuffer(0,
+		VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+		1,
+		VK_SHADER_STAGE_VERTEX_BIT);
+
+	std::vector<ShaderResource> vpResources;
+
+	vpResources.push_back(vpBuffer);
+
+	// Pipeline 2
 	// INPUT ATTACHMENTS
 	ShaderResource depthAttachment(0,
 		VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT,
@@ -176,19 +181,18 @@ void BasicApp::createDescriptorSetLayouts()
 		1,
 		VK_SHADER_STAGE_FRAGMENT_BIT);
 
-	std::vector<ShaderResource> attachmentResources;
+	std::vector<ShaderResource> attachmentResources{ depthAttachment , colourAttachment};
 
-	attachmentResources.push_back(depthAttachment);
-	attachmentResources.push_back(colourAttachment);
+	// Create sets in frame objects
+	for (auto& frame : mFrames)
+	{
+		// NOTE : Per frame descriptor set index should always be 0
+		// Layout 1
+		frame->createDescriptorSetLayout(vpResources, 0);
 
-	mAttachmentSetLayout = (std::make_unique<DescriptorSetLayout>(*mDevice, 2, attachmentResources));
-}
-
-void BasicApp::createPushConstantRange()
-{
-	mPushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;	// Shader stage push constant will go to
-	mPushConstantRange.offset = 0;								// Offset into given data to pass to push constant
-	mPushConstantRange.size = sizeof(glm::mat4);					// Size of data being passed
+		// Layout 2
+		frame->createDescriptorSetLayout(attachmentResources, 1);
+	}
 }
 
 void BasicApp::createPipelines()
@@ -208,7 +212,7 @@ void BasicApp::createPipelines()
 		VK_SHADER_STAGE_FRAGMENT_BIT);
 
 	// CREATE PIPELINE LAYOUT
-	std::vector<std::reference_wrapper<DescriptorSetLayout>> descriptorSetLayouts = { *mUniformSetLayout , *mSamplerSetLayout };
+	std::vector<std::reference_wrapper<const DescriptorSetLayout>> descriptorSetLayouts = { mFrames[0]->descriptorSetLayout(0) , *mPerMaterialDescriptorSetLayout };
 
 	std::unique_ptr<PipelineLayout> firstLayout = std::make_unique<PipelineLayout>(*mDevice, descriptorSetLayouts, mPushConstantRange);
 
@@ -242,7 +246,7 @@ void BasicApp::createPipelines()
 		VK_SHADER_STAGE_FRAGMENT_BIT);
 
 	// CREATE PIPELINE LAYOUT
-	std::vector<std::reference_wrapper<DescriptorSetLayout>> secondDescriptorSetLayouts = { *mAttachmentSetLayout };
+	std::vector<std::reference_wrapper<const DescriptorSetLayout>> secondDescriptorSetLayouts = { mFrames[0]->descriptorSetLayout(1) };
 
 	std::unique_ptr<PipelineLayout> secondLayout = std::make_unique<PipelineLayout>(*mDevice, secondDescriptorSetLayouts);
 
@@ -262,33 +266,60 @@ void BasicApp::createPipelines()
 	mPipelines.push_back(std::move(secondPipeline));
 }
 
-
-
-void BasicApp::createDescriptorPools()
+void BasicApp::createPerFrameResources()
 {
-	// CREATE INPUT ATTACHMENT DESCRIPTOR POOL
-	mAttachmentDescriptorPool = std::make_unique<DescriptorPool>(*mDevice, *mAttachmentSetLayout, mSwapchain->imageCount());
+	// ViewProjection Buffer size
+	VkDeviceSize vpBufferSize = sizeof(ViewProjection);
+
+	// Create uniform buffers
+	for (size_t i = 0; i < mSwapchain->details().imageCount; ++i)
+	{
+		mUniformBufferIndex = mFrames[i]->createBuffer(vpBufferSize,
+			VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+	}
 }
 
-void BasicApp::createDescriptorSets()
+void BasicApp::createPerFrameDescriptorSets()
 {
-	// CREATE SETS
-	for (size_t i = 0; i < mSwapchain->imageCount(); ++i)
+
+	for (size_t i = 0; i < static_cast<size_t>(mSwapchain->imageCount()); ++i)
 	{
-		BindingMap<VkDescriptorImageInfo> imageInfos{};
+		// PIPELINE 1
+		// - BINDING MAP TO PER FRAME BUFFERS
+		BindingMap<uint32_t> bufferIndices;
+		bufferIndices[0][0] = mUniformBufferIndex;
 
-		VkDescriptorImageInfo imageInfo = {};
-		mAttachmentResources[i]->generateDescriptorImageInfo(imageInfo, 0, 0);
-		imageInfos[0][0] = imageInfo;
-		mAttachmentResources[i]->generateDescriptorImageInfo(imageInfo, 1, 0);
-		imageInfos[1][0] = imageInfo;
+		// - DESCRIPTOR SET
+		mFrames[i]->createDescriptorSet(0, {}, bufferIndices);
 
-		mAttachmentDescriptorSets.push_back(std::make_unique<DescriptorSet>(*mDevice, *mAttachmentSetLayout, *mAttachmentDescriptorPool, imageInfos));
+		// PIPELINE 2
+		// - BINDING MAP TO RENDERTARGET IMAGE INDICES
+		BindingMap<uint32_t> imageIndices;
+		imageIndices[0][0] = mColourAttachmentIndex;
+		imageIndices[1][0] = mDepthAttachmentIndex;
 
-		// Update the descriptor sets with new image/binding info
-		std::vector<uint32_t> bindingsToUpdate = { 0, 1 };
-		mAttachmentDescriptorSets.back()->update(bindingsToUpdate);
+		// - DESCRIPTOR SET
+		mFrames[i]->createDescriptorSet(1, imageIndices, {});
 	}
+}
+
+
+
+//void BasicApp::createDescriptorPools()
+//{
+//	// CREATE INPUT ATTACHMENT DESCRIPTOR POOL
+//	mAttachmentDescriptorPool = std::make_unique<DescriptorPool>(*mDevice, *mAttachmentSetLayout, mSwapchain->imageCount());
+//}
+
+void BasicApp::updatePerFrameResources()
+{
+	mFrames[activeFrameIndex]->updateBuffer(mUniformBufferIndex, mUBOViewProjection);
+
+	//// Copy VP data
+	//void* data = mUniformBuffers[activeFrameIndex]->map();
+	//memcpy(data, &mUBOViewProjection, sizeof(ViewProjection));
+	//mUniformBuffers[activeFrameIndex]->unmap();
 }
 
 // Set required extensions + features
@@ -304,19 +335,19 @@ void BasicApp::getRequiredExtenstionAndFeatures(std::vector<const char*>& requir
 
 void BasicApp::recordCommands(CommandBuffer& primaryCmdBuffer) // Current image is swapchain index
 {
-	auto& frame = *mFrames[activeFrameIndex];
+	auto& frame = mFrames[activeFrameIndex];
 	auto& framebuffer = mFramebuffers[activeFrameIndex];
 
 	primaryCmdBuffer.beginRecording();
 
 	std::vector<VkClearValue> clearValues;
-	clearValues.resize(frame.renderTarget().imageViews().size());
+	clearValues.resize(frame->renderTarget().imageViews().size());
 	clearValues[0].color = { 0.0f, 0.0f, 0.0f, 1.0f };				// Clear values for swapchain image (colour)
 	clearValues[1].color = { 0.6f, 0.65f, 0.4f, 1.0f };				// Clear values for attachment 1 (colour)
 	clearValues[2].depthStencil.depth = 1.0f;						// Clear values for attachment 2 (depth)
 
-	// TODO @ update
-	primaryCmdBuffer.beginRenderPass(frame.renderTarget(),
+	// TODO : update renderpass function
+	primaryCmdBuffer.beginRenderPass(frame->renderTarget(),
 		*mRenderPass,
 		*framebuffer,
 		clearValues,
@@ -336,11 +367,6 @@ void BasicApp::recordCommands(CommandBuffer& primaryCmdBuffer) // Current image 
 	}
 
 	uint32_t meshCount = static_cast<uint32_t>(meshList.size());
-
-	// TODO : alter this so that it isn't generated every frame
-	// Create vector of references to meshes
-
-
 	float avgMeshesPerBuffer = static_cast<float>(meshCount) / mThreadCount;
 	uint32_t remainderMeshes;
 
@@ -355,7 +381,6 @@ void BasicApp::recordCommands(CommandBuffer& primaryCmdBuffer) // Current image 
 	{
 		remainderMeshes = meshCount % meshesPerBuffer;
 	}
-
 
 	uint32_t meshStart = 0;
 
@@ -399,7 +424,7 @@ void BasicApp::recordCommands(CommandBuffer& primaryCmdBuffer) // Current image 
 
 	primaryCmdBuffer.bindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, *mPipelines[1]);
 
-	std::vector<std::reference_wrapper<const DescriptorSet>> descriptorGroup{ *mAttachmentDescriptorSets[activeFrameIndex] };
+	std::vector<std::reference_wrapper<const DescriptorSet>> descriptorGroup{ frame->descriptorSet(1) };
 
 	primaryCmdBuffer.bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, *mPipelineLayouts[1],
 		0, descriptorGroup);
@@ -443,8 +468,8 @@ CommandBuffer* BasicApp::recordSecondaryCommandBuffers(CommandBuffer* primaryCom
 
 		cmdBuffer.bindIndexBuffer(thisMesh.indexBuffer(), 0, VK_INDEX_TYPE_UINT32);
 
-		std::vector<std::reference_wrapper<const DescriptorSet>> descriptorSetGroup{ *mUniformDescriptorSets[activeFrameIndex],
-			*mTextureDescriptorSets[thisMesh.texId()] };
+		std::vector<std::reference_wrapper<const DescriptorSet>> descriptorSetGroup{ frame->descriptorSet(0, threadIndex),
+			*mPerMaterialDescriptorSets[thisMesh.texId()] };
 
 		cmdBuffer.bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, *mPipelineLayouts[0],
 			0, descriptorSetGroup);

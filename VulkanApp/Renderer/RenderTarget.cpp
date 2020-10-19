@@ -30,7 +30,8 @@ const VkExtent2D& RenderTarget::extent() const
 	return mExtent;
 }
 
-const std::vector<ImageView>& RenderTarget::imageViews() const
+
+const std::vector<ImageView>& RenderTarget::imageViews() const 
 {
 	return mImageViews;
 }

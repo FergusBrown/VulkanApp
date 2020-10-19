@@ -80,9 +80,9 @@ void DescriptorPool::reset()
 
 VkDescriptorSet DescriptorPool::allocate(uint32_t numberOfSets)
 {
-	if (mAllocatedSets >= mMaxSets || (mAllocatedSets + numberOfSets) >= mMaxSets)
+	if (mAllocatedSets >= mMaxSets || (mAllocatedSets + numberOfSets) > mMaxSets)
 	{
-		throw std::runtime_error("Attempting to allocate Descriptor Sets that this Pool has available!");
+		throw std::runtime_error("Attempting to allocate more Descriptor Sets that this Pool has available!");
 	}
 
 	VkDescriptorSetLayout layout = mDescriptorSetLayout.handle();
@@ -100,8 +100,10 @@ VkDescriptorSet DescriptorPool::allocate(uint32_t numberOfSets)
 	VkResult result = vkAllocateDescriptorSets(mDevice.logicalDevice(), &setAllocInfo, &descriptorSetHandle);
 	if (result != VK_SUCCESS)
 	{
-		throw std::runtime_error("Failed to allocate Input Attachment Descriptor Sets!");
+		throw std::runtime_error("Failed to allocate Descriptor Set(s)!");
 	}
+
+	mAllocatedSets += numberOfSets;
 
 	return descriptorSetHandle;
 }

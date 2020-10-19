@@ -95,37 +95,34 @@ protected:
 	VkFormat mDepthFormat{ VK_FORMAT_D32_SFLOAT_S8_UINT };
 
 	// - Descriptors
-	std::unique_ptr<DescriptorSetLayout> mUniformSetLayout;
-	std::unique_ptr<DescriptorSetLayout> mSamplerSetLayout;
-	VkPushConstantRange mPushConstantRange;
+	// -- Layouts
+	//std::vector<std::unique_ptr<DescriptorSetLayout>> mPerViewDescriptorSetLayouts;
+	std::unique_ptr<DescriptorSetLayout> mPerMaterialDescriptorSetLayout;
+	VkPushConstantRange mPushConstantRange;		// push constant acts as per draw descriptor set 
 
-	std::vector<std::unique_ptr<DescriptorResourceReference>> mUniformResources;
-	std::vector<std::unique_ptr<DescriptorResourceReference>> mSamplerResources;
+	// -- Resource References
+	//std::vector<std::vector<std::unique_ptr<DescriptorResourceReference>>> mPerViewResources;
+	//std::vector<std::unique_ptr<DescriptorResourceReference>> mPerMaterialResources;
 
-	// Abstract below to Frame 
-	std::unique_ptr<DescriptorPool> mUniformDescriptorPool;
-	std::unique_ptr<DescriptorPool> mSamplerDescriptorPool;
+	// -- Pool
+	//std::vector<std::unique_ptr<DescriptorPool>> mPerViewDescriptorPools;
+	std::unique_ptr<DescriptorPool> mPerMaterialDescriptorPool;
 
-	std::vector<std::unique_ptr<DescriptorSet>> mUniformDescriptorSets;			// Descriptor set holding uniform data (view projection matrix)
-	std::vector<std::unique_ptr<DescriptorSet>> mTextureDescriptorSets;			// Descriptor sets holding texture samplers
+	// -- Sets
+	//std::vector<std::unique_ptr<DescriptorSet>> mPerViewDescriptorSets;			// Descriptor set holding per view (view projection matrix, light positions)
+	std::vector<std::unique_ptr<DescriptorSet>> mPerMaterialDescriptorSets;		// Descriptor sets holding texture samplers
 
-	std::vector<std::unique_ptr<Buffer>> mUniformBuffers;
-	
-
-	//std::vector<VkBuffer> modelDUniformBuffer;	
-	//std::vector<VkDeviceMemory> modelDUniformBufferMemory;
-	//VkDeviceSize minUniformBufferOffset;
-	//size_t modelUniformAlignment;
-	//UboModel* modelTransferSpace;
+	//std::vector<std::unique_ptr<Buffer>> mUniformBuffers;
 
 	// - Assets
 	std::unique_ptr<Sampler> mTextureSampler;
 	std::map <uint32_t, std::unique_ptr<Texture>> mTextures;
 
 	// - Pipelines + Layouts
-	std::vector<std::unique_ptr<Pipeline>> mPipelines;
+	std::vector<std::unique_ptr<Pipeline>>	mPipelines;
 	std::vector<std::unique_ptr<PipelineLayout>> mPipelineLayouts;
 
+	// - Renderpass
 	std::vector<std::unique_ptr<Subpass>> mSubpasses;
 	std::unique_ptr<RenderPass> mRenderPass;
 
@@ -145,36 +142,31 @@ protected:
 	virtual void createSwapchain();
 
 	void chooseImageFormats();
-	virtual void createRenderTargetAndFrames()	= 0;
+	virtual void createRenderTargetAndFrames()	= 0;	// Resource references to attachments should be created here
 	virtual void createRenderPass()				= 0;
 
-	// DESCRIPTOR SET LAYOUTS
-	void createTextureSamplerDescriptorSetLayout();
-	virtual void createUniformBufferDescriptorSetLayout();
-	virtual void createDescriptorSetLayouts()	= 0;
-	virtual void createPushConstantRange()		= 0;
+	// CREATE DESCRIPTOR SET LAYOUTS
+	virtual void createPerFrameDescriptorSetLayouts()	= 0;
+	virtual void createPerMaterialDescriptorSetLayout();
+	virtual void createPushConstantRange();
 
 	virtual void createPipelines()				= 0;
-
 	void createFramebuffers();
 
+	// CREATE DESCRIPTOR RESOURCES
+	virtual void createPerFrameResources()	= 0;
 	void createTextureSampler();
-	void createUniformBuffers();
+	
+	// CREATE DESCRIPTOR POOLS	
+	void createPerMaterialDescriptorPool();
 
-	void createTextureSamplerDescriptorPool();
-	virtual void createUniformBufferDescriptorPool();
-	virtual void createDescriptorPools()		= 0;
-
-	void createUniformDescriptorSets();
-	virtual void createDescriptorSets()			= 0;
+	// CREATE DESCRIPTOR SETS
+	virtual void createPerFrameDescriptorSets()		= 0;
 
 	// -- Support
-	virtual void updateUniformBuffers();
+	virtual void updatePerFrameResources()			= 0;
 	virtual void getRequiredExtenstionAndFeatures(std::vector<const char*>& requiredExtensions,
 		VkPhysicalDeviceFeatures& requiredFeatures) = 0;
-
-	// - Allocate Functions
-	//void allocateDynamicBufferTransferSpace();
 
 	// - Support Functions
 	// -- Getter Functions

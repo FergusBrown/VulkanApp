@@ -23,6 +23,7 @@ struct Attachment {
 // attachment indices are used to indicate which attachments are used in the input and output of a subpass
 class RenderTarget
 {
+friend class Frame; // Must be friend to Frame in order to create descriptor sets with pointers to image views
 public:
 	RenderTarget(std::vector<Image>&& images);
 	~RenderTarget();

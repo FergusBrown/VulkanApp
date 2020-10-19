@@ -49,11 +49,42 @@ void DescriptorResourceReference::generateDescriptorBufferInfo(VkDescriptorBuffe
 	bufferInfo.range =  resource.range;					// Size of data
 }
 
+// Generate infos for all bound resources
+void DescriptorResourceReference::generateDescriptorInfos(BindingMap<VkDescriptorImageInfo>& imageInfos, BindingMap<VkDescriptorBufferInfo>& bufferInfos)
+{
+	for (auto& binding : mResourceBindings)
+	{
+		uint32_t bindingIndex = binding.first;
+		auto& bindingContents = binding.second;
+
+		for (auto& descriptor : bindingContents)
+		{
+			uint32_t descriptorIndex = descriptor.first;
+			auto& resource = descriptor.second;
+
+			if (resource.buffer)
+			{
+				VkDescriptorBufferInfo bufferInfo;
+				generateDescriptorBufferInfo(bufferInfo, bindingIndex, descriptorIndex);
+				bufferInfos[bindingIndex][descriptorIndex] = std::move(bufferInfo);
+			}
+			else // Otherwise is image
+			{
+				VkDescriptorImageInfo imageInfo;
+				generateDescriptorImageInfo(imageInfo, bindingIndex, descriptorIndex);
+				imageInfos[bindingIndex][descriptorIndex] = std::move(imageInfo);
+			}
+		}
+	}
+}
+
+
 const BindingMap<ResourceBinding>& DescriptorResourceReference::resourceBindings() const
 {
 	return mResourceBindings;
 }
 
+// Image which can be sampled
 void DescriptorResourceReference::bindImage(const ImageView& imageView, const Sampler& sampler, const uint32_t bindingIndex, const uint32_t arrayIndex)
 {
 	mResourceBindings[bindingIndex][arrayIndex].buffer =	nullptr;
@@ -61,6 +92,7 @@ void DescriptorResourceReference::bindImage(const ImageView& imageView, const Sa
 	mResourceBindings[bindingIndex][arrayIndex].sampler =	&sampler;
 }
 
+// Input image (renderpass attachment)
 void DescriptorResourceReference::bindInputImage(const ImageView& imageView, const uint32_t bindingIndex, const uint32_t arrayIndex)
 {
 	mResourceBindings[bindingIndex][arrayIndex].buffer =	nullptr;

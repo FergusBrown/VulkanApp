@@ -2,7 +2,7 @@
 #include <vector>
 #include <iostream>
 
-#include "Applications/DepthBufferApp.h"
+#include "Applications/BasicApp.h"
 #include "Window.h"
 #include "Pawn.h"
 #include "InputHandlerMouse.h"
@@ -10,7 +10,7 @@
 int main()
 {
 	Window displayWindow("Vulkan Renderer", 1280, 720);
-	DepthBufferApp vulkanRenderer;
+	BasicApp vulkanRenderer;
 
 	if (!displayWindow.createWindow())
 	{
