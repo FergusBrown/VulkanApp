@@ -145,20 +145,26 @@ void Texture::generateMipmaps(uint32_t mipLevels, uint32_t width, uint32_t heigh
 	{
 		VkImageBlit imageBlit = {};
 
+		int32_t srcX = std::max(static_cast<int32_t>(width >> (i - 1)), 1);
+		int32_t srcY = std::max(static_cast<int32_t>(height >> (i - 1)), 1);
+
+		int32_t dstX = std::max(static_cast<int32_t>(width >> i), 1);
+		int32_t dstY = std::max(static_cast<int32_t>(height >> i), 1);
+
 		// Source
 		imageBlit.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 		imageBlit.srcSubresource.layerCount = 1;
 		imageBlit.srcSubresource.mipLevel = i - 1;
-		imageBlit.srcOffsets[1].x = static_cast<int32_t>(width >> (i - 1));		// Provide the mipmap dimensions by shifting the base image's dimensions
-		imageBlit.srcOffsets[1].y = static_cast<int32_t>(height >> (i - 1));	
+		imageBlit.srcOffsets[1].x = srcX;		// Provide the mipmap dimensions by shifting the base image's dimensions
+		imageBlit.srcOffsets[1].y = srcY;
 		imageBlit.srcOffsets[1].z = 1;
 
 		// Destination
 		imageBlit.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 		imageBlit.dstSubresource.layerCount = 1;
 		imageBlit.dstSubresource.mipLevel = i;
-		imageBlit.dstOffsets[1].x = static_cast<int32_t>(width >> i);			// dst is shifted by 1 more so should be half the size of the src
-		imageBlit.dstOffsets[1].y = static_cast<int32_t>(height >> i);
+		imageBlit.dstOffsets[1].x = dstX;		// dst is shifted by 1 more so should be half the size of the src
+		imageBlit.dstOffsets[1].y = dstY;
 		imageBlit.dstOffsets[1].z = 1;
 
 		// Transition current mip level to TRANSFER_DST to prepare as the blit operation destination
