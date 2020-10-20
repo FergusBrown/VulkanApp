@@ -57,15 +57,15 @@ void VulkanRenderer::createCamera(float FoVinDegrees)
 {
 	const VkExtent2D& extent = mSwapchain->extent();
 
-	mUBOViewProjection.projection = glm::perspective(glm::radians(FoVinDegrees), (float)extent.width / (float)extent.height, 0.1f, 1000.0f);
-	mUBOViewProjection.view = glm::lookAt(glm::vec3(0.0f, 0.0f, 20.0f), glm::vec3(0.0f, 0.0f, -2.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+	uboVP.projection = glm::perspective(glm::radians(FoVinDegrees), (float)extent.width / (float)extent.height, 0.1f, 1000.0f);
+	uboVP.view = glm::lookAt(glm::vec3(0.0f, 0.0f, 20.0f), glm::vec3(0.0f, 0.0f, -2.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
-	mUBOViewProjection.projection[1][1] *= -1;
+	uboVP.projection[1][1] *= -1;
 }
 
 void VulkanRenderer::updateCameraView(glm::mat4& newView)
 {
-	mUBOViewProjection.view = newView;
+	uboVP.view = newView;
 }
 
 VulkanRenderer::~VulkanRenderer()

@@ -100,7 +100,7 @@ void DescriptorResourceReference::bindInputImage(const ImageView& imageView, con
 	mResourceBindings[bindingIndex][arrayIndex].sampler =	nullptr;
 }
 
-void DescriptorResourceReference::bindBuffer(const Buffer& buffer, const uint32_t offset, const uint32_t range, const uint32_t bindingIndex, const uint32_t arrayIndex)
+void DescriptorResourceReference::bindBuffer(const Buffer& buffer, const VkDeviceSize offset, const VkDeviceSize range, const uint32_t bindingIndex, const uint32_t arrayIndex)
 {
 	mResourceBindings[bindingIndex][arrayIndex].buffer =	&buffer;
 	mResourceBindings[bindingIndex][arrayIndex].offset =	offset;

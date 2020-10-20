@@ -159,15 +159,24 @@ void BasicApp::createRenderPass()
 void BasicApp::createPerFrameDescriptorSetLayouts()
 {
 	// Pipeline 1 
-	// UNIFORM BUFFER (VP matrix)
+	// UNIFORM BUFFERS
+	std::vector<ShaderResource> uniformResources;
+
+	// VP buffer
 	ShaderResource vpBuffer(0,
 		VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
 		1,
 		VK_SHADER_STAGE_VERTEX_BIT);
 
-	std::vector<ShaderResource> vpResources;
+	uniformResources.push_back(vpBuffer);
 
-	vpResources.push_back(vpBuffer);
+	// Lights buffer
+	ShaderResource lightsBuffer(1,
+		VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+		1,
+		VK_SHADER_STAGE_VERTEX_BIT);
+
+	uniformResources.push_back(lightsBuffer);
 
 	// Pipeline 2
 	// INPUT ATTACHMENTS
@@ -187,10 +196,10 @@ void BasicApp::createPerFrameDescriptorSetLayouts()
 	for (auto& frame : mFrames)
 	{
 		// NOTE : Per frame descriptor set index should always be 0
-		// Layout 1
-		frame->createDescriptorSetLayout(vpResources, 0);
+		// Layout for Pipeline 1
+		frame->createDescriptorSetLayout(uniformResources, 0);
 
-		// Layout 2
+		// Layout for Pipeline 2
 		frame->createDescriptorSetLayout(attachmentResources, 1);
 	}
 }
@@ -201,12 +210,12 @@ void BasicApp::createPipelines()
 	// CREATE SHADER MODULES
 	std::vector<ShaderModule> shaderModules;
 
-	std::vector<char> vertexCode = readFile("Shaders/vert.spv");
+	std::vector<char> vertexCode = readFile("Shaders/BasicApp/vert.spv");
 	shaderModules.emplace_back(*mDevice,
 		vertexCode,
 		VK_SHADER_STAGE_VERTEX_BIT);
 
-	std::vector<char> fragCode = readFile("Shaders/frag.spv");
+	std::vector<char> fragCode = readFile("Shaders/BasicApp/frag.spv");
 	shaderModules.emplace_back(*mDevice,
 		fragCode,
 		VK_SHADER_STAGE_FRAGMENT_BIT);
@@ -235,12 +244,12 @@ void BasicApp::createPipelines()
 	// CREATE SHADER MODULES
 	std::vector<ShaderModule> secondShaderModules = {};
 
-	vertexCode = readFile("Shaders/second_vert.spv");
+	vertexCode = readFile("Shaders/BasicApp/second_vert.spv");
 	secondShaderModules.emplace_back(*mDevice,
 		vertexCode,
 		VK_SHADER_STAGE_VERTEX_BIT);
 
-	fragCode = readFile("Shaders/second_frag.spv");
+	fragCode = readFile("Shaders/BasicApp/second_frag.spv");
 	secondShaderModules.emplace_back(*mDevice,
 		fragCode,
 		VK_SHADER_STAGE_FRAGMENT_BIT);
@@ -268,16 +277,25 @@ void BasicApp::createPipelines()
 
 void BasicApp::createPerFrameResources()
 {
-	// ViewProjection Buffer size
-	VkDeviceSize vpBufferSize = sizeof(ViewProjection);
+	// CREATE UNIFORM BUFFERS
+
+	// Buffer sizes
+	VkDeviceSize vpBufferSize = sizeof(uboVPComposition);
+	VkDeviceSize lightsBufferSize = sizeof(uboLightComposition);
 
 	// Create uniform buffers
-	for (size_t i = 0; i < mSwapchain->details().imageCount; ++i)
+	for (size_t i = 0; i < static_cast<size_t>(mSwapchain->details().imageCount); ++i)
 	{
 		mUniformBufferIndex = mFrames[i]->createBuffer(vpBufferSize,
 			VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
 			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+		
+		mLightsBufferIndex = mFrames[i]->createBuffer(lightsBufferSize,
+			VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 	}
+
+	createLights();
 }
 
 void BasicApp::createPerFrameDescriptorSets()
@@ -289,6 +307,7 @@ void BasicApp::createPerFrameDescriptorSets()
 		// - BINDING MAP TO PER FRAME BUFFERS
 		BindingMap<uint32_t> bufferIndices;
 		bufferIndices[0][0] = mUniformBufferIndex;
+		bufferIndices[1][0] = mLightsBufferIndex;
 
 		// - DESCRIPTOR SET
 		mFrames[i]->createDescriptorSet(0, {}, bufferIndices);
@@ -308,7 +327,8 @@ void BasicApp::createPerFrameDescriptorSets()
 
 void BasicApp::updatePerFrameResources()
 {
-	mFrames[activeFrameIndex]->updateBuffer(mUniformBufferIndex, mUBOViewProjection);
+	mFrames[activeFrameIndex]->updateBuffer(mUniformBufferIndex, uboVP);
+	mFrames[activeFrameIndex]->updateBuffer(mLightsBufferIndex, uboLights);
 }
 
 // Set required extensions + features
@@ -322,6 +342,18 @@ void BasicApp::getRequiredExtenstionAndFeatures(std::vector<const char*>& requir
 	requiredFeatures.samplerAnisotropy = VK_TRUE;
 }
 
+void BasicApp::createLights()
+{
+	// Light 1
+
+	uboLights.lights[0].position.y = 30.0f;
+	uboLights.lights[0].intensity = 1000.0f;
+
+	// Light 2
+	uboLights.lights[1].position.y = 10.0f;
+	uboLights.lights[1].position.z = 20.0f;
+}
+
 void BasicApp::recordCommands(CommandBuffer& primaryCmdBuffer) // Current image is swapchain index
 {
 	auto& frame = mFrames[activeFrameIndex];
@@ -332,7 +364,7 @@ void BasicApp::recordCommands(CommandBuffer& primaryCmdBuffer) // Current image 
 	std::vector<VkClearValue> clearValues;
 	clearValues.resize(frame->renderTarget().imageViews().size());
 	clearValues[0].color = { 0.0f, 0.0f, 0.0f, 1.0f };				// Clear values for swapchain image (colour)
-	clearValues[1].color = { 0.6f, 0.65f, 0.4f, 1.0f };				// Clear values for attachment 1 (colour)
+	clearValues[1].color = { 1.0f, 1.0f, 1.0f, 1.0f };				// Clear values for attachment 1 (colour)
 	clearValues[2].depthStencil.depth = 1.0f;						// Clear values for attachment 2 (depth)
 
 	// TODO : update renderpass function
@@ -344,7 +376,6 @@ void BasicApp::recordCommands(CommandBuffer& primaryCmdBuffer) // Current image 
 
 	// Split meshes to draw equally between threads
 
-	// TODO : alter this so that it isn't generated every frame
 	// Create vector of references to meshes
 	std::vector<std::reference_wrapper<Mesh>> meshList;
 	for (auto& model : mModelList)
@@ -358,8 +389,6 @@ void BasicApp::recordCommands(CommandBuffer& primaryCmdBuffer) // Current image 
 	uint32_t meshCount = static_cast<uint32_t>(meshList.size());
 	float avgMeshesPerBuffer = static_cast<float>(meshCount) / mThreadCount;
 	uint32_t remainderMeshes;
-
-
 
 	uint32_t meshesPerBuffer = static_cast<uint32_t> (std::floor(avgMeshesPerBuffer));
 	if (meshesPerBuffer == 0)

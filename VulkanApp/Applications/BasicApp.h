@@ -16,9 +16,16 @@ public:
 private:
 	// Variables
 	uint32_t mUniformBufferIndex{ 0 };
+	uint32_t mLightsBufferIndex{ 0 };
 
 	uint32_t mColourAttachmentIndex{ 0 };
 	uint32_t mDepthAttachmentIndex{ 0 };
+
+	// Buffer compositions
+	struct uboLightComposition
+	{
+		PointLight lights[2];
+	} uboLights;
 
 	// Functions
 	// - Create Functions
@@ -33,6 +40,8 @@ private:
 	virtual void updatePerFrameResources();
 	virtual void getRequiredExtenstionAndFeatures(std::vector<const char*>& requiredExtensions,
 		VkPhysicalDeviceFeatures& requiredFeatures);
+
+	void createLights();
 
 	// - Record Functions
 	void recordCommands(CommandBuffer& primaryCmdBuffer);

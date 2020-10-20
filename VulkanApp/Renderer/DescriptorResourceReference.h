@@ -10,8 +10,8 @@ class Sampler;
 struct ResourceBinding
 {
 	const Buffer*		buffer{ nullptr };
-	uint32_t			offset{ 0 };
-	uint32_t			range{ 0 };
+	VkDeviceSize		offset{ 0 };
+	VkDeviceSize		range{ 0 };
 	const ImageView*	imageView{ nullptr };
 	const Sampler*		sampler{ nullptr };
 };
@@ -27,7 +27,6 @@ public:
 	// - Getters
 	const BindingMap<ResourceBinding>& resourceBindings() const;
 
-
 	// - Management
 	void reset();
 	void generateDescriptorImageInfo(VkDescriptorImageInfo& imageInfo, uint32_t bindingIndex, uint32_t arrayIndex);
@@ -35,7 +34,7 @@ public:
 	void generateDescriptorInfos(BindingMap<VkDescriptorImageInfo>& imageInfos, BindingMap<VkDescriptorBufferInfo>& bufferInfos);
 
 
-	void bindBuffer(const Buffer& buffer, const uint32_t offset, const uint32_t range, const uint32_t bindingIndex, const uint32_t arrayIndex);
+	void bindBuffer(const Buffer& buffer, const VkDeviceSize offset, const VkDeviceSize range, const uint32_t bindingIndex, const uint32_t arrayIndex);
 	void bindImage(const ImageView& imageView, const Sampler& sampler, const uint32_t bindingIndex, const uint32_t arrayIndex);
 	void bindInputImage(const ImageView& imageView, const uint32_t bindingIndex, const uint32_t arrayIndex);
 

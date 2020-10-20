@@ -69,8 +69,6 @@ std::vector<std::unique_ptr<Mesh>> LoadNode(Device& device, aiNode* node, const 
 		{
 			meshList.push_back(std::move(meshPtr));
 		}
-
-		//meshList.insert(meshList.end(), newList.begin(), newList.end());
 	}
 
 	return meshList;
@@ -93,6 +91,8 @@ std::unique_ptr<Mesh> LoadMesh(Device& device, aiMesh* mesh, const aiScene* scen
 		// Set normal
 		vertices[i].normal = { mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z };
 
+		//vertices[i].tangent = { mesh->mTangents[i].x, mesh->mTangents[i].y, mesh->mTangents[i].z };
+
 		// Set tex coords (if they exist)
 		if (mesh->mTextureCoords[0])
 		{
@@ -102,10 +102,9 @@ std::unique_ptr<Mesh> LoadMesh(Device& device, aiMesh* mesh, const aiScene* scen
 		{
 			vertices[i].uv = { 0.0f, 0.0f };
 		}
-
-		// Set colour
-		//vertices[i].col = { 1.0f, 1.0f, 1.0f };
 	}
+
+	
 
 	// Iterate over indices through faces and copy across
 	for (size_t i = 0; i < mesh->mNumFaces; ++i)
@@ -120,8 +119,51 @@ std::unique_ptr<Mesh> LoadMesh(Device& device, aiMesh* mesh, const aiScene* scen
 		}
 	}
 
+	// Get tangent and bitangent
+	calculateTangentBasis(vertices, indices);
+
 	// Create new mesh with details and return it
 	std::unique_ptr<Mesh> newMesh = std::make_unique<Mesh>(device, &vertices, &indices, matToTex[mesh->mMaterialIndex]);
 
 	return newMesh;
+}
+
+void calculateTangentBasis(std::vector<Vertex>& vertices, std::vector<uint32_t>& indices)
+{
+	for (size_t i = 0; i < indices.size(); i += 3)
+	{
+		uint32_t index0 = indices[i];
+		uint32_t index1 = indices[i + 1];
+		uint32_t index2 = indices[i + 2];
+
+		glm::vec3& pos0 = vertices[index0].position;
+		glm::vec3& pos1 = vertices[index1].position;
+		glm::vec3& pos2 = vertices[index2].position;
+
+		glm::vec2& uv0 = vertices[index0].uv;
+		glm::vec2& uv1 = vertices[index1].uv;
+		glm::vec2& uv2 = vertices[index2].uv;
+
+		// Edges of the triangle
+		glm::vec3 deltaPos1 = pos1 - pos0;
+		glm::vec3 deltaPos2 = pos2 - pos0;
+
+		// UV delta (orient tangent in same direction as uv coords)
+		glm::vec2 deltaUV1 = uv1 - uv0;
+		glm::vec2 deltaUV2 = uv2 - uv0;
+
+		// Calculate tangent and bitangent
+		float r = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV1.y * deltaUV2.x);
+		glm::vec3 tangent = (deltaPos1 * deltaUV2.y - deltaPos2 * deltaUV1.y) * r;
+		glm::vec3 bitangent = (deltaPos2 * deltaUV1.x - deltaPos1 * deltaUV2.x) * r; 
+
+		vertices[index0].tangent = tangent;
+		vertices[index1].tangent = tangent;
+		vertices[index2].tangent = tangent;
+
+		vertices[index0].bitangent = bitangent;
+		vertices[index1].bitangent = bitangent;
+		vertices[index2].bitangent = bitangent;
+	}
+	
 }

@@ -16,6 +16,7 @@
 
 #include "Mesh.h"
 #include "MeshModel.h"
+#include "Light.h"
 
 #include "Device.h"
 #include "SwapChain.h"
@@ -72,11 +73,14 @@ protected:
 	// List of models made up of a series of meshes
 	std::vector<MeshModel> mModelList;
 
-	// Scene Settings
-	struct ViewProjection {
+	// Standard VP matrix struct
+	struct uboVPComposition {
 		glm::mat4 projection;
 		glm::mat4 view;
-	} mUBOViewProjection;
+	} uboVP;
+
+	//// VP Struct for camera
+	//ViewProjection mUBOViewProjection;
 
 	// Vulkan Components
 	// - Main

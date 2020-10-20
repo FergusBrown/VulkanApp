@@ -147,7 +147,6 @@
   <ItemGroup>
     <ClCompile Include="Applications\BasicApp.cpp" />
     <ClCompile Include="InputHandlerMouse.cpp" />
-    <ClCompile Include="Light.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Pawn.cpp" />
     <ClCompile Include="Renderer\PipelineLayout.cpp" />
@@ -189,14 +188,12 @@
     <ClInclude Include="Commands.h" />
     <ClInclude Include="ControlConstants.h" />
     <ClInclude Include="Applications\BasicApp.h" />
-    <ClInclude Include="DirectionalLight.h" />
     <ClInclude Include="InputHandler.h" />
     <ClInclude Include="InputHandlerMouse.h" />
-    <ClInclude Include="Light.h" />
+    <ClInclude Include="Renderer\Light.h" />
     <ClInclude Include="Pawn.h" />
     <ClInclude Include="Renderer\PipelineLayout.h" />
     <ClInclude Include="Renderer\Pipeline.h" />
-    <ClInclude Include="PointLight.h" />
     <ClInclude Include="Renderer\Buffer.h" />
     <ClInclude Include="Renderer\CommandBuffer.h" />
     <ClInclude Include="Renderer\CommandPool.h" />
@@ -232,6 +229,10 @@
     <ClInclude Include="Window.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Shaders\BasicApp\second.frag" />
+    <None Include="Shaders\BasicApp\second.vert" />
+    <None Include="Shaders\BasicApp\shader.frag" />
+    <None Include="Shaders\BasicApp\shader.vert" />
     <None Include="Shaders\second.frag" />
     <None Include="Shaders\second.vert" />
     <None Include="Shaders\shader.frag" />

@@ -8,7 +8,9 @@ class Device;
 struct Vertex
 {
 	glm::vec3 position;			// Vertex Position (x, y ,z)
-	glm::vec3 normal;			// Vertex Normal (x, y, x)
+	glm::vec3 normal;			// Vertex Normal (x, y, z)
+	glm::vec3 tangent;			// Vertex Tangent (x, y, z)
+	glm::vec3 bitangent;		// Vertex Bitangent (x, y, z)
 	glm::vec2 uv;				// Texture Coords (u, v)
 };
 

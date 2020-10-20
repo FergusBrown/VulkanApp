@@ -63,9 +63,6 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files\Other</Filter>
     </ClCompile>
-    <ClCompile Include="Light.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Renderer\Buffer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -170,15 +167,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Light.h">
-      <Filter>Header Files\Shading</Filter>
-    </ClInclude>
-    <ClInclude Include="PointLight.h">
-      <Filter>Header Files\Shading</Filter>
-    </ClInclude>
-    <ClInclude Include="DirectionalLight.h">
-      <Filter>Header Files\Shading</Filter>
-    </ClInclude>
     <ClInclude Include="Commands.h">
       <Filter>Header Files\Input</Filter>
     </ClInclude>
@@ -302,6 +290,9 @@
     <ClInclude Include="Applications\BasicApp.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Renderer\Light.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\second.frag">
@@ -316,5 +307,9 @@
     <None Include="Shaders\shader.vert">
       <Filter>Source Files\Shading</Filter>
     </None>
+    <None Include="Shaders\BasicApp\second.frag" />
+    <None Include="Shaders\BasicApp\second.vert" />
+    <None Include="Shaders\BasicApp\shader.frag" />
+    <None Include="Shaders\BasicApp\shader.vert" />
   </ItemGroup>
 </Project>

@@ -106,15 +106,7 @@ void Frame::createDescriptorSet(uint32_t pipelineIndex, const BindingMap<uint32_
 		}
 	}
 
-	struct ViewProjection {
-		glm::mat4 projection;
-		glm::mat4 view;
-
-	} TEMPViewProjection;
-
 	// Bind buffers
-	// TODO : allow for offset and range selection
-	
 	for (auto& binding : bufferIndices)
 	{
 		uint32_t bindingIndex = binding.first;
@@ -128,9 +120,10 @@ void Frame::createDescriptorSet(uint32_t pipelineIndex, const BindingMap<uint32_
 			uint32_t bufferIndex = descriptor.second;
 
 			// Create descriptor resource reference and genereate an image info
-			descriptorSetResourceReference.bindBuffer(*mBuffers[bufferIndex],
+			auto& buffer = *mBuffers[bufferIndex];
+			descriptorSetResourceReference.bindBuffer(buffer,
 				0,
-				sizeof(TEMPViewProjection),
+				buffer.size(),
 				bindingIndex,
 				descriptorIndex);
 		}

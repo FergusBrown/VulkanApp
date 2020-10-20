@@ -8,7 +8,7 @@ class ShaderModule
 public:
 	ShaderModule(Device& device, 
 		const std::vector<char>& shaderCode,
-		VkShaderStageFlagBits stageFlagBitss);
+		VkShaderStageFlagBits stageFlagBits);
 	~ShaderModule();
 
 	ShaderModule(const ShaderModule&) = delete;
