@@ -487,7 +487,7 @@ CommandBuffer* BasicApp::recordSecondaryCommandBuffers(CommandBuffer* primaryCom
 		cmdBuffer.bindIndexBuffer(thisMesh.indexBuffer(), 0, VK_INDEX_TYPE_UINT32);
 
 		std::vector<std::reference_wrapper<const DescriptorSet>> descriptorSetGroup{ frame->descriptorSet(0, threadIndex),
-			*mPerMaterialDescriptorSets[thisMesh.texId()] };
+			*mPerMaterialDescriptorSets[thisMesh.diffuseID()] };
 
 		cmdBuffer.bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, *mPipelineLayouts[0],
 			0, descriptorSetGroup);

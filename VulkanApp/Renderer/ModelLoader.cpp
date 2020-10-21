@@ -2,10 +2,10 @@
 
 #include "Mesh.h"
 
-std::vector<std::string> LoadMaterials(const aiScene* scene)
+void LoadMaterials(const aiScene* scene, std::map<uint32_t, std::string>& diffuseList, std::map<uint32_t, std::string>& normalList)
 {
 	// Create 1:1 sized list of textures
-	std::vector<std::string> textureList(scene->mNumMaterials);
+	//std::vector<std::string> textureList(scene->mNumMaterials);
 
 	// Got through each material and copy its texture file name (if it exists)
 	for (size_t i = 0; i < scene->mNumMaterials; ++i)
@@ -14,7 +14,7 @@ std::vector<std::string> LoadMaterials(const aiScene* scene)
 		aiMaterial* material = scene->mMaterials[i];
 
 		// Initalise the texture to empty string (will be replaced if texture exists)
-		textureList[i] = "";
+		//textureList[i] = "";
 
 		// Check for a Diffuse Texture (standard detail texture)
 		if (material->GetTextureCount(aiTextureType_DIFFUSE))
@@ -26,36 +26,36 @@ std::vector<std::string> LoadMaterials(const aiScene* scene)
 				int idx = std::string(path.data).rfind("\\");
 				std::string fileName = std::string(path.data).substr(idx + 1);
 
-				textureList[i] = fileName;
+				diffuseList[i] = fileName;
 			}
 		}
 
-		// Check for a Normal Texture 
-		//if (material->GetTextureCount(aiTextureType_NORMALS))
-		//{
-		//	aiString path;
-		//	if (material->GetTexture(aiTextureType_NORMALS, 0, &path) == AI_SUCCESS)
-		//	{
-		//		// Cut off any directory information already present
-		//		int idx = std::string(path.data).rfind("\\");
-		//		std::string fileName = std::string(path.data).substr(idx + 1);
+		// Check for normal maps
+		if (material->GetTextureCount(aiTextureType_HEIGHT))
+		{
+			aiString path;
+			if (material->GetTexture(aiTextureType_HEIGHT, 0, &path) == AI_SUCCESS)
+			{
+				// Cut off any directory information already present
+				int idx = std::string(path.data).rfind("\\");
+				std::string fileName = std::string(path.data).substr(idx + 1);
 
-		//		textureList[i] = fileName;
-		//	}
-		//}
+				normalList[i] = fileName;
+			}
+		}
 	}
 
-	return textureList;
+	//return textureList;
 }
 
-std::vector<std::unique_ptr<Mesh>> LoadNode(Device& device, aiNode* node, const aiScene* scene, std::vector<int> matToTex)
+std::vector<std::unique_ptr<Mesh>> LoadNode(Device& device, aiNode* node, const aiScene* scene, std::vector<uint32_t> diffuseTexIDs, std::vector<uint32_t> normalTexIDs)
 {
 	std::vector<std::unique_ptr<Mesh>> meshList;
 
 	// Go through mesh at this node and create it, then add it to out meshList;
 	for (size_t i = 0; i < node->mNumMeshes; ++i)
 	{
-		std::unique_ptr<Mesh> meshPtr = LoadMesh(device, scene->mMeshes[node->mMeshes[i]], scene, matToTex);
+		std::unique_ptr<Mesh> meshPtr = LoadMesh(device, scene->mMeshes[node->mMeshes[i]], scene, diffuseTexIDs, normalTexIDs);
 
 		meshList.push_back(std::move(meshPtr));
 	}
@@ -63,7 +63,7 @@ std::vector<std::unique_ptr<Mesh>> LoadNode(Device& device, aiNode* node, const 
 	// Go through each node attached to this node and load it, then append their meshes to this node's mesh list
 	for (size_t i = 0; i < node->mNumChildren; ++i)
 	{
-		std::vector<std::unique_ptr<Mesh>> newList = LoadNode(device, node->mChildren[i], scene, matToTex);
+		std::vector<std::unique_ptr<Mesh>> newList = LoadNode(device, node->mChildren[i], scene, diffuseTexIDs, normalTexIDs);
 
 		for (auto& meshPtr : newList)
 		{
@@ -74,7 +74,7 @@ std::vector<std::unique_ptr<Mesh>> LoadNode(Device& device, aiNode* node, const 
 	return meshList;
 }
 
-std::unique_ptr<Mesh> LoadMesh(Device& device, aiMesh* mesh, const aiScene* scene, std::vector<int> matToTex)
+std::unique_ptr<Mesh> LoadMesh(Device& device, aiMesh* mesh, const aiScene* scene, std::vector<uint32_t> diffuseTexIDs, std::vector<uint32_t> normalTexIDs)
 {
 	std::vector<Vertex> vertices;
 	std::vector<uint32_t> indices;
@@ -123,7 +123,7 @@ std::unique_ptr<Mesh> LoadMesh(Device& device, aiMesh* mesh, const aiScene* scen
 	calculateTangentBasis(vertices, indices);
 
 	// Create new mesh with details and return it
-	std::unique_ptr<Mesh> newMesh = std::make_unique<Mesh>(device, &vertices, &indices, matToTex[mesh->mMaterialIndex]);
+	std::unique_ptr<Mesh> newMesh = std::make_unique<Mesh>(device, &vertices, &indices, diffuseTexIDs[mesh->mMaterialIndex], normalTexIDs[mesh->mMaterialIndex]);
 
 	return newMesh;
 }

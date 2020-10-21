@@ -39,7 +39,7 @@ void main () {
 	// Clamped between 1 and 0
 	// Max is 1 since when incident light is parallel to normal theta = 0 so cosTheta is 1
 	// Min is 0 since when theta >= 90 the light is either perpendicular to the surface or not incident
-	float cosTheta = clamp(dot(n, l), 0, 1);
+	float cosTheta = clamp(dot(n, l), 1, 1);
 
 	// Eye vector towards camera
 	vec3 E = normalize(eyeDirection_cameraSpace);
@@ -53,7 +53,7 @@ void main () {
 
 	vec3 colour =
 		// Ambient : "faked" indirect light
-		//materialAmbientColour +
+		materialAmbientColour +
 		// Diffuse colour :  Proportional to angle between normal and light
 		// Intensity decays in intensity by inverse square law -> divided by d^2
 		materialDiffuseColour * lightColour * lightIntensity * cosTheta / (distance * distance) +
@@ -64,4 +64,5 @@ void main () {
 
 	// Set alpha channel to 1 default for all opaque
 	outColour = vec4(colour, 1.0);
+	//outColour = vec4(lightDirection_cameraSpace, 1.0);
 }

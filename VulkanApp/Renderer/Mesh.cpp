@@ -5,17 +5,14 @@
 
 Mesh::Mesh(Device& device,
 	std::vector<Vertex>* vertices, std::vector<uint32_t> * indices,
-	int newTexId) :
-	mVertexCount(vertices->size()), mIndexCount(indices->size())
+	uint32_t diffuseID, uint32_t normalID) :
+	mVertexCount(vertices->size()), mIndexCount(indices->size()),
+	mDiffuseID(diffuseID), mNormalID(normalID),
+	mModel(glm::mat4(1.0f))
 {
-	
-	mVertexCount = vertices->size();
-	mIndexCount = indices->size();
 	createVertexBuffer(device, vertices);
 	createIndexBuffer(device, indices);
-	
-	mModel = glm::mat4(1.0f);
-	mTexId = newTexId;
+
 }
 
 void Mesh::setModel(glm::mat4 newModel)
@@ -28,12 +25,17 @@ glm::mat4 Mesh::model() const
 	return mModel;
 }
 
-int Mesh::texId() const
+uint32_t Mesh::diffuseID() const
 {
-	return mTexId;
+	return mDiffuseID;
 }
 
-int Mesh::vertexCount() const
+uint32_t Mesh::normalID() const
+{
+	return mNormalID;
+}
+
+uint32_t Mesh::vertexCount() const
 {
 	return mVertexCount;
 }
@@ -44,7 +46,7 @@ Buffer& Mesh::vertexBuffer()
 	return *mVertexBuffer;
 }
 
-int Mesh::indexCount() const
+uint32_t Mesh::indexCount() const
 {
 	return mIndexCount;
 }

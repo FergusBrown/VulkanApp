@@ -317,28 +317,44 @@ int VulkanRenderer::createModel(std::string modelFile)
 	}
 
 	// Get vector of all materials with 1:1 ID placement
-	std::vector<std::string> textureNames = LoadMaterials(scene);
+	std::map<uint32_t, std::string> diffuseNames;
+	std::map<uint32_t, std::string> normalNames;
+	LoadMaterials(scene, diffuseNames, normalNames);
 
-	// Conversion from the materials list IDs to our descriptor Array IDs
-	std::vector<int> matToTex(textureNames.size());
+	uint32_t materialCount = scene->mNumMaterials;
+
+	// Conversion from the materials list IDs to texture IDs
+	// Note if a material has a diffuse and normal compopnent they will share the same ID
+	std::vector<uint32_t> diffuseIDs(materialCount);
+	std::vector<uint32_t> normalIDs(materialCount);
 
 	// Loop over textureNames and create textures for them
-	for (size_t i = 0; i < textureNames.size(); ++i)
+	for (uint32_t i = 0; i < materialCount; ++i)
 	{
 		// If material has no texture, set '0' to indicate no texture, texture 0 will be reserved for a default texture
-		if (textureNames[i].empty())
+		if (diffuseNames[i].empty())
 		{
-			matToTex[i] = 0;
+			diffuseIDs[i] = 0;
 		}
 		else
 		{
 			// Otherwise, create texture and set value to index of new texture
-			matToTex[i] = createTexture(textureNames[i]);
+			diffuseIDs[i] = createTexture(diffuseNames[i]);
+		}
+
+		// repeat for normal textures
+		if (normalNames[i].empty())
+		{
+			normalIDs[i] = 0;
+		}
+		else
+		{
+			normalIDs[i] = createTexture(normalNames[i]);
 		}
 	}
 
 	// Load in all our meshes
-	std::vector<std::unique_ptr<Mesh>> modelMeshes = LoadNode(*mDevice, scene->mRootNode, scene, matToTex);
+	std::vector<std::unique_ptr<Mesh>> modelMeshes = LoadNode(*mDevice, scene->mRootNode, scene, diffuseIDs, normalIDs);
 
 	mModelList.emplace_back(modelMeshes);
 

@@ -19,30 +19,34 @@ class Mesh
 public:
 	Mesh() = delete;
 	Mesh(Device& device, std::vector<Vertex>* vertices, std::vector<uint32_t>* indices,
-		int newTexId);
+		uint32_t diffuseID = 0, uint32_t normalID = 0);
 	~Mesh() = default;
 	
 
 	void setModel(glm::mat4 newModel);
 	glm::mat4 model() const;
 
-	int texId() const;
+	uint32_t diffuseID() const;
+	uint32_t normalID() const;
 
-	int vertexCount() const;
+	uint32_t vertexCount() const;
 	Buffer& vertexBuffer();
 	
-	int indexCount() const;
+	uint32_t indexCount() const;
 	Buffer& indexBuffer();
 
 private:
 	glm::mat4 mModel;
 
-	int mTexId;
+	// Texture IDs
+	uint32_t mDiffuseID;
+	uint32_t mNormalID;
 
-	int mVertexCount;
+	// Vertex and index buffers
+	uint32_t mVertexCount;
 	std::unique_ptr<Buffer> mVertexBuffer;
 
-	int mIndexCount;
+	uint32_t mIndexCount;
 	std::unique_ptr<Buffer> mIndexBuffer;
 
 	void createVertexBuffer(Device& device, std::vector<Vertex>* vertices);
