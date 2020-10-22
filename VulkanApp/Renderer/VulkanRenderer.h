@@ -46,7 +46,7 @@
 
 // Abstract class to derive vulkan applications from
 // Functionality for model and texture loading and the associated descriptor sets, buffers etc. are implemented here
-// A uniform buffer exists to hold the view projection matrix
+
 class VulkanRenderer
 {
 public:
@@ -70,17 +70,17 @@ protected:
 
 	uint32_t activeFrameIndex{ 0 };
 
-	// List of models made up of a series of meshes
+	// Assets
 	std::vector<MeshModel> mModelList;
+	std::map <uint32_t, std::unique_ptr<Texture>> mTextures;
 
 	// Standard VP matrix struct
-	struct uboVPComposition {
-		glm::mat4 projection;
-		glm::mat4 view;
-	} uboVP;
+	struct Uniforms {
+		glm::mat4 P;
+		glm::mat4 V;
+	};
 
-	//// VP Struct for camera
-	//ViewProjection mUBOViewProjection;
+	Uniforms mCameraMatrices;
 
 	// Vulkan Components
 	// - Main
@@ -109,9 +109,9 @@ protected:
 	// -- Sets
 	std::vector<std::unique_ptr<DescriptorSet>> mPerMaterialDescriptorSets;		// Descriptor sets holding texture samplers
 
-	// - Assets
-	std::unique_ptr<Sampler> mTextureSampler;
-	std::map <uint32_t, std::unique_ptr<Texture>> mTextures;
+	// Samplers
+	std::unique_ptr<Sampler> mDiffuseSampler;
+	std::unique_ptr<Sampler> mNormalSampler;
 
 	// - Pipelines + Layouts
 	std::vector<std::unique_ptr<Pipeline>>	mPipelines;
@@ -150,7 +150,7 @@ protected:
 
 	// CREATE DESCRIPTOR RESOURCES
 	virtual void createPerFrameResources()	= 0;
-	void createTextureSampler();
+	void createTextureSamplers();
 	
 	// CREATE DESCRIPTOR POOLS	
 	void createPerMaterialDescriptorPool();
@@ -170,8 +170,8 @@ protected:
 	// -- Choose Functions
 	VkFormat chooseSupportedFormat(const std::vector<VkFormat> &formats, VkImageTiling tiling, VkFormatFeatureFlags featureFlags);
 
-	int createTexture(std::string fileName);
-	int createTextureDescriptor(const Texture& texture);
+	uint32_t createTexture(std::string fileName);
+	uint32_t createMaterialDescriptor(uint32_t diffuseID, uint32_t normalID);
 	
 	// -- Loader Functions
 	stbi_uc* loadTextureFile(std::string fileName, int& width, int& height, VkDeviceSize& imageSize);

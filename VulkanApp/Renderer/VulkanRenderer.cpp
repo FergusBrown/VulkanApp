@@ -26,7 +26,7 @@ int VulkanRenderer::init(GLFWwindow* newWindow)
 		createPipelines();
 		createFramebuffers();
 
-		createTextureSampler();
+		createTextureSamplers();
 		createPerFrameResources();
 
 		createPerMaterialDescriptorPool();
@@ -57,15 +57,15 @@ void VulkanRenderer::createCamera(float FoVinDegrees)
 {
 	const VkExtent2D& extent = mSwapchain->extent();
 
-	uboVP.projection = glm::perspective(glm::radians(FoVinDegrees), (float)extent.width / (float)extent.height, 0.1f, 1000.0f);
-	uboVP.view = glm::lookAt(glm::vec3(0.0f, 0.0f, 20.0f), glm::vec3(0.0f, 0.0f, -2.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+	mCameraMatrices.P = glm::perspective(glm::radians(FoVinDegrees), (float)extent.width / (float)extent.height, 0.1f, 1000.0f);
+	mCameraMatrices.V = glm::lookAt(glm::vec3(0.0f, 0.0f, 20.0f), glm::vec3(0.0f, 0.0f, -2.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
-	uboVP.projection[1][1] *= -1;
+	mCameraMatrices.P[1][1] *= -1;
 }
 
 void VulkanRenderer::updateCameraView(glm::mat4& newView)
 {
-	uboVP.view = newView;
+	mCameraMatrices.V = newView;
 }
 
 VulkanRenderer::~VulkanRenderer()
@@ -76,6 +76,7 @@ VulkanRenderer::~VulkanRenderer()
 	}
 
 	mModelList.clear();
+	mTextures.clear();
 }
 
 void VulkanRenderer::setupThreadPool()
@@ -166,15 +167,18 @@ void VulkanRenderer::chooseImageFormats()
 
 void VulkanRenderer::createPerMaterialDescriptorSetLayout()
 {
-	// TEXTURE SAMPLER
-	ShaderResource textureSampler(0,
+	// TEXTURE SAMPLERS
+	ShaderResource diffuseSampler(0,
+		VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+		1,				
+		VK_SHADER_STAGE_FRAGMENT_BIT);
+
+	ShaderResource normalSampler(1,
 		VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
 		1,
 		VK_SHADER_STAGE_FRAGMENT_BIT);
 
-	std::vector<ShaderResource> samplerResources;
-
-	samplerResources.push_back(textureSampler);
+	std::vector<ShaderResource> samplerResources{ diffuseSampler, normalSampler };
 
 	mPerMaterialDescriptorSetLayout = (std::make_unique<DescriptorSetLayout>(*mDevice, 1, samplerResources));
 }
@@ -197,15 +201,21 @@ void VulkanRenderer::createFramebuffers()
 	}
 }
 
-void VulkanRenderer::createTextureSampler()
+void VulkanRenderer::createTextureSamplers()
 {
 	float maxAnisotropy = mDevice->physicalDevice().properties().limits.maxSamplerAnisotropy;
 
-	mTextureSampler = std::make_unique<Sampler>(*mDevice,
+	mDiffuseSampler = std::make_unique<Sampler>(*mDevice,
 		VK_TRUE,
 		maxAnisotropy,
 		0.0f,
 		MAX_LOD);	// Max LOD can be as high as possible since it is just used to clamp the computed LOD
+
+	mNormalSampler = std::make_unique<Sampler>(*mDevice,
+		VK_TRUE,
+		maxAnisotropy,
+		0.0f,
+		MAX_LOD);
 }
 
 
@@ -238,7 +248,7 @@ VkFormat VulkanRenderer::chooseSupportedFormat(const std::vector<VkFormat>& form
 	throw std::runtime_error("Failed to find a matching format!");
 }
 
-int VulkanRenderer::createTexture(std::string fileName)
+uint32_t VulkanRenderer::createTexture(std::string fileName)
 {
 	// Load in the image file
 	int width, height;
@@ -249,34 +259,34 @@ int VulkanRenderer::createTexture(std::string fileName)
 
 	// Add texture to map of textures
 	int textureID = texture->textureID();;
-
-	
-	// Create Texture Descriptor
-	int descriptorLoc = createTextureDescriptor(*texture);
-
 	mTextures[textureID] = std::move(texture);
 	assert(!texture); // just checking ownership of the texture ptr has moved to the map
-
-	// Return location of set with texture
-	return descriptorLoc;
+	
+	return textureID;
 }
 
-int VulkanRenderer::createTextureDescriptor(const Texture& texture)
+uint32_t VulkanRenderer::createMaterialDescriptor(uint32_t diffuseID, uint32_t normalID)
 {
 	// Create descriptor resource reference
 	DescriptorResourceReference materialResource;
-	materialResource.bindImage(texture.imageView(), *mTextureSampler, 0, 0);
-	
-	VkDescriptorImageInfo imageInfo = {};
-	materialResource.generateDescriptorImageInfo(imageInfo, 0, 0);
+	// Bind Images
+	materialResource.bindImage(mTextures[diffuseID]->imageView(), *mDiffuseSampler, 0, 0);
+	materialResource.bindImage(mTextures[normalID]->imageView(), *mNormalSampler, 1, 0);
+
+	// Generate image infos
+	VkDescriptorImageInfo diffuseInfo = {};
+	VkDescriptorImageInfo normalInfo = {};
+	materialResource.generateDescriptorImageInfo(diffuseInfo, 0, 0);
+	materialResource.generateDescriptorImageInfo(normalInfo, 1, 0);
 
 	BindingMap<VkDescriptorImageInfo> imageInfos;
-	imageInfos[0][0] = imageInfo;
+	imageInfos[0][0] = diffuseInfo;
+	imageInfos[1][0] = normalInfo;
 
 	mPerMaterialDescriptorSets.push_back(std::make_unique<DescriptorSet>(*mDevice, *mPerMaterialDescriptorSetLayout, *mPerMaterialDescriptorPool, imageInfos));
 
 	// Update the descriptor sets with new buffer/binding info
-	std::vector<uint32_t> bindingsToUpdate = { 0 };
+	std::vector<uint32_t> bindingsToUpdate = { 0, 1 };
 	mPerMaterialDescriptorSets.back()->update(bindingsToUpdate);
 
 	// Return descriptor set location
@@ -309,7 +319,7 @@ int VulkanRenderer::createModel(std::string modelFile)
 {
 	// Import model "scene"
 	Assimp::Importer importer;
-	const aiScene* scene = importer.ReadFile(modelFile, aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_JoinIdenticalVertices);
+	const aiScene* scene = importer.ReadFile(modelFile, aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_JoinIdenticalVertices | aiProcess_CalcTangentSpace);
 
 	if (!scene)
 	{
@@ -325,36 +335,41 @@ int VulkanRenderer::createModel(std::string modelFile)
 
 	// Conversion from the materials list IDs to texture IDs
 	// Note if a material has a diffuse and normal compopnent they will share the same ID
-	std::vector<uint32_t> diffuseIDs(materialCount);
-	std::vector<uint32_t> normalIDs(materialCount);
+	std::vector<uint32_t> materialIDs(materialCount);
 
-	// Loop over textureNames and create textures for them
+	// Loop over textureNames and create textures diffuse and normal components
 	for (uint32_t i = 0; i < materialCount; ++i)
 	{
+		uint32_t diffuseID;
+		uint32_t normalID;
+
 		// If material has no texture, set '0' to indicate no texture, texture 0 will be reserved for a default texture
 		if (diffuseNames[i].empty())
 		{
-			diffuseIDs[i] = 0;
+			diffuseID = 0;
 		}
 		else
 		{
 			// Otherwise, create texture and set value to index of new texture
-			diffuseIDs[i] = createTexture(diffuseNames[i]);
+			diffuseID = createTexture(diffuseNames[i]);
 		}
 
 		// repeat for normal textures
 		if (normalNames[i].empty())
 		{
-			normalIDs[i] = 0;
+			normalID = 0;
 		}
 		else
 		{
-			normalIDs[i] = createTexture(normalNames[i]);
+			normalID = createTexture(normalNames[i]);
 		}
+
+		// Create material descriptor
+		materialIDs[i] = createMaterialDescriptor(diffuseID, normalID);
 	}
 
 	// Load in all our meshes
-	std::vector<std::unique_ptr<Mesh>> modelMeshes = LoadNode(*mDevice, scene->mRootNode, scene, diffuseIDs, normalIDs);
+	std::vector<std::unique_ptr<Mesh>> modelMeshes = LoadNode(*mDevice, scene->mRootNode, scene, materialIDs);
 
 	mModelList.emplace_back(modelMeshes);
 

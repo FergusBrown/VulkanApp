@@ -5,9 +5,9 @@
 
 Mesh::Mesh(Device& device,
 	std::vector<Vertex>* vertices, std::vector<uint32_t> * indices,
-	uint32_t diffuseID, uint32_t normalID) :
+	uint32_t materialID) :
 	mVertexCount(vertices->size()), mIndexCount(indices->size()),
-	mDiffuseID(diffuseID), mNormalID(normalID),
+	mMaterialID(materialID),
 	mModel(glm::mat4(1.0f))
 {
 	createVertexBuffer(device, vertices);
@@ -25,15 +25,11 @@ glm::mat4 Mesh::model() const
 	return mModel;
 }
 
-uint32_t Mesh::diffuseID() const
+uint32_t Mesh::materialID() const
 {
-	return mDiffuseID;
+	return mMaterialID;
 }
 
-uint32_t Mesh::normalID() const
-{
-	return mNormalID;
-}
 
 uint32_t Mesh::vertexCount() const
 {

@@ -163,20 +163,20 @@ void BasicApp::createPerFrameDescriptorSetLayouts()
 	std::vector<ShaderResource> uniformResources;
 
 	// VP buffer
-	ShaderResource vpBuffer(0,
+	ShaderResource uniformBuffer(0,
 		VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
 		1,
-		VK_SHADER_STAGE_VERTEX_BIT);
+		VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT);
 
-	uniformResources.push_back(vpBuffer);
+	uniformResources.push_back(uniformBuffer);
 
 	// Lights buffer
-	ShaderResource lightsBuffer(1,
-		VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-		1,
-		VK_SHADER_STAGE_VERTEX_BIT);
+	//ShaderResource lightsBuffer(1,
+	//	VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+	//	1,
+	//	VK_SHADER_STAGE_VERTEX_BIT);
 
-	uniformResources.push_back(lightsBuffer);
+	//uniformResources.push_back(lightsBuffer);
 
 	// Pipeline 2
 	// INPUT ATTACHMENTS
@@ -280,17 +280,12 @@ void BasicApp::createPerFrameResources()
 	// CREATE UNIFORM BUFFERS
 
 	// Buffer sizes
-	VkDeviceSize vpBufferSize = sizeof(uboVPComposition);
-	VkDeviceSize lightsBufferSize = sizeof(uboLightComposition);
+	VkDeviceSize uniformBufferSize = sizeof(uniformComposition);
 
 	// Create uniform buffers
 	for (size_t i = 0; i < static_cast<size_t>(mSwapchain->details().imageCount); ++i)
 	{
-		mUniformBufferIndex = mFrames[i]->createBuffer(vpBufferSize,
-			VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-		
-		mLightsBufferIndex = mFrames[i]->createBuffer(lightsBufferSize,
+		mUniformBufferIndex = mFrames[i]->createBuffer(uniformBufferSize,
 			VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
 			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 	}
@@ -307,7 +302,6 @@ void BasicApp::createPerFrameDescriptorSets()
 		// - BINDING MAP TO PER FRAME BUFFERS
 		BindingMap<uint32_t> bufferIndices;
 		bufferIndices[0][0] = mUniformBufferIndex;
-		bufferIndices[1][0] = mLightsBufferIndex;
 
 		// - DESCRIPTOR SET
 		mFrames[i]->createDescriptorSet(0, {}, bufferIndices);
@@ -327,8 +321,9 @@ void BasicApp::createPerFrameDescriptorSets()
 
 void BasicApp::updatePerFrameResources()
 {
-	mFrames[activeFrameIndex]->updateBuffer(mUniformBufferIndex, uboVP);
-	mFrames[activeFrameIndex]->updateBuffer(mLightsBufferIndex, uboLights);
+	mUniforms.V = mCameraMatrices.V;
+	mUniforms.P = mCameraMatrices.P;
+	mFrames[activeFrameIndex]->updateBuffer(mUniformBufferIndex, mUniforms);
 }
 
 // Set required extensions + features
@@ -345,13 +340,11 @@ void BasicApp::getRequiredExtenstionAndFeatures(std::vector<const char*>& requir
 void BasicApp::createLights()
 {
 	// Light 1
+	mUniforms.light.position.x = -2.0f;
+	mUniforms.light.position.y = 20.0f;
+	mUniforms.light.position.z = 0.0f;
+	mUniforms.light.intensity = 1000.0f;
 
-	uboLights.lights[0].position.y = 30.0f;
-	uboLights.lights[0].intensity = 1000.0f;
-
-	// Light 2
-	uboLights.lights[1].position.y = 10.0f;
-	uboLights.lights[1].position.z = 20.0f;
 }
 
 void BasicApp::recordCommands(CommandBuffer& primaryCmdBuffer) // Current image is swapchain index
@@ -487,7 +480,7 @@ CommandBuffer* BasicApp::recordSecondaryCommandBuffers(CommandBuffer* primaryCom
 		cmdBuffer.bindIndexBuffer(thisMesh.indexBuffer(), 0, VK_INDEX_TYPE_UINT32);
 
 		std::vector<std::reference_wrapper<const DescriptorSet>> descriptorSetGroup{ frame->descriptorSet(0, threadIndex),
-			*mPerMaterialDescriptorSets[thisMesh.diffuseID()] };
+			*mPerMaterialDescriptorSets[thisMesh.materialID()] };
 
 		cmdBuffer.bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, *mPipelineLayouts[0],
 			0, descriptorSetGroup);

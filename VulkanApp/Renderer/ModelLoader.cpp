@@ -4,9 +4,6 @@
 
 void LoadMaterials(const aiScene* scene, std::map<uint32_t, std::string>& diffuseList, std::map<uint32_t, std::string>& normalList)
 {
-	// Create 1:1 sized list of textures
-	//std::vector<std::string> textureList(scene->mNumMaterials);
-
 	// Got through each material and copy its texture file name (if it exists)
 	for (size_t i = 0; i < scene->mNumMaterials; ++i)
 	{
@@ -44,18 +41,16 @@ void LoadMaterials(const aiScene* scene, std::map<uint32_t, std::string>& diffus
 			}
 		}
 	}
-
-	//return textureList;
 }
 
-std::vector<std::unique_ptr<Mesh>> LoadNode(Device& device, aiNode* node, const aiScene* scene, std::vector<uint32_t> diffuseTexIDs, std::vector<uint32_t> normalTexIDs)
+std::vector<std::unique_ptr<Mesh>> LoadNode(Device& device, aiNode* node, const aiScene* scene, std::vector<uint32_t> materialIDs)
 {
 	std::vector<std::unique_ptr<Mesh>> meshList;
 
 	// Go through mesh at this node and create it, then add it to out meshList;
 	for (size_t i = 0; i < node->mNumMeshes; ++i)
 	{
-		std::unique_ptr<Mesh> meshPtr = LoadMesh(device, scene->mMeshes[node->mMeshes[i]], scene, diffuseTexIDs, normalTexIDs);
+		std::unique_ptr<Mesh> meshPtr = LoadMesh(device, scene->mMeshes[node->mMeshes[i]], scene, materialIDs);
 
 		meshList.push_back(std::move(meshPtr));
 	}
@@ -63,7 +58,7 @@ std::vector<std::unique_ptr<Mesh>> LoadNode(Device& device, aiNode* node, const 
 	// Go through each node attached to this node and load it, then append their meshes to this node's mesh list
 	for (size_t i = 0; i < node->mNumChildren; ++i)
 	{
-		std::vector<std::unique_ptr<Mesh>> newList = LoadNode(device, node->mChildren[i], scene, diffuseTexIDs, normalTexIDs);
+		std::vector<std::unique_ptr<Mesh>> newList = LoadNode(device, node->mChildren[i], scene, materialIDs);
 
 		for (auto& meshPtr : newList)
 		{
@@ -74,7 +69,7 @@ std::vector<std::unique_ptr<Mesh>> LoadNode(Device& device, aiNode* node, const 
 	return meshList;
 }
 
-std::unique_ptr<Mesh> LoadMesh(Device& device, aiMesh* mesh, const aiScene* scene, std::vector<uint32_t> diffuseTexIDs, std::vector<uint32_t> normalTexIDs)
+std::unique_ptr<Mesh> LoadMesh(Device& device, aiMesh* mesh, const aiScene* scene, std::vector<uint32_t> materialIDs)
 {
 	std::vector<Vertex> vertices;
 	std::vector<uint32_t> indices;
@@ -90,8 +85,13 @@ std::unique_ptr<Mesh> LoadMesh(Device& device, aiMesh* mesh, const aiScene* scen
 
 		// Set normal
 		vertices[i].normal = { mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z };
+		
+		// Set tangent (calculated by ASSIMP)
+		vertices[i].tangent = { mesh->mTangents[i].x, mesh->mTangents[i].y, mesh->mTangents[i].z };
+		
+		// Set bitangent (calculated by ASSIMP)
+		vertices[i].bitangent = { mesh->mBitangents[i].x, mesh->mBitangents[i].y, mesh->mBitangents[i].z };
 
-		//vertices[i].tangent = { mesh->mTangents[i].x, mesh->mTangents[i].y, mesh->mTangents[i].z };
 
 		// Set tex coords (if they exist)
 		if (mesh->mTextureCoords[0])
@@ -119,22 +119,24 @@ std::unique_ptr<Mesh> LoadMesh(Device& device, aiMesh* mesh, const aiScene* scen
 		}
 	}
 
-	// Get tangent and bitangent
-	calculateTangentBasis(vertices, indices);
-
 	// Create new mesh with details and return it
-	std::unique_ptr<Mesh> newMesh = std::make_unique<Mesh>(device, &vertices, &indices, diffuseTexIDs[mesh->mMaterialIndex], normalTexIDs[mesh->mMaterialIndex]);
+	std::unique_ptr<Mesh> newMesh = std::make_unique<Mesh>(device, &vertices, &indices, materialIDs[mesh->mMaterialIndex]);
 
 	return newMesh;
 }
 
-void calculateTangentBasis(std::vector<Vertex>& vertices, std::vector<uint32_t>& indices)
+// Use this function if aiProcess_CalcTangentSpace is not enable
+// Also ensure aiProcess_JoinIdenticalVertices is disabled and that indexing is performed after this operation
+void calculateTangentBasis(std::vector<Vertex>& vertices)
 {
-	for (size_t i = 0; i < indices.size(); i += 3)
+	for (size_t i = 0; i < vertices.size(); i += 3)
 	{
-		uint32_t index0 = indices[i];
+		/*uint32_t index0 = indices[i];
 		uint32_t index1 = indices[i + 1];
-		uint32_t index2 = indices[i + 2];
+		uint32_t index2 = indices[i + 2];*/
+		uint32_t index0 = i;
+		uint32_t index1 = i + 1;
+		uint32_t index2 = i + 2;
 
 		glm::vec3& pos0 = vertices[index0].position;
 		glm::vec3& pos1 = vertices[index1].position;
@@ -157,6 +159,8 @@ void calculateTangentBasis(std::vector<Vertex>& vertices, std::vector<uint32_t>&
 		glm::vec3 tangent = (deltaPos1 * deltaUV2.y - deltaPos2 * deltaUV1.y) * r;
 		glm::vec3 bitangent = (deltaPos2 * deltaUV1.x - deltaPos1 * deltaUV2.x) * r; 
 
+		// Default tangent and bitangent values are (0, 0, 0)
+		// Add the tangent values means if an index is repeated the tangent and bitangent values are averaged
 		vertices[index0].tangent = tangent;
 		vertices[index1].tangent = tangent;
 		vertices[index2].tangent = tangent;

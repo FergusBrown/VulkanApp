@@ -16,16 +16,16 @@ public:
 private:
 	// Variables
 	uint32_t mUniformBufferIndex{ 0 };
-	uint32_t mLightsBufferIndex{ 0 };
+	//uint32_t mLightsBufferIndex{ 0 };
 
 	uint32_t mColourAttachmentIndex{ 0 };
 	uint32_t mDepthAttachmentIndex{ 0 };
 
 	// Buffer compositions
-	struct uboLightComposition
+	struct uniformComposition : Uniforms
 	{
-		PointLight lights[2];
-	} uboLights;
+		PointLight light;
+	} mUniforms;
 
 	// Functions
 	// - Create Functions

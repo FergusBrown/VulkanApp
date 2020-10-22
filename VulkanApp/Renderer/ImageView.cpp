@@ -59,10 +59,6 @@ ImageView::~ImageView()
     }
 }
 
-//ImageView::ImageView(ImageView&& other)
-//{
-//}
-
 ImageView::ImageView(ImageView&& other) :
 	mDevice(other.mDevice),
 	mImage(other.mImage),
