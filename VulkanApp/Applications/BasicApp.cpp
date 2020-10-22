@@ -341,9 +341,9 @@ void BasicApp::createLights()
 {
 	// Light 1
 	mUniforms.light.position.x = -2.0f;
-	mUniforms.light.position.y = 20.0f;
+	mUniforms.light.position.y = 30.0f;
 	mUniforms.light.position.z = 0.0f;
-	mUniforms.light.intensity = 1000.0f;
+	mUniforms.light.intensity = 500.0f;
 
 }
 
