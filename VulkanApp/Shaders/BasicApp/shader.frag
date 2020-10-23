@@ -23,11 +23,7 @@ struct PointLight
 {
 	vec4 colour;
 	vec4 position;
-
-	float intensity;
-	float kq;
-	float kl;
-	float kc;
+	vec4 intensityAndAttenuation;
 };
 
 // - SpotLight struct
@@ -36,8 +32,9 @@ struct SpotLight
 	vec4 colour;
 	vec4 position;
 	vec4 direction;
-	float intensity;
-	float cutOff;
+	vec4 intensityAndAttenuation;
+	float innerCutOff;
+	float outerCutOff;
 };
 
 // - Descriptor set data
@@ -46,7 +43,7 @@ struct SpotLight
 layout(set = 0, binding = 1) uniform Lights 
 {
 	PointLight pointLights[POINT_LIGHT_COUNT];
-	//SpotLight flashLight;	
+	SpotLight flashLight;	
 } lights;
 
 // - Descriptor set 1 ( texture samplers)
@@ -54,8 +51,9 @@ layout(set = 1, binding = 0) uniform sampler2D diffuseSampler;
 layout(set = 1, binding = 1) uniform sampler2D normalSampler;
 
 // Function prototypes
-vec3 calcPointLight(PointLight light, vec3 normal, vec3 viewDir, vec3 fragPos_worldSpace, vec3 fragPos_tangentSpace, vec3 lightPos_tangentSpace, vec3 diffuseColour, vec3 specularColour);
-float calcAttenuation(PointLight light, float distance);
+vec3 calcPointLight(PointLight light, vec3 normal, vec3 viewDir, vec3 fragPos_tangentSpace, vec3 lightPos_tangentSpace, vec3 diffuseColour, vec3 specularColour);
+vec3 calcSpotLight(SpotLight light, vec3 normal, vec3 viewDir, vec3 lightDir_tangentSpace, vec3 fragPos_tangentSpace, vec3 lightPos_tangentSpace, vec3 diffuseColour, vec3 specularColour);
+float calcAttenuation(vec4 intensityAndAttenuation, float distance);
 
 void main () {
 	// Material Properties
@@ -77,19 +75,27 @@ void main () {
 		colour += calcPointLight(lights.pointLights[i], 
 								normal, 
 								fragToViewDir, 
-								fragPos_worldSpace,
 								fragPos_tangentSpace,
 								lightPos_tangentSpace[i], 
 								diffuseColour, 
 								specularColour);
 	}
 
+	colour += calcSpotLight(lights.flashLight,
+							normal,
+							fragToViewDir,
+							viewDir_tangentSpace,
+							fragPos_tangentSpace,
+							viewPos_tangentSpace,
+							diffuseColour,
+							specularColour);
+
 	// Set alpha channel to 1 default for all opaque
 	outColour = vec4(colour, 1.0);
 }
 
 // Calculate a point light's contribution to fragment colour
-vec3 calcPointLight(PointLight light, vec3 normal, vec3 viewDir, vec3 vertexPos_worldSpace, vec3 fragPos_tangentSpace, vec3 lightPos_tangentSpace, vec3 diffuseColour, vec3 specularColour)
+vec3 calcPointLight(PointLight light, vec3 normal, vec3 viewDir, vec3 fragPos_tangentSpace, vec3 lightPos_tangentSpace, vec3 diffuseColour, vec3 specularColour)
 {
 	// Direction of the light (tangent space)
 	vec3 lightDir = normalize(lightPos_tangentSpace - fragPos_tangentSpace);
@@ -111,8 +117,6 @@ vec3 calcPointLight(PointLight light, vec3 normal, vec3 viewDir, vec3 vertexPos_
 	// Use lambert to determine intensity of light directed towards the eye by the reflection
 	float specFactor = max(dot(viewDir, halfwayDir), 0.0);
 
-	
-
 	// Colour calculations based on lambert cosines
 	vec3 colour =
 		diffuseColour * diffuseFactor +
@@ -122,16 +126,56 @@ vec3 calcPointLight(PointLight light, vec3 normal, vec3 viewDir, vec3 vertexPos_
 	float distance = length(light.position.xyz - fragPos_worldSpace);
 
 	// Calculate attenuation factor
-	float attenuation = calcAttenuation(light, distance);
+	float attenuation = calcAttenuation(light.intensityAndAttenuation, distance);
 
 	// Factor in light intensity, colour and attenuation
-	return colour * light.colour.rgb * light.intensity * attenuation;
+	return colour * light.colour.rgb * attenuation;
 
 }
 
-float calcAttenuation(PointLight light, float distance)
+vec3 calcSpotLight(SpotLight light, vec3 normal, vec3 viewDir, vec3 lightDir_tangentSpace, vec3 fragPos_tangentSpace, vec3 lightPos_tangentSpace, vec3 diffuseColour, vec3 specularColour)
 {
-	float denominator = light.kc + light.kl * distance + light.kq * distance * distance;
+	// Direction of the light (tangent space)
+	vec3 fragToLightDir = normalize(lightPos_tangentSpace - fragPos_tangentSpace);
 
-	return 1 / denominator;
+	// Get angle between spotDir (direction spot light is pointing) and lightDir (fragment to light )
+	float cosTheta = dot(lightDir_tangentSpace, normalize(-fragToLightDir));
+
+	// if cosTheta greater than cosPhi (light cutoff) then the fragment is lit by the spot light
+	if (cosTheta > light.outerCutOff)
+	{
+		// Calculate edge intesity, this constant is smaller the further from the centre the fragment is
+		float cosEpsilon = light.innerCutOff - light.outerCutOff;
+		float edgeIntensity = clamp((cosTheta - light.outerCutOff)/ cosEpsilon, 0.0, 1.0);
+
+		// Standard light calculations
+		float diffuseFactor = max(dot(normal, fragToLightDir), 0.0);
+		vec3 reflectDir = reflect(-fragToLightDir, normal);
+		vec3 halfwayDir = normalize(fragToLightDir + viewDir);
+		float specFactor = max(dot(viewDir, halfwayDir), 0.0);
+		vec3 colour =
+		diffuseColour * diffuseFactor +
+		specularColour * pow(specFactor,5);
+	
+		// Distance to light (calculate in world space)
+		float distance = length(light.position.xyz - fragPos_worldSpace);
+
+		// Calculate attenuation factor
+		float attenuation = calcAttenuation(light.intensityAndAttenuation, distance);
+
+		// Factor in light intensity, colour and attenuation
+		return colour * light.colour.rgb * attenuation * edgeIntensity;
+	}
+	else
+	{
+		return vec3(0.0, 0.0, 0.0);
+	}
+
+}
+
+float calcAttenuation(vec4 intensityAndAttenuation, float distance)
+{
+	float denominator = intensityAndAttenuation.w + intensityAndAttenuation.z * distance + intensityAndAttenuation.y * distance * distance;
+
+	return intensityAndAttenuation.x / denominator;
 }

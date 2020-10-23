@@ -337,7 +337,8 @@ void BasicApp::updatePerFrameResources()
 	mLights.pointLights[2].position.x = -100 * sin(sumTime);
 
 	// - Flash light
-	// does not require any updates
+	glm::mat4 invView = glm::transpose(mCameraMatrices.V);
+	mLights.flashLight.position = invView * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);	// Flash light position is camera position
 
 	// Update buffers
 	mFrames[activeFrameIndex]->updateBuffer(mVPBufferIndex, mCameraMatrices);
@@ -364,12 +365,12 @@ void BasicApp::createLights()
 		pointLight.position.x = 0.0f;
 		pointLight.position.y = 30.0f;
 		pointLight.position.z = 0.0f;
-		pointLight.intensity = 100.0f;
+		pointLight.intensityAndAttenuation.x = 100.0f;
 
 		// Attenuation constants
-		pointLight.kq = 0.07f;
-		pointLight.kl = 0.14f;
-		pointLight.kc = 1.0f;
+		pointLight.intensityAndAttenuation.y = 0.07f;	// Kq
+		pointLight.intensityAndAttenuation.z = 0.14f;	// Kl
+		pointLight.intensityAndAttenuation.w = 1.0f;	// Kc
 	}
 	// Colours
 	mLights.pointLights[0].colour = glm::vec4(1.0, 0.0, 0.0, 1.0);
@@ -381,10 +382,11 @@ void BasicApp::createLights()
 	// e.g. position will always be (0,0,0) and direction will be (0,0,-1)
 	mLights.flashLight.position = glm::vec4(0.0);
 	mLights.flashLight.direction = glm::vec4(0.0, 0.0, -1.0, 0.0);
-	mLights.flashLight.intensity = 500.0f;
+	mLights.flashLight.intensityAndAttenuation = glm::vec4(100.0f, 0.07f, 0.14f, 1.0f);
 	mLights.flashLight.colour = glm::vec4(1.0);
 
-	mLights.flashLight.cutOff = cos(glm::radians(12.5f)); // This should set an overall cone of 25 degrees
+	mLights.flashLight.innerCutOff = cos(glm::radians(20.0f)); // This should set an overall cone of 40 degrees
+	mLights.flashLight.outerCutOff = cos(glm::radians(30.0f)); // This should set an overall cone of 60 degrees
 
 }
 

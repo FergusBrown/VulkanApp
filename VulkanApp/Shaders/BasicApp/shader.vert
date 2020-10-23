@@ -28,11 +28,7 @@ struct PointLight
 {
 	vec4 colour;
 	vec4 position;
-	float intensity;
-
-	float kq;
-	float kl;
-	float kc;
+	vec4 intensityAndAttenuation;
 };
 
 // - SpotLight struct
@@ -41,8 +37,9 @@ struct SpotLight
 	vec4 colour;
 	vec4 position;
 	vec4 direction;
-	float intensity;
-	float cutOff;
+	vec4 intensityAndAttenuation;
+	float innerCutOff;
+	float outerCutOff;
 };
 
 // - Descriptor set data

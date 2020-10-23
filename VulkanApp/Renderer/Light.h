@@ -15,12 +15,9 @@
 // Where D is distance and the other constants are defined below
 struct PointLight
 {
-	alignas(16) glm::vec4 colour{ glm::vec4(1.0f) };
-	alignas(16) glm::vec4 position{ glm::vec4(0.0f, 0.0f, 0.0f, 1.0f) };		// Set w to 1 for position and 0 for direction
-	alignas(4) float intensity{ 1.0f };
-	alignas(4) float kq;
-	alignas(4) float kl;
-	alignas(4) float kc{ 1.0f };
+	alignas(16) glm::vec4 colour{ glm::vec4(1.0f) };						// Use 4th value to indicate whether the light is on	
+	alignas(16) glm::vec4 position{ glm::vec4(0.0f, 0.0f, 0.0f, 1.0f) };	// Set w to 1 for position and 0 for direction
+	alignas(16) glm::vec4 intensityAndAttenuation{ glm::vec4(1.0f) };		// 0 : Intensity, 1: Kq, 2: Kc, 3: Kl
 };
 
 
@@ -29,9 +26,11 @@ struct PointLight
 struct SpotLight
 {
 	alignas(16) glm::vec4 colour{ glm::vec4(1.0f) };
-	alignas(16) glm::vec4 position{ glm::vec4(0.0f, 0.0f, 0.0f, 1.0f) };		// Set w to 1 for position and 0 for direction
+	alignas(16) glm::vec4 position{ glm::vec4(0.0f, 0.0f, 0.0f, 1.0f) };	// Set w to 1 for position and 0 for direction
 	alignas(16) glm::vec4 direction{ glm::vec4(1.0f) };
-	alignas(4) float intensity{ 1.0f };
-	alignas(4) float cutOff; // This should be the cosine of the angle wanted as the cutoff
+	alignas(16) glm::vec4 intensityAndAttenuation{ glm::vec4(1.0f) };		// 0 : Intensity, 1: Kq, 2: Kc, 3: Kl
+
+	alignas(4) float innerCutOff; // This should be the cosine of the angle wanted as the inner cutoff
+	alignas(4) float outerCutOff; 
 };
 
