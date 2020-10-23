@@ -15,8 +15,8 @@ public:
 	virtual void draw();
 private:
 	// Variables
-	uint32_t mUniformBufferIndex{ 0 };
-	
+	uint32_t mVPBufferIndex{ 0 };
+	uint32_t mLightBufferIndex{ 0 };
 
 	uint32_t mColourAttachmentIndex{ 0 };
 	uint32_t mDepthAttachmentIndex{ 0 };
@@ -25,10 +25,10 @@ private:
 	float sumTime{ 0.0f };
 
 	// Buffer compositions
-	struct uniformComposition : Uniforms
-	{
-		Light light;
-	} mUniforms;
+	struct uboLights {
+		PointLight pointLights[3];
+		SpotLight flashLight;
+	} mLights;
 
 	// Functions
 	// - Create Functions

@@ -25,6 +25,8 @@ void BasicApp::draw()
 
 	auto& activeFrame = mFrames[activeFrameIndex];
 
+	updatePerFrameResources();
+
 	// Wait until idle then reset command pools + synchronisation objects
 	activeFrame->wait();
 	activeFrame->reset();
@@ -39,7 +41,6 @@ void BasicApp::draw()
 
 	recordCommands(primaryCmdBuffer);		// Only record commands once the image at imageIndex is available (not being used by the queue)
 
-	updatePerFrameResources();
 
 	queue.submit(imageAcquired, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, renderFinished,
 		primaryCmdBuffer, drawFence);
@@ -158,17 +159,23 @@ void BasicApp::createRenderPass()
 // A layout must be created for each pipeline
 void BasicApp::createPerFrameDescriptorSetLayouts()
 {
+
 	// Pipeline 1 
 	// UNIFORM BUFFERS
-	std::vector<ShaderResource> uniformResources;
 
-	// VP + light buffer
-	ShaderResource uniformBuffer(0,
+	// VP buffer
+	ShaderResource vpBuffer(0,
+		VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+		1,
+		VK_SHADER_STAGE_VERTEX_BIT);
+
+	// Lights buffer
+	ShaderResource lightBuffer(1,
 		VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
 		1,
 		VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT);
 
-	uniformResources.push_back(uniformBuffer);
+	std::vector<ShaderResource> uniformResources{vpBuffer, lightBuffer};
 
 	//uniformResources.push_back(lightsBuffer);
 
@@ -274,12 +281,17 @@ void BasicApp::createPerFrameResources()
 	// CREATE UNIFORM BUFFERS
 
 	// Buffer sizes
-	VkDeviceSize uniformBufferSize = sizeof(uniformComposition);
+	VkDeviceSize vpBufferSize = sizeof(uboVP);
+	VkDeviceSize lightBufferSize = sizeof(uboLights);
 
 	// Create uniform buffers
 	for (size_t i = 0; i < static_cast<size_t>(mSwapchain->details().imageCount); ++i)
 	{
-		mUniformBufferIndex = mFrames[i]->createBuffer(uniformBufferSize,
+		mVPBufferIndex = mFrames[i]->createBuffer(vpBufferSize,
+			VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+
+		mLightBufferIndex = mFrames[i]->createBuffer(lightBufferSize,
 			VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
 			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 	}
@@ -295,7 +307,8 @@ void BasicApp::createPerFrameDescriptorSets()
 		// PIPELINE 1
 		// - BINDING MAP TO PER FRAME BUFFERS
 		BindingMap<uint32_t> bufferIndices;
-		bufferIndices[0][0] = mUniformBufferIndex;
+		bufferIndices[0][0] = mVPBufferIndex;
+		bufferIndices[1][0] = mLightBufferIndex;
 
 		// - DESCRIPTOR SET
 		mFrames[i]->createDescriptorSet(0, {}, bufferIndices);
@@ -311,21 +324,24 @@ void BasicApp::createPerFrameDescriptorSets()
 	}
 }
 
-
-
 void BasicApp::updatePerFrameResources()
 {
-	// Set uniform calues
-	mUniforms.V = mCameraMatrices.V;
-	mUniforms.P = mCameraMatrices.P;
-
-	// Set light values
+	// Update time variables
 	float now = glfwGetTime();
 	sumTime += now - lastTime;
 	lastTime = now;
-	mUniforms.light.position.x = 100 * sin(sumTime);
 
-	mFrames[activeFrameIndex]->updateBuffer(mUniformBufferIndex, mUniforms);
+	// Set light values
+	// - Point lights
+	mLights.pointLights[0].position.x = 100 * sin(sumTime);
+	mLights.pointLights[2].position.x = -100 * sin(sumTime);
+
+	// - Flash light
+	// does not require any updates
+
+	// Update buffers
+	mFrames[activeFrameIndex]->updateBuffer(mVPBufferIndex, mCameraMatrices);
+	mFrames[activeFrameIndex]->updateBuffer(mLightBufferIndex, mLights);
 }
 
 // Set required extensions + features
@@ -341,11 +357,34 @@ void BasicApp::getRequiredExtenstionAndFeatures(std::vector<const char*>& requir
 
 void BasicApp::createLights()
 {
-	// Light 1
-	mUniforms.light.position.x = 0.0f;
-	mUniforms.light.position.y = 30.0f;
-	mUniforms.light.position.z = 0.0f;
-	mUniforms.light.intensity = 500.0f;
+	// Point Light identical starting positions + intensity
+	for (auto& pointLight : mLights.pointLights)
+	{
+		// Position + intensity
+		pointLight.position.x = 0.0f;
+		pointLight.position.y = 30.0f;
+		pointLight.position.z = 0.0f;
+		pointLight.intensity = 100.0f;
+
+		// Attenuation constants
+		pointLight.kq = 0.07f;
+		pointLight.kl = 0.14f;
+		pointLight.kc = 1.0f;
+	}
+	// Colours
+	mLights.pointLights[0].colour = glm::vec4(1.0, 0.0, 0.0, 1.0);
+	mLights.pointLights[1].colour = glm::vec4(0.0, 1.0, 0.0, 1.0);
+	mLights.pointLights[2].colour = glm::vec4(0.0, 0.0, 1.0, 1.0);
+
+	// Flash Light
+	// Position and direction always the same since can be taken from view space
+	// e.g. position will always be (0,0,0) and direction will be (0,0,-1)
+	mLights.flashLight.position = glm::vec4(0.0);
+	mLights.flashLight.direction = glm::vec4(0.0, 0.0, -1.0, 0.0);
+	mLights.flashLight.intensity = 500.0f;
+	mLights.flashLight.colour = glm::vec4(1.0);
+
+	mLights.flashLight.cutOff = cos(glm::radians(12.5f)); // This should set an overall cone of 25 degrees
 
 }
 

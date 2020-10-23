@@ -75,12 +75,12 @@ protected:
 	std::map <uint32_t, std::unique_ptr<Texture>> mTextures;
 
 	// Standard VP matrix struct
-	struct Uniforms {
+	struct uboVP {
 		glm::mat4 P;
 		glm::mat4 V;
 	};
 
-	Uniforms mCameraMatrices;
+	uboVP mCameraMatrices;
 
 	// Vulkan Components
 	// - Main
