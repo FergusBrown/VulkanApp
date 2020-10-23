@@ -16,15 +16,18 @@ public:
 private:
 	// Variables
 	uint32_t mUniformBufferIndex{ 0 };
-	//uint32_t mLightsBufferIndex{ 0 };
+	
 
 	uint32_t mColourAttachmentIndex{ 0 };
 	uint32_t mDepthAttachmentIndex{ 0 };
 
+	float lastTime{ 0.0f };
+	float sumTime{ 0.0f };
+
 	// Buffer compositions
 	struct uniformComposition : Uniforms
 	{
-		PointLight light;
+		Light light;
 	} mUniforms;
 
 	// Functions

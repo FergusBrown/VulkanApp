@@ -104,7 +104,8 @@ std::unique_ptr<Mesh> LoadMesh(Device& device, aiMesh* mesh, const aiScene* scen
 		}
 	}
 
-	
+	// Ensure TBN components are orthogonal
+	reOrthogonalise(vertices);
 
 	// Iterate over indices through faces and copy across
 	for (size_t i = 0; i < mesh->mNumFaces; ++i)
@@ -170,4 +171,19 @@ void calculateTangentBasis(std::vector<Vertex>& vertices)
 		vertices[index2].bitangent = bitangent;
 	}
 	
+}
+
+// Using the Gram-Schmidt process enusre theat the components of the TBN matrix are orthogonal
+void reOrthogonalise(std::vector<Vertex>& vertices)
+{
+	for (auto& vertex : vertices)
+	{
+		auto& T = vertex.tangent;
+		auto& B = vertex.bitangent;
+		auto& N = vertex.normal;
+
+		T = glm::normalize(T - N * glm::dot(N, T));
+
+		B = cross(N, T);
+	}
 }

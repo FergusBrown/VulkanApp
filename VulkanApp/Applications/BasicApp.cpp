@@ -162,19 +162,13 @@ void BasicApp::createPerFrameDescriptorSetLayouts()
 	// UNIFORM BUFFERS
 	std::vector<ShaderResource> uniformResources;
 
-	// VP buffer
+	// VP + light buffer
 	ShaderResource uniformBuffer(0,
 		VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
 		1,
 		VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT);
 
 	uniformResources.push_back(uniformBuffer);
-
-	// Lights buffer
-	//ShaderResource lightsBuffer(1,
-	//	VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-	//	1,
-	//	VK_SHADER_STAGE_VERTEX_BIT);
 
 	//uniformResources.push_back(lightsBuffer);
 
@@ -321,8 +315,16 @@ void BasicApp::createPerFrameDescriptorSets()
 
 void BasicApp::updatePerFrameResources()
 {
+	// Set uniform calues
 	mUniforms.V = mCameraMatrices.V;
 	mUniforms.P = mCameraMatrices.P;
+
+	// Set light values
+	float now = glfwGetTime();
+	sumTime += now - lastTime;
+	lastTime = now;
+	mUniforms.light.position.x = 100 * sin(sumTime);
+
 	mFrames[activeFrameIndex]->updateBuffer(mUniformBufferIndex, mUniforms);
 }
 
@@ -340,7 +342,7 @@ void BasicApp::getRequiredExtenstionAndFeatures(std::vector<const char*>& requir
 void BasicApp::createLights()
 {
 	// Light 1
-	mUniforms.light.position.x = -2.0f;
+	mUniforms.light.position.x = 0.0f;
 	mUniforms.light.position.y = 30.0f;
 	mUniforms.light.position.z = 0.0f;
 	mUniforms.light.intensity = 500.0f;

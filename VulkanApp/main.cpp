@@ -33,22 +33,11 @@ int main()
 	int sponza = vulkanRenderer.createModel("Models/sponza.obj");
 	glm::mat4 sponzaModel = glm::scale(glm::mat4(1.0), glm::vec3(0.1, 0.1, 0.1));
 	vulkanRenderer.updateModel(sponza, sponzaModel);
-
-	/*int sphere = vulkanRenderer.createModel("Models/sphere.obj");
-	mat4 newModel = glm::translate(mat4(1.0f), vec3(0.0f, 90.0f, 0.0f));
-	vulkanRenderer.updateModel(sphere, newModel);*/
 	
-	std::vector<int> torusInstances;
+	/*std::vector<int> torusInstances;
 	torusInstances.push_back(vulkanRenderer.createModel("Models/torus.obj"));
 	mat4 torusModel = glm::translate(mat4(1.0f), vec3(-2.0f, 2.0f, -2.0f));
-	vulkanRenderer.updateModel(torusInstances[0], torusModel);
-
-	/*int plane = vulkanRenderer.createModel("Models/blank_plane.obj");
-	mat4 rotateMatrix = glm::rotate(mat4(1.0f), glm::radians(90.0f), vec3(0.0f, -1.0f, 0.0f));
-	vulkanRenderer.updateModel(plane, rotateMatrix);*/
-
-	//glm::mat4 testMat = glm::rotate(glm::mat4(1.0f), glm::radians(angle), glm::vec3(1.0f, 1.0f, 0.0f));
-	//vulkanRenderer.updateModel(frog, testMat);
+	vulkanRenderer.updateModel(torusInstances[0], torusModel);*/
 
 	std::unique_ptr<InputHandler> inputHandler(new InputHandlerMouse(displayWindow.window));
 	inputHandler->init();
@@ -76,8 +65,8 @@ int main()
 		cameraView = player.generateView();
 		vulkanRenderer.updateCameraView(cameraView);
 
-		torusModel *= glm::rotate(glm::mat4(1.0f), deltaTime, glm::vec3(1.0f, 0.0f, -1.0f));
-		vulkanRenderer.updateModel(torusInstances[0], torusModel);
+		/*torusModel *= glm::rotate(glm::mat4(1.0f), deltaTime, glm::vec3(1.0f, 0.0f, -1.0f));
+		vulkanRenderer.updateModel(torusInstances[0], torusModel);*/
 
 
 		vulkanRenderer.draw();

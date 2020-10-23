@@ -233,10 +233,6 @@
     <None Include="Shaders\BasicApp\second.vert" />
     <None Include="Shaders\BasicApp\shader.frag" />
     <None Include="Shaders\BasicApp\shader.vert" />
-    <None Include="Shaders\second.frag" />
-    <None Include="Shaders\second.vert" />
-    <None Include="Shaders\shader.frag" />
-    <None Include="Shaders\shader.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

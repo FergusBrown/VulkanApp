@@ -295,18 +295,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Shaders\second.frag">
-      <Filter>Source Files\Shading</Filter>
-    </None>
-    <None Include="Shaders\second.vert">
-      <Filter>Source Files\Shading</Filter>
-    </None>
-    <None Include="Shaders\shader.frag">
-      <Filter>Source Files\Shading</Filter>
-    </None>
-    <None Include="Shaders\shader.vert">
-      <Filter>Source Files\Shading</Filter>
-    </None>
     <None Include="Shaders\BasicApp\second.frag" />
     <None Include="Shaders\BasicApp\second.vert" />
     <None Include="Shaders\BasicApp\shader.frag" />

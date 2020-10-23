@@ -84,13 +84,12 @@ void main () {
 		materialAmbientColour +
 		// Diffuse colour :  Proportional to angle between normal and light
 		// Intensity decays in intensity by inverse square law -> divided by d^2
-		(materialDiffuseColour * lightColour * lightIntensity * diffIntensity) / (distance * distance) +
+		materialDiffuseColour * lightColour * lightIntensity * diffIntensity / (distance * distance) +
 		// Specular colour : proportional to cos of angle between eye and reflection direction
 		// Has similar light dependencies as diffue colour
 		// Raise power to decrease strength of this effect
-		(materialSpecularColour * lightColour * lightIntensity * pow(specIntensity,5)) / (distance * distance);
+		materialSpecularColour * lightColour * lightIntensity * pow(specIntensity,5) / (distance * distance);
 
 	// Set alpha channel to 1 default for all opaque
 	outColour = vec4(colour, 1.0);
-	//outColour = vec4(viewDir, 1.0);
 }
