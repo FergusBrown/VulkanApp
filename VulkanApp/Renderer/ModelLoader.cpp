@@ -2,16 +2,13 @@
 
 #include "Mesh.h"
 
-void LoadMaterials(const aiScene* scene, std::map<uint32_t, std::string>& diffuseList, std::map<uint32_t, std::string>& normalList)
+void LoadMaterials(const aiScene* scene, std::map<uint32_t, std::string>& diffuseList, std::map<uint32_t, std::string>& normalList, std::map<uint32_t, std::string>& specularList)
 {
 	// Got through each material and copy its texture file name (if it exists)
 	for (size_t i = 0; i < scene->mNumMaterials; ++i)
 	{
 		// Get the material
 		aiMaterial* material = scene->mMaterials[i];
-
-		// Initalise the texture to empty string (will be replaced if texture exists)
-		//textureList[i] = "";
 
 		// Check for a Diffuse Texture (standard detail texture)
 		if (material->GetTextureCount(aiTextureType_DIFFUSE))
@@ -40,6 +37,22 @@ void LoadMaterials(const aiScene* scene, std::map<uint32_t, std::string>& diffus
 				normalList[i] = fileName;
 			}
 		}
+
+		// Check for specular maps
+		if (material->GetTextureCount(aiTextureType_SPECULAR))
+		{
+			aiString path;
+			if (material->GetTexture(aiTextureType_SPECULAR, 0, &path) == AI_SUCCESS)
+			{
+				// Cut off any directory information already present
+				int idx = std::string(path.data).rfind("\\");
+				std::string fileName = std::string(path.data).substr(idx + 1);
+
+				specularList[i] = fileName;
+			}
+		}
+
+		
 	}
 }
 

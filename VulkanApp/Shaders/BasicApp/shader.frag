@@ -49,6 +49,7 @@ layout(set = 0, binding = 1) uniform Lights
 // - Descriptor set 1 ( texture samplers)
 layout(set = 1, binding = 0) uniform sampler2D diffuseSampler;
 layout(set = 1, binding = 1) uniform sampler2D normalSampler;
+layout(set = 1, binding = 2) uniform sampler2D specularSampler;
 
 // Function prototypes
 vec3 calcPointLight(PointLight light, vec3 normal, vec3 viewDir, vec3 fragPos_tangentSpace, vec3 lightPos_tangentSpace, vec3 diffuseColour, vec3 specularColour);
@@ -59,7 +60,7 @@ void main () {
 	// Material Properties
 	vec3 diffuseColour = texture(diffuseSampler, UV).rgb;
 	vec3 ambientColour = vec3(0.1, 0.1, 0.1) * diffuseColour;
-	vec3 specularColour = vec3(0.3, 0.3, 0.3);
+	vec3 specularColour = texture(specularSampler, UV).rgb;
 
 	// Local normal (tangent space)
 	// Normal from normal map = 2*colour - 1 -> convert from range of [0,1] to [-1,1]
@@ -120,7 +121,7 @@ vec3 calcPointLight(PointLight light, vec3 normal, vec3 viewDir, vec3 fragPos_ta
 	// Colour calculations based on lambert cosines
 	vec3 colour =
 		diffuseColour * diffuseFactor +
-		specularColour * pow(specFactor,5);
+		specularColour * pow(specFactor,10);
 	
 	// Distance to light (calculate in world space)
 	float distance = length(light.position.xyz - fragPos_worldSpace);
@@ -155,7 +156,7 @@ vec3 calcSpotLight(SpotLight light, vec3 normal, vec3 viewDir, vec3 lightDir_tan
 		float specFactor = max(dot(viewDir, halfwayDir), 0.0);
 		vec3 colour =
 		diffuseColour * diffuseFactor +
-		specularColour * pow(specFactor,5);
+		specularColour * pow(specFactor,10);
 	
 		// Distance to light (calculate in world space)
 		float distance = length(light.position.xyz - fragPos_worldSpace);

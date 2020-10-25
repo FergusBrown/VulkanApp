@@ -1,7 +1,6 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "VulkanRenderer.h"
 
-
 int VulkanRenderer::init(GLFWwindow* newWindow)
 {
 	mWindow = newWindow;
@@ -178,7 +177,12 @@ void VulkanRenderer::createPerMaterialDescriptorSetLayout()
 		1,
 		VK_SHADER_STAGE_FRAGMENT_BIT);
 
-	std::vector<ShaderResource> samplerResources{ diffuseSampler, normalSampler };
+	ShaderResource specularSampler(2,
+		VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+		1,
+		VK_SHADER_STAGE_FRAGMENT_BIT);
+
+	std::vector<ShaderResource> samplerResources{ diffuseSampler, normalSampler, specularSampler };
 
 	mPerMaterialDescriptorSetLayout = (std::make_unique<DescriptorSetLayout>(*mDevice, 1, samplerResources));
 }
@@ -212,6 +216,12 @@ void VulkanRenderer::createTextureSamplers()
 		MAX_LOD);	// Max LOD can be as high as possible since it is just used to clamp the computed LOD
 
 	mNormalSampler = std::make_unique<Sampler>(*mDevice,
+		VK_TRUE,
+		maxAnisotropy,
+		0.0f,
+		MAX_LOD);
+
+	mSpecularSampler = std::make_unique<Sampler>(*mDevice,
 		VK_TRUE,
 		maxAnisotropy,
 		0.0f,
@@ -265,28 +275,32 @@ uint32_t VulkanRenderer::createTexture(std::string fileName)
 	return textureID;
 }
 
-uint32_t VulkanRenderer::createMaterialDescriptor(uint32_t diffuseID, uint32_t normalID)
+uint32_t VulkanRenderer::createMaterialDescriptor(uint32_t diffuseID, uint32_t normalID, uint32_t specularID)
 {
 	// Create descriptor resource reference
 	DescriptorResourceReference materialResource;
 	// Bind Images
 	materialResource.bindImage(mTextures[diffuseID]->imageView(), *mDiffuseSampler, 0, 0);
 	materialResource.bindImage(mTextures[normalID]->imageView(), *mNormalSampler, 1, 0);
+	materialResource.bindImage(mTextures[specularID]->imageView(), *mSpecularSampler, 2, 0);
 
 	// Generate image infos
 	VkDescriptorImageInfo diffuseInfo = {};
 	VkDescriptorImageInfo normalInfo = {};
+	VkDescriptorImageInfo specularInfo = {};
 	materialResource.generateDescriptorImageInfo(diffuseInfo, 0, 0);
 	materialResource.generateDescriptorImageInfo(normalInfo, 1, 0);
+	materialResource.generateDescriptorImageInfo(specularInfo, 2, 0);
 
 	BindingMap<VkDescriptorImageInfo> imageInfos;
 	imageInfos[0][0] = diffuseInfo;
 	imageInfos[1][0] = normalInfo;
+	imageInfos[2][0] = specularInfo;
 
 	mPerMaterialDescriptorSets.push_back(std::make_unique<DescriptorSet>(*mDevice, *mPerMaterialDescriptorSetLayout, *mPerMaterialDescriptorPool, imageInfos));
 
 	// Update the descriptor sets with new buffer/binding info
-	std::vector<uint32_t> bindingsToUpdate = { 0, 1 };
+	std::vector<uint32_t> bindingsToUpdate = { 0, 1, 2 };
 	mPerMaterialDescriptorSets.back()->update(bindingsToUpdate);
 
 	// Return descriptor set location
@@ -329,7 +343,8 @@ int VulkanRenderer::createModel(std::string modelFile)
 	// Get vector of all materials with 1:1 ID placement
 	std::map<uint32_t, std::string> diffuseNames;
 	std::map<uint32_t, std::string> normalNames;
-	LoadMaterials(scene, diffuseNames, normalNames);
+	std::map<uint32_t, std::string> specularNames;
+	LoadMaterials(scene, diffuseNames, normalNames, specularNames);
 
 	uint32_t materialCount = scene->mNumMaterials;
 
@@ -342,6 +357,7 @@ int VulkanRenderer::createModel(std::string modelFile)
 	{
 		uint32_t diffuseID;
 		uint32_t normalID;
+		uint32_t specularID;
 
 		// If material has no texture, set '0' to indicate no texture, texture 0 will be reserved for a default texture
 		if (diffuseNames[i].empty())
@@ -364,8 +380,19 @@ int VulkanRenderer::createModel(std::string modelFile)
 			normalID = createTexture(normalNames[i]);
 		}
 
+		// repeat for specular textures
+		if (specularNames[i].empty())
+		{
+			specularID = 0;
+		}
+		else
+		{
+			specularID = createTexture(specularNames[i]);
+		}
+
+
 		// Create material descriptor
-		materialIDs[i] = createMaterialDescriptor(diffuseID, normalID);
+		materialIDs[i] = createMaterialDescriptor(diffuseID, normalID, specularID);
 	}
 
 	// Load in all our meshes

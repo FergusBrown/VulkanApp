@@ -112,6 +112,8 @@ protected:
 	// Samplers
 	std::unique_ptr<Sampler> mDiffuseSampler;
 	std::unique_ptr<Sampler> mNormalSampler;
+	std::unique_ptr<Sampler> mSpecularSampler;
+
 
 	// - Pipelines + Layouts
 	std::vector<std::unique_ptr<Pipeline>>	mPipelines;
@@ -171,7 +173,7 @@ protected:
 	VkFormat chooseSupportedFormat(const std::vector<VkFormat> &formats, VkImageTiling tiling, VkFormatFeatureFlags featureFlags);
 
 	uint32_t createTexture(std::string fileName);
-	uint32_t createMaterialDescriptor(uint32_t diffuseID, uint32_t normalID);
+	uint32_t createMaterialDescriptor(uint32_t diffuseID, uint32_t normalID = 0, uint32_t specularID = 0);
 	
 	// -- Loader Functions
 	stbi_uc* loadTextureFile(std::string fileName, int& width, int& height, VkDeviceSize& imageSize);
