@@ -9,7 +9,7 @@
 
 int main()
 {
-	Window displayWindow("Vulkan Renderer", 1280, 720);
+	Window displayWindow("Vulkan Renderer", 1920, 1080);
 	BasicApp vulkanRenderer;
 
 	if (!displayWindow.createWindow())

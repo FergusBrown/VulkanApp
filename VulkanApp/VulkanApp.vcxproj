@@ -146,6 +146,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Applications\BasicApp.cpp" />
+    <ClCompile Include="Applications\DeferredApp.cpp" />
     <ClCompile Include="InputHandlerMouse.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Pawn.cpp" />
@@ -188,6 +189,7 @@
     <ClInclude Include="Commands.h" />
     <ClInclude Include="ControlConstants.h" />
     <ClInclude Include="Applications\BasicApp.h" />
+    <ClInclude Include="Applications\DeferredApp.h" />
     <ClInclude Include="InputHandler.h" />
     <ClInclude Include="InputHandlerMouse.h" />
     <ClInclude Include="Renderer\Light.h" />
@@ -233,6 +235,12 @@
     <None Include="Shaders\BasicApp\second.vert" />
     <None Include="Shaders\BasicApp\shader.frag" />
     <None Include="Shaders\BasicApp\shader.vert" />
+    <None Include="Shaders\DeferredApp\geometry.frag" />
+    <None Include="Shaders\DeferredApp\geometry.vert" />
+    <None Include="Shaders\DeferredApp\lighting.frag" />
+    <None Include="Shaders\DeferredApp\lighting.vert" />
+    <None Include="Shaders\DeferredApp\post.frag" />
+    <None Include="Shaders\DeferredApp\post.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

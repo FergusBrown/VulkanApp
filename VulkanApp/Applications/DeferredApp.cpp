@@ -1,6 +1,6 @@
-#include "BasicApp.h"
+#include "DeferredApp.h"
 
-BasicApp::~BasicApp()
+DeferredApp::~DeferredApp()
 {
 	if (mDevice)
 	{
@@ -8,14 +8,12 @@ BasicApp::~BasicApp()
 	}
 }
 
-void BasicApp::draw()
+void DeferredApp::draw()
 {
 	auto& previousFrame = mFrames[activeFrameIndex];
 
-	VkSemaphore imageAcquired = previousFrame->requestSemaphore();
-
-	// TODO : get this semaphore form previous frame
 	// Get next active frame
+	VkSemaphore imageAcquired = previousFrame->requestSemaphore();	// Get a semaphore from the pool of the previous frame
 	VkResult result = mSwapchain->acquireNextImageIndex(imageAcquired, activeFrameIndex);
 
 	if (result != VK_SUCCESS)
@@ -49,7 +47,7 @@ void BasicApp::draw()
 }
 
 // Prepare rendertargets and frames
-void BasicApp::createRenderTargetAndFrames()
+void DeferredApp::createRenderTargetAndFrames()
 {
 	//auto& device = mSwapchain->device();
 	auto& swapchainExtent = mSwapchain->extent();
@@ -63,16 +61,25 @@ void BasicApp::createRenderTargetAndFrames()
 		VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
 	);
 
+	// Get supported format for position attachment - use higher precision floats
+	mColourFormat = chooseSupportedFormat(
+		{ VK_FORMAT_R16G16B16A16_UNORM },
+		VK_IMAGE_TILING_OPTIMAL,
+		VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
+	);
+
 	// Get supported format for depth buffer
 	mDepthFormat = chooseSupportedFormat(
 		{ VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D32_SFLOAT, VK_FORMAT_D24_UNORM_S8_UINT },
 		VK_IMAGE_TILING_OPTIMAL,
 		VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
 
+
 	for (auto& image : mSwapchain->images())
 	{
 		// IMAGES + RENDERTARGET + RESOURCE REFERENCE
 
+		// SUBPASS 2 OUTPUT (POST)
 		// 0 - swapchain image
 		Image swapchainImage(*mDevice,
 			image,
@@ -80,16 +87,39 @@ void BasicApp::createRenderTargetAndFrames()
 			swapchainFormat,
 			swapchainUsage);
 
-		// 1 - colour image
-		mColourAttachmentIndex = 1;
-		Image colourImage(*mDevice,
+		// SUBPASS 1 OUTPUT (LIGHTING PASS)
+		// 1 - Lighting subpass colour image
+		mLightingAttachmentIndex = 1;
+		Image lightingImage(*mDevice,
 			swapchainExtent,
 			mColourFormat,
 			VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT,
 			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
-		// 2 - depth image
-		mDepthAttachmentIndex = 2;
+		// SUBPASS 0 OUTPUT (GEOMETRY PASS)
+		// 2 - Position
+		Image positionImage(*mDevice,
+			swapchainExtent,
+			mColourFormat,
+			VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT,
+			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+
+		// 3 - Normals
+		Image normalImage(*mDevice,
+			swapchainExtent,
+			mColourFormat,
+			VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT,
+			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+
+		// 4 - Albedo (RGB) + Specular (A)
+		Image albedoSpecImage(*mDevice,
+			swapchainExtent,
+			mColourFormat,
+			VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT,
+			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+
+		// 5 - Depth
+		mDepthAttachmentIndex = 5;
 		Image depthImage(*mDevice,
 			swapchainExtent,
 			mDepthFormat,
@@ -99,7 +129,10 @@ void BasicApp::createRenderTargetAndFrames()
 
 		std::vector<Image> renderTargetImages;
 		renderTargetImages.push_back(std::move(swapchainImage));
-		renderTargetImages.push_back(std::move(colourImage));
+		renderTargetImages.push_back(std::move(lightingImage));
+		renderTargetImages.push_back(std::move(positionImage));
+		renderTargetImages.push_back(std::move(normalImage));
+		renderTargetImages.push_back(std::move(albedoSpecImage));
 		renderTargetImages.push_back(std::move(depthImage));
 
 		// Create Render Target + Frame
@@ -108,41 +141,58 @@ void BasicApp::createRenderTargetAndFrames()
 	}
 }
 
-void BasicApp::createRenderPass()
+void DeferredApp::createRenderPass()
 {
 	// Attachment 0 = Swapchain
-	// Attachment 1 = Colour
-	// Attachment 2 = Depth
+	// Attachment 1 = Lighting
+	// Attachment 2 = Position
+	// Attachment 3 = Normal
+	// Attachment 4 = Albedo + Spec
+	// Attachment 5 = Depth
 
 	// CREATE SUBPASS OBJECTS
-	std::unique_ptr<Subpass> firstPass = std::make_unique<Subpass>("Shaders/BasicApp/vert.spv", "Shaders/BasicApp/frag.spv");
-	std::unique_ptr<Subpass> secondPass = std::make_unique<Subpass>("Shaders/BasicApp/second_vert.spv", "Shaders/BasicApp/second_frag.spv");
+	uint32_t subpassCount = 3;
+	std::vector<std::unique_ptr<Subpass>> subpasses(subpassCount);
+	mSubpasses[0] = std::make_unique<Subpass>("Shaders/DeferredApp/geometry_vert.spv", "Shaders/DeferredApp/geometry_frag.spv");
+	mSubpasses[1] = std::make_unique<Subpass>("Shaders/DeferredApp/lighting_vert.spv", "Shaders/DeferredApp/lighting_vert.spv");
+	mSubpasses[2] = std::make_unique<Subpass>("Shaders/DeferredApp/post_vert.spv", "Shaders/DeferredApp/post_frag.spv");
 
-	std::vector<uint32_t> outputAttachments = { 1, 2 };
+	// Set input and output attachments
+	std::vector<uint32_t> inputAttachments{};
+	std::vector<uint32_t> outputAttachments{};
+	
+	// SUBPASS 0 (GEOMETRY)
+	outputAttachments = { mPositionAttachmentIndex, mNormalAttachmentIndex, mAlbedoSpecAttachmentIndex, mDepthAttachmentIndex };
+	mSubpasses[0]->setOutputAttachments(outputAttachments);
 
-	firstPass->setOutputAttachments(outputAttachments);
+	// SUBPASS 1 (LIGHTING)
+	inputAttachments = outputAttachments;
+	outputAttachments = { mLightingAttachmentIndex };
+	mSubpasses[1]->setInputAttachments(inputAttachments);
+	mSubpasses[1]->setOutputAttachments(outputAttachments);
 
-	std::vector<uint32_t> inputAttachments = { 1, 2 };
-
-	secondPass->setInputAttachments(inputAttachments);
-
-	mSubpasses.push_back(std::move(firstPass));
-	mSubpasses.push_back(std::move(secondPass));
+	// SUBPASS 2 (POST)
+	inputAttachments = outputAttachments;
+	mSubpasses[2]->setInputAttachments(inputAttachments);
 
 	// CREATE SUBPASS INFOS
-	std::vector<SubpassInfo> subpassInfos = {};
+	std::vector<SubpassInfo> subpassInfos(subpassCount);
 
-	// First Subpass
-	subpassInfos.push_back({ mSubpasses[0]->inputAttachments(), mSubpasses[0]->outputAttachments() });
-	// Second Subpass
-	subpassInfos.push_back({ mSubpasses[1]->inputAttachments(), mSubpasses[1]->outputAttachments() });
+	for (uint32_t i = 0; i < subpassCount; ++i)
+	{
+		subpassInfos[i] = { mSubpasses[i]->inputAttachments(), mSubpasses[i]->outputAttachments() };
+	}
 
-	// CREATE LOAD/STORE INFOS
+	// CREATE LOAD/STORE INFOS FOR ATTACHMENTS
 	std::vector<LoadStoreInfo> loadStoreInfos = {};
 
-	// swapchain load/store
+	// Swapchain load/store
 	loadStoreInfos.push_back({ VK_ATTACHMENT_LOAD_OP_CLEAR, VK_ATTACHMENT_STORE_OP_STORE });
-	// Colour load/store
+	// Position load/store
+	loadStoreInfos.push_back({ VK_ATTACHMENT_LOAD_OP_CLEAR, VK_ATTACHMENT_STORE_OP_DONT_CARE });
+	// Normal load/store
+	loadStoreInfos.push_back({ VK_ATTACHMENT_LOAD_OP_CLEAR, VK_ATTACHMENT_STORE_OP_DONT_CARE });
+	// AlbedoSpec load/store
 	loadStoreInfos.push_back({ VK_ATTACHMENT_LOAD_OP_CLEAR, VK_ATTACHMENT_STORE_OP_DONT_CARE });
 	// Depth load/store
 	loadStoreInfos.push_back({ VK_ATTACHMENT_LOAD_OP_CLEAR, VK_ATTACHMENT_STORE_OP_DONT_CARE });
@@ -157,126 +207,157 @@ void BasicApp::createRenderPass()
 
 // Create layouts which will be updated at most once per frame
 // A layout must be created for each pipeline
-void BasicApp::createPerFrameDescriptorSetLayouts()
+void DeferredApp::createPerFrameDescriptorSetLayouts()
 {
+	std::vector<std::vector<ShaderResource>> pipelineResources(mSubpasses.size());
 
-	// Pipeline 1 
+	// Pipeline 0 
 	// UNIFORM BUFFERS
-
 	// VP buffer
 	ShaderResource vpBuffer(0,
 		VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
 		1,
 		VK_SHADER_STAGE_VERTEX_BIT);
 
+	pipelineResources[0] = { vpBuffer };
+
+	// Pipeline 1
+	// UNIFORM BUFFERS
 	// Lights buffer
-	ShaderResource lightBuffer(1,
+	ShaderResource lightBuffer(0,
 		VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
 		1,
-		VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT);
+		VK_SHADER_STAGE_FRAGMENT_BIT);
 
-	std::vector<ShaderResource> uniformResources{vpBuffer, lightBuffer};
+	// INPUT ATTACHMENTS
+	for (uint32_t i = 0; i < mSubpasses[1]->inputAttachments().size(); ++i)
+	{
+		ShaderResource attachment(i + 1,
+			VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT,
+			1,
+			VK_SHADER_STAGE_FRAGMENT_BIT);
 
-	//uniformResources.push_back(lightsBuffer);
+		pipelineResources[1].push_back(std::move(attachment));
+	}
 
 	// Pipeline 2
 	// INPUT ATTACHMENTS
-	ShaderResource depthAttachment(0,
-		VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT,
-		1,
-		VK_SHADER_STAGE_FRAGMENT_BIT);
+	for (uint32_t i = 0; i < mSubpasses[2]->inputAttachments().size(); ++i)
+	{
+		ShaderResource attachment(i,
+			VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT,
+			1,
+			VK_SHADER_STAGE_FRAGMENT_BIT);
 
-	ShaderResource colourAttachment(1,
-		VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT,
-		1,
-		VK_SHADER_STAGE_FRAGMENT_BIT);
-
-	std::vector<ShaderResource> attachmentResources{ depthAttachment , colourAttachment};
+		pipelineResources[2].push_back(std::move(attachment));
+	}
 
 	// Create sets in frame objects
 	for (auto& frame : mFrames)
 	{
-		// NOTE : Per frame descriptor set index should always be 0
-		// Layout for Pipeline 1
-		frame->createDescriptorSetLayout(uniformResources, 0);
+		// Layout for Pipeline 0
+		frame->createDescriptorSetLayout(pipelineResources[0], 0);
 
-		// Layout for Pipeline 2
-		frame->createDescriptorSetLayout(attachmentResources, 1);
+		// Layout for Pipeline 1
+		frame->createDescriptorSetLayout(pipelineResources[1], 1);
+
+		// Layout for Pipeline 1
+		frame->createDescriptorSetLayout(pipelineResources[2], 2);
 	}
 }
 
-void BasicApp::createPipelines()
+void DeferredApp::createPipelines()
 {
-	// PIPELINE 1
+	mPipelineLayouts.resize(mSubpasses.size());
+	mPipelines.resize(mSubpasses.size());
+	std::vector<std::vector<ShaderModule>> shaderModules(mSubpasses.size());
+
+	// PIPELINE 0
 	// CREATE SHADER MODULES
-	std::vector<ShaderModule> shaderModules;
+	
 
 	std::vector<char> vertexCode = readFile(mSubpasses[0]->vertexShaderSource());
-	shaderModules.emplace_back(*mDevice,
+	shaderModules[0].emplace_back(*mDevice,
 		vertexCode,
 		VK_SHADER_STAGE_VERTEX_BIT);
 
 	std::vector<char> fragCode = readFile(mSubpasses[0]->fragmentShaderSource());
-	shaderModules.emplace_back(*mDevice,
+	shaderModules[0].emplace_back(*mDevice,
 		fragCode,
 		VK_SHADER_STAGE_FRAGMENT_BIT);
 
 	// CREATE PIPELINE LAYOUT
 	std::vector<std::reference_wrapper<const DescriptorSetLayout>> descriptorSetLayouts = { mFrames[0]->descriptorSetLayout(0) , *mPerMaterialDescriptorSetLayout };
 
-	std::unique_ptr<PipelineLayout> firstLayout = std::make_unique<PipelineLayout>(*mDevice, descriptorSetLayouts, mPushConstantRange);
+	mPipelineLayouts[0] = std::make_unique<PipelineLayout>(*mDevice, descriptorSetLayouts, mPushConstantRange);
 
 	// CREATE PIPELINE
-	std::unique_ptr<Pipeline> firstPipeline =
-		std::make_unique<GraphicsPipeline>(*mDevice,
-			shaderModules,
-			*mSwapchain,
-			*firstLayout,
-			*mRenderPass,
-			0,
-			VK_TRUE,
-			VK_TRUE);
+	mPipelines[0] = std::make_unique<GraphicsPipeline>(*mDevice,
+				shaderModules[0],
+				*mSwapchain,
+				*mPipelineLayouts[0],
+				*mRenderPass,
+				0,
+				VK_TRUE,
+				VK_TRUE);
 
-	// Store pipeline + layout
-	mPipelineLayouts.push_back(std::move(firstLayout));
-	mPipelines.push_back(std::move(firstPipeline));
-
-	// PIPELINE 2
+	// PIPELINE 1
 	// CREATE SHADER MODULES
-	std::vector<ShaderModule> secondShaderModules = {};
-
 	vertexCode = readFile(mSubpasses[1]->vertexShaderSource());
-	secondShaderModules.emplace_back(*mDevice,
+	shaderModules[1].emplace_back(*mDevice,
 		vertexCode,
 		VK_SHADER_STAGE_VERTEX_BIT);
 
 	fragCode = readFile(mSubpasses[1]->fragmentShaderSource());
-	secondShaderModules.emplace_back(*mDevice,
+	shaderModules[1].emplace_back(*mDevice,
 		fragCode,
 		VK_SHADER_STAGE_FRAGMENT_BIT);
 
 	// CREATE PIPELINE LAYOUT
-	std::vector<std::reference_wrapper<const DescriptorSetLayout>> secondDescriptorSetLayouts = { mFrames[0]->descriptorSetLayout(1) };
+	descriptorSetLayouts = { mFrames[0]->descriptorSetLayout(1) };
 
-	std::unique_ptr<PipelineLayout> secondLayout = std::make_unique<PipelineLayout>(*mDevice, secondDescriptorSetLayouts);
+	mPipelineLayouts[1] = std::make_unique<PipelineLayout>(*mDevice, descriptorSetLayouts);
 
 	// CREATE PIPELINE
-	std::unique_ptr<Pipeline> secondPipeline =
-		std::make_unique<GraphicsPipeline>(*mDevice,
-			secondShaderModules,
-			*mSwapchain,
-			*secondLayout,
-			*mRenderPass,
-			1,
-			VK_FALSE,
-			VK_FALSE);
+	mPipelines[1] = std::make_unique<GraphicsPipeline>(*mDevice,
+		shaderModules[1],
+		*mSwapchain,
+		*mPipelineLayouts[1],
+		*mRenderPass,
+		1,
+		VK_TRUE,
+		VK_TRUE);
 
-	// Store pipeline + layout
-	mPipelineLayouts.push_back(std::move(secondLayout));
-	mPipelines.push_back(std::move(secondPipeline));
+
+	// PIPELINE 2
+	// CREATE SHADER MODULES
+	vertexCode = readFile(mSubpasses[2]->vertexShaderSource());
+	shaderModules[2].emplace_back(*mDevice,
+		vertexCode,
+		VK_SHADER_STAGE_VERTEX_BIT);
+
+	fragCode = readFile(mSubpasses[2]->fragmentShaderSource());
+	shaderModules[2].emplace_back(*mDevice,
+		fragCode,
+		VK_SHADER_STAGE_FRAGMENT_BIT);
+
+	// CREATE PIPELINE LAYOUT
+	descriptorSetLayouts = { mFrames[0]->descriptorSetLayout(2) };
+
+	mPipelineLayouts[2] = std::make_unique<PipelineLayout>(*mDevice, descriptorSetLayouts);
+
+	// CREATE PIPELINE
+	mPipelines[2] = std::make_unique<GraphicsPipeline>(*mDevice,
+		shaderModules[2],
+		*mSwapchain,
+		*mPipelineLayouts[2],
+		*mRenderPass,
+		2,
+		VK_TRUE,
+		VK_TRUE);
 }
 
-void BasicApp::createPerFrameResources()
+void DeferredApp::createPerFrameResources()
 {
 	// CREATE UNIFORM BUFFERS
 
@@ -299,32 +380,49 @@ void BasicApp::createPerFrameResources()
 	createLights();
 }
 
-void BasicApp::createPerFrameDescriptorSets()
+void DeferredApp::createPerFrameDescriptorSets()
 {
 
 	for (size_t i = 0; i < static_cast<size_t>(mSwapchain->imageCount()); ++i)
 	{
-		// PIPELINE 1
+		BindingMap<uint32_t> bufferIndices{};
+		BindingMap<uint32_t> imageIndices{};
+
+		// PIPELINE 0
 		// - BINDING MAP TO PER FRAME BUFFERS
-		BindingMap<uint32_t> bufferIndices;
 		bufferIndices[0][0] = mVPBufferIndex;
-		bufferIndices[1][0] = mLightBufferIndex;
 
 		// - DESCRIPTOR SET
-		mFrames[i]->createDescriptorSet(0, {}, bufferIndices);
+		mFrames[i]->createDescriptorSet(0, imageIndices, bufferIndices);
+
+		bufferIndices.clear();
+		imageIndices.clear();
+
+		// PIPELINE 1
+		// - BINDING MAP TO PER FRAME BUFFERS
+		bufferIndices[0][0] = mLightBufferIndex;
+
+		imageIndices[1][0] = mPositionAttachmentIndex;
+		imageIndices[2][0] = mNormalAttachmentIndex;
+		imageIndices[3][0] = mAlbedoSpecAttachmentIndex;
+		imageIndices[4][0] = mDepthAttachmentIndex;
+
+		// - DESCRIPTOR SET
+		mFrames[i]->createDescriptorSet(1, imageIndices, bufferIndices);
+
+		bufferIndices.clear();
+		imageIndices.clear();
 
 		// PIPELINE 2
 		// - BINDING MAP TO RENDERTARGET IMAGE INDICES
-		BindingMap<uint32_t> imageIndices;
-		imageIndices[0][0] = mColourAttachmentIndex;
-		imageIndices[1][0] = mDepthAttachmentIndex;
+		imageIndices[0][0] = mLightingAttachmentIndex;
 
 		// - DESCRIPTOR SET
-		mFrames[i]->createDescriptorSet(1, imageIndices, {});
+		mFrames[i]->createDescriptorSet(2, imageIndices, {});
 	}
 }
 
-void BasicApp::updatePerFrameResources()
+void DeferredApp::updatePerFrameResources()
 {
 	// Update time variables
 	float now = glfwGetTime();
@@ -346,7 +444,7 @@ void BasicApp::updatePerFrameResources()
 }
 
 // Set required extensions + features
-void BasicApp::getRequiredExtenstionAndFeatures(std::vector<const char*>& requiredExtensions, VkPhysicalDeviceFeatures& requiredFeatures)
+void DeferredApp::getRequiredExtenstionAndFeatures(std::vector<const char*>& requiredExtensions, VkPhysicalDeviceFeatures& requiredFeatures)
 {
 	requiredExtensions = {
 	VK_KHR_SWAPCHAIN_EXTENSION_NAME
@@ -356,7 +454,7 @@ void BasicApp::getRequiredExtenstionAndFeatures(std::vector<const char*>& requir
 	requiredFeatures.samplerAnisotropy = VK_TRUE;
 }
 
-void BasicApp::createLights()
+void DeferredApp::createLights()
 {
 	// Point Light identical starting positions + intensity
 	for (auto& pointLight : mLights.pointLights)
@@ -390,20 +488,23 @@ void BasicApp::createLights()
 
 }
 
-void BasicApp::recordCommands(CommandBuffer& primaryCmdBuffer) // Current image is swapchain index
+void DeferredApp::recordCommands(CommandBuffer& primaryCmdBuffer) // Current image is swapchain index
 {
 	auto& frame = mFrames[activeFrameIndex];
 	auto& framebuffer = mFramebuffers[activeFrameIndex];
 
 	primaryCmdBuffer.beginRecording();
 
+	// Set all clear values
 	std::vector<VkClearValue> clearValues;
 	clearValues.resize(frame->renderTarget().imageViews().size());
-	clearValues[0].color = { 0.0f, 0.0f, 0.0f, 1.0f };				// Clear values for swapchain image (colour)
-	clearValues[1].color = { 1.0f, 1.0f, 1.0f, 1.0f };				// Clear values for attachment 1 (colour)
-	clearValues[2].depthStencil.depth = 1.0f;						// Clear values for attachment 2 (depth)
+	for (auto& clearValue : clearValues)
+	{
+		clearValue.color = { 0.0f, 0.0f, 0.0f, 1.0f };
+		clearValue.depthStencil.depth = 1.0f;
+	}
 
-	// TODO : update renderpass function
+	// BEGIN RENDERPASS / SUBPASS 0
 	primaryCmdBuffer.beginRenderPass(frame->renderTarget(),
 		*mRenderPass,
 		*framebuffer,
@@ -411,7 +512,6 @@ void BasicApp::recordCommands(CommandBuffer& primaryCmdBuffer) // Current image 
 		VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFERS);
 
 	// Split meshes to draw equally between threads
-
 	// Create vector of references to meshes
 	std::vector<std::reference_wrapper<Mesh>> meshList;
 	for (auto& model : mModelList)
@@ -474,6 +574,8 @@ void BasicApp::recordCommands(CommandBuffer& primaryCmdBuffer) // Current image 
 	// Submit the secondary command buffers to the primary command buffer.
 	primaryCmdBuffer.executeCommands(secondaryCommandBufferPtrs);
 
+	// START SUBPASS 1
+	// (Draw single triangle and render lighting)
 	primaryCmdBuffer.nextSubpass(VK_SUBPASS_CONTENTS_INLINE);
 
 	primaryCmdBuffer.bindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, *mPipelines[1]);
@@ -485,16 +587,29 @@ void BasicApp::recordCommands(CommandBuffer& primaryCmdBuffer) // Current image 
 
 	primaryCmdBuffer.draw(3, 1, 0, 0);
 
-	// End Render Pass
+	// START SUBPASS 2
+	// (Draw single triangle and perform post processing)
+	primaryCmdBuffer.nextSubpass(VK_SUBPASS_CONTENTS_INLINE);
+
+	primaryCmdBuffer.bindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, *mPipelines[2]);
+
+	descriptorGroup = { frame->descriptorSet(1) };
+
+	primaryCmdBuffer.bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, *mPipelineLayouts[2],
+		0, descriptorGroup);
+
+	primaryCmdBuffer.draw(3, 1, 0, 0);
+
+	// END RENDERPASS
 	primaryCmdBuffer.endRenderPass();
 
-	// Stop recording to primary command buffers
+	// STOP RECORDING
 	primaryCmdBuffer.endRecording();
 
 }
 
 
-CommandBuffer* BasicApp::recordSecondaryCommandBuffers(CommandBuffer* primaryCommandBuffer, std::vector<std::reference_wrapper<Mesh>> meshList, uint32_t meshStart, uint32_t meshEnd, size_t threadIndex)
+CommandBuffer* DeferredApp::recordSecondaryCommandBuffers(CommandBuffer* primaryCommandBuffer, std::vector<std::reference_wrapper<Mesh>> meshList, uint32_t meshStart, uint32_t meshEnd, size_t threadIndex)
 {
 	auto& frame = mFrames[activeFrameIndex];
 
