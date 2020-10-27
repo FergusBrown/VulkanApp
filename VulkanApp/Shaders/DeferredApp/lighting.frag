@@ -3,8 +3,9 @@
 // INPUT ATTACHMENTS
 layout(input_attachment_index = 0, binding = 0) uniform subpassInput inputPos;			// Position output from subpass 0
 layout(input_attachment_index = 1, binding = 1) uniform subpassInput inputNormal;		// Normal output from subpass 0
-layout(input_attachment_index = 2, binding = 2) uniform usubpassInput inputAlbedoSpec;	// Albedo + Specular output from subpass 0 - Note this is of type unsigned int
-layout(input_attachment_index = 3, binding = 3) uniform subpassInput inputDepth;		// Depth output from subpass 0
+layout(input_attachment_index = 2, binding = 2) uniform subpassInput inputAlbedo;	
+layout(input_attachment_index = 3, binding = 3) uniform subpassInput inputSpecular;	
+layout(input_attachment_index = 4, binding = 4) uniform subpassInput inputDepth;		// Depth output from subpass 0
 
 // UNIFORM DATA
 // - PointLight struct
@@ -28,7 +29,7 @@ struct SpotLight
 
 // - Lights ubo
 #define POINT_LIGHT_COUNT 3
-layout(set = 0, binding = 4) uniform lights 
+layout(set = 0, binding = 5) uniform lights 
 {
 	PointLight pointLights[POINT_LIGHT_COUNT];
 	SpotLight flashLight;	
@@ -48,17 +49,7 @@ void main()
 
 	vec3 fragNormal_worldSpace = subpassLoad(inputNormal).rgb;
 
-	// Get packed colour
-	uvec4 albedoSpecPacked = subpassLoad(inputAlbedoSpec);
-
-	// unpack colour
-	vec4 albedoSpec;
-
-	albedoSpec.rg = unpackHalf2x16(albedoSpecPacked.r);
-	albedoSpec.ba = unpackHalf2x16(albedoSpecPacked.b);
-	vec2 specTemp = unpackHalf2x16(albedoSpecPacked.g);
-	// In this case discard the albedo alpha and replace with specular
-	albedoSpec.a = specTemp.x;
+	vec4 albedoSpec = vec4(subpassLoad(inputAlbedo).rgb, subpassLoad(inputSpecular).r);
 
 	// Calculate Lighting
 

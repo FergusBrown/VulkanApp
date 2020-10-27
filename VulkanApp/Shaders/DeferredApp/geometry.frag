@@ -12,7 +12,8 @@ layout(location = 3) in vec3 tangent_worldSpace;
 // OUTPUTS
 layout(location = 0) out vec4 gPosition;
 layout(location = 1) out vec4 gNormal; 
-layout(location = 2) out uvec4 gAlbedoSpec; 
+layout(location = 2) out vec4 gAlbedo; 
+layout(location = 3) out vec4 gSpecular; 
 
 
 // - Descriptor set 1 (texture samplers)
@@ -39,13 +40,10 @@ void main () {
 	
 
 	// Albedo map
-	vec4 albedo = texture(albedoSampler, UV);
+	gAlbedo = texture(albedoSampler, UV);
 
 	// Specular map
-	float specular = texture(specularSampler, UV).r;
+	gSpecular = texture(specularSampler, UV);
 
-	gAlbedoSpec.r = packHalf2x16(vec2(albedo.rg));
-	gAlbedoSpec.g = packHalf2x16(vec2(albedo.ba));
-	gAlbedoSpec.b = packHalf2x16(vec2(specular, 0.0));
 	
 }

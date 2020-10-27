@@ -195,7 +195,7 @@ GraphicsPipeline::GraphicsPipeline(Device& device,
 	VkPipelineColorBlendAttachmentState colourState = {};
 	colourState.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT	// Colours to apply blending too
 		| VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
-	colourState.blendEnable = VK_FALSE;													// Enable blending
+	colourState.blendEnable = VK_TRUE;													// Enable blending
 
 	// Blending uses equation: (srcColorBlendFactor * new colour) colorBlendOp (dstColorBlendFactor * old colour)
 	colourState.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;

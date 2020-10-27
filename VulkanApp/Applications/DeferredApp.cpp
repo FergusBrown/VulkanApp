@@ -54,13 +54,6 @@ void DeferredApp::createRenderTargetAndFrames()
 	VkFormat swapchainFormat = mSwapchain->format();
 	VkImageUsageFlags swapchainUsage = mSwapchain->usage();
 
-	// High precision not required - BUT - use 32 bit uint so that albedo and specular can be packed into RGB so that so alpha can also be stored
-	mPackedColourFormat = chooseSupportedFormat(
-		{ VK_FORMAT_R32G32B32A32_UINT },
-		VK_IMAGE_TILING_OPTIMAL,
-		VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
-	);
-
 	// Get supported format for position attachment - use higher precision floats
 	mPrecisionFormat = chooseSupportedFormat(
 		{ VK_FORMAT_R32G32B32A32_SFLOAT },
@@ -69,7 +62,7 @@ void DeferredApp::createRenderTargetAndFrames()
 	);	
 	
 	// High precision not required
-	mNormalFormat = chooseSupportedFormat(
+	mColourFormat = chooseSupportedFormat(
 		{ VK_FORMAT_R8G8B8A8_UNORM },
 		VK_IMAGE_TILING_OPTIMAL,
 		VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
@@ -86,7 +79,7 @@ void DeferredApp::createRenderTargetAndFrames()
 	{
 		// IMAGES + RENDERTARGET + RESOURCE REFERENCE
 
-		// SUBPASS 2 OUTPUT (POST)
+		// SUBPASS 1 OUTPUT (LIGHTING)
 		// 0 - swapchain image
 		Image swapchainImage(*mDevice,
 			image,
@@ -94,37 +87,36 @@ void DeferredApp::createRenderTargetAndFrames()
 			swapchainFormat,
 			swapchainUsage);
 
-		// SUBPASS 1 OUTPUT (LIGHTING PASS)
-		// 1 - Lighting subpass colour image
-		mLightingAttachmentIndex = 1;
-		Image lightingImage(*mDevice,
-			swapchainExtent,
-			mColourFormat,
-			VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT,
-			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-
 		// SUBPASS 0 OUTPUT (GEOMETRY PASS)
-		// 2 - Position
-		mPositionAttachmentIndex = 2;
+		// 1 - Position
+		mPositionAttachmentIndex = 1;
 		Image positionImage(*mDevice,
 			swapchainExtent,
 			mPrecisionFormat,
 			VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT,
 			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
-		// 3 - Normals
-		mNormalAttachmentIndex = 3;
+		// 2 - Normals
+		mNormalAttachmentIndex = 2;
 		Image normalImage(*mDevice,
 			swapchainExtent,
-			mNormalFormat,
+			mColourFormat,
 			VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT,
 			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
-		// 4 - Albedo (RGB) + Specular (ALPHA)
-		mAlbedoSpecAttachmentIndex = 4;
-		Image albedoSpecImage(*mDevice,
+		// 3 - Albedo 
+		mAlbedoAttachmentIndex = 3;
+		Image albedoImage(*mDevice,
 			swapchainExtent,
-			mPackedColourFormat,
+			mColourFormat,
+			VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT,
+			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+
+		// 4 - Specular
+		mSpecularAttachmentIndex = 4;
+		Image specularImage(*mDevice,
+			swapchainExtent,
+			mColourFormat,
 			VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT,
 			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
@@ -139,10 +131,10 @@ void DeferredApp::createRenderTargetAndFrames()
 
 		std::vector<Image> renderTargetImages;
 		renderTargetImages.push_back(std::move(swapchainImage));
-		renderTargetImages.push_back(std::move(lightingImage));
 		renderTargetImages.push_back(std::move(positionImage));
 		renderTargetImages.push_back(std::move(normalImage));
-		renderTargetImages.push_back(std::move(albedoSpecImage));
+		renderTargetImages.push_back(std::move(albedoImage));
+		renderTargetImages.push_back(std::move(specularImage));
 		renderTargetImages.push_back(std::move(depthImage));
 
 		// Create Render Target + Frame
@@ -154,26 +146,25 @@ void DeferredApp::createRenderTargetAndFrames()
 void DeferredApp::createRenderPass()
 {
 	// Attachment 0 = Swapchain
-	// Attachment 1 = Lighting
-	// Attachment 2 = Position
-	// Attachment 3 = Normal
-	// Attachment 4 = Albedo
-	// Attachment 5 = Specular
-	// Attachment 6 = Depth
+	// Attachment 1 = Position
+	// Attachment 2 = Normal
+	// Attachment 3 = Albedo
+	// Attachment 4 = Specular
+	// Attachment 5 = Depth
 
 	// CREATE SUBPASS OBJECTS
-	uint32_t subpassCount = 3;
+	uint32_t subpassCount = 2;
 	mSubpasses.resize(subpassCount);
 	mSubpasses[0] = std::make_unique<Subpass>("Shaders/DeferredApp/geometry_vert.spv", "Shaders/DeferredApp/geometry_frag.spv");
 	mSubpasses[1] = std::make_unique<Subpass>("Shaders/DeferredApp/lighting_vert.spv", "Shaders/DeferredApp/lighting_frag.spv");
-	mSubpasses[2] = std::make_unique<Subpass>("Shaders/DeferredApp/post_vert.spv", "Shaders/DeferredApp/post_frag.spv");
+	//mSubpasses[2] = std::make_unique<Subpass>("Shaders/DeferredApp/post_vert.spv", "Shaders/DeferredApp/post_frag.spv");
 
 	// Set input and output attachments
 	std::vector<uint32_t> inputAttachments{};
 	std::vector<uint32_t> outputAttachments{};
 	
 	// SUBPASS 0 (GEOMETRY)
-	outputAttachments = { mPositionAttachmentIndex, mNormalAttachmentIndex, mAlbedoSpecAttachmentIndex, mDepthAttachmentIndex };
+	outputAttachments = { mPositionAttachmentIndex, mNormalAttachmentIndex, mAlbedoAttachmentIndex, mSpecularAttachmentIndex, mDepthAttachmentIndex };
 	mSubpasses[0]->setOutputAttachments(outputAttachments);
 
 	// SUBPASS 1 (LIGHTING)
@@ -181,10 +172,6 @@ void DeferredApp::createRenderPass()
 	outputAttachments = { mLightingAttachmentIndex };
 	mSubpasses[1]->setInputAttachments(inputAttachments);
 	mSubpasses[1]->setOutputAttachments(outputAttachments);
-
-	// SUBPASS 2 (POST)
-	inputAttachments = outputAttachments;
-	mSubpasses[2]->setInputAttachments(inputAttachments);
 
 	// CREATE SUBPASS INFOS
 	std::vector<SubpassInfo> subpassInfos(subpassCount);
@@ -199,13 +186,13 @@ void DeferredApp::createRenderPass()
 
 	// Swapchain load/store
 	loadStoreInfos.push_back({ VK_ATTACHMENT_LOAD_OP_CLEAR, VK_ATTACHMENT_STORE_OP_STORE });
-	// Lighting load/store
-	loadStoreInfos.push_back({ VK_ATTACHMENT_LOAD_OP_CLEAR, VK_ATTACHMENT_STORE_OP_DONT_CARE });
 	// Position load/store
 	loadStoreInfos.push_back({ VK_ATTACHMENT_LOAD_OP_CLEAR, VK_ATTACHMENT_STORE_OP_DONT_CARE });
 	// Normal load/store
 	loadStoreInfos.push_back({ VK_ATTACHMENT_LOAD_OP_CLEAR, VK_ATTACHMENT_STORE_OP_DONT_CARE });
-	// AlbedoSpec load/store
+	// Albedo load/store
+	loadStoreInfos.push_back({ VK_ATTACHMENT_LOAD_OP_CLEAR, VK_ATTACHMENT_STORE_OP_DONT_CARE });
+	// specular load / store
 	loadStoreInfos.push_back({ VK_ATTACHMENT_LOAD_OP_CLEAR, VK_ATTACHMENT_STORE_OP_DONT_CARE });
 	// Depth load/store
 	loadStoreInfos.push_back({ VK_ATTACHMENT_LOAD_OP_CLEAR, VK_ATTACHMENT_STORE_OP_DONT_CARE });
@@ -215,7 +202,6 @@ void DeferredApp::createRenderPass()
 		mFrames.back()->renderTarget().attachments(),
 		subpassInfos,
 		loadStoreInfos);
-
 }
 
 // Create layouts which will be updated at most once per frame
@@ -255,18 +241,6 @@ void DeferredApp::createPerFrameDescriptorSetLayouts()
 
 	pipelineResources[1].push_back(std::move(lightBuffer));
 
-	// Pipeline 2
-	// INPUT ATTACHMENTS
-	for (uint32_t i = 0; i < mSubpasses[2]->inputAttachments().size(); ++i)
-	{
-		ShaderResource attachment(i,
-			VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT,
-			1,
-			VK_SHADER_STAGE_FRAGMENT_BIT);
-
-		pipelineResources[2].push_back(std::move(attachment));
-	}
-
 	// Create sets in frame objects
 	for (auto& frame : mFrames)
 	{
@@ -275,9 +249,6 @@ void DeferredApp::createPerFrameDescriptorSetLayouts()
 
 		// Layout for Pipeline 1
 		frame->createDescriptorSetLayout(pipelineResources[1], 1);
-
-		// Layout for Pipeline 1
-		frame->createDescriptorSetLayout(pipelineResources[2], 2);
 	}
 }
 
@@ -340,34 +311,6 @@ void DeferredApp::createPipelines()
 		1,
 		VK_FALSE,
 		VK_FALSE);
-
-
-	// PIPELINE 2
-	// CREATE SHADER MODULES
-	vertexCode = readFile(mSubpasses[2]->vertexShaderSource());
-	shaderModules[2].emplace_back(*mDevice,
-		vertexCode,
-		VK_SHADER_STAGE_VERTEX_BIT);
-
-	fragCode = readFile(mSubpasses[2]->fragmentShaderSource());
-	shaderModules[2].emplace_back(*mDevice,
-		fragCode,
-		VK_SHADER_STAGE_FRAGMENT_BIT);
-
-	// CREATE PIPELINE LAYOUT
-	descriptorSetLayouts = { mFrames[0]->descriptorSetLayout(2) };
-
-	mPipelineLayouts[2] = std::make_unique<PipelineLayout>(*mDevice, descriptorSetLayouts);
-
-	// CREATE PIPELINE
-	mPipelines[2] = std::make_unique<GraphicsPipeline>(*mDevice,
-		shaderModules[2],
-		*mSwapchain,
-		*mPipelineLayouts[2],
-		*mRenderPass,
-		2,
-		VK_FALSE,
-		VK_FALSE);
 }
 
 void DeferredApp::createPerFrameResources()
@@ -415,23 +358,17 @@ void DeferredApp::createPerFrameDescriptorSets()
 		// - BINDING MAP TO PER FRAME BUFFERS
 		imageIndices[0][0] = mPositionAttachmentIndex;
 		imageIndices[1][0] = mNormalAttachmentIndex;
-		imageIndices[2][0] = mAlbedoSpecAttachmentIndex;
-		imageIndices[3][0] = mDepthAttachmentIndex;
+		imageIndices[2][0] = mAlbedoAttachmentIndex;
+		imageIndices[3][0] = mSpecularAttachmentIndex;
+		imageIndices[4][0] = mDepthAttachmentIndex;
 
-		bufferIndices[4][0] = mLightBufferIndex;
+		bufferIndices[5][0] = mLightBufferIndex;
 
 		// - DESCRIPTOR SET
 		mFrames[i]->createDescriptorSet(1, imageIndices, bufferIndices);
 
 		bufferIndices.clear();
 		imageIndices.clear();
-
-		// PIPELINE 2
-		// - BINDING MAP TO RENDERTARGET IMAGE INDICES
-		imageIndices[0][0] = mLightingAttachmentIndex;
-
-		// - DESCRIPTOR SET
-		mFrames[i]->createDescriptorSet(2, imageIndices, {});
 	}
 }
 
@@ -606,22 +543,6 @@ void DeferredApp::recordCommands(CommandBuffer& primaryCmdBuffer) // Current ima
 		0, descriptorGroup);
 
 	primaryCmdBuffer.draw(3, 1, 0, 0);
-
-	// START SUBPASS 2
-	// (Draw single triangle and perform post processing)
-	primaryCmdBuffer.nextSubpass(VK_SUBPASS_CONTENTS_INLINE);
-
-	primaryCmdBuffer.bindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, *mPipelines[2]);
-
-	descriptorGroup = { frame->descriptorSet(2) };
-
-	primaryCmdBuffer.bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, *mPipelineLayouts[2],
-		0, descriptorGroup);
-
-	primaryCmdBuffer.draw(3, 1, 0, 0);
-
-	// END RENDERPASS
-	primaryCmdBuffer.endRenderPass();
 
 	// STOP RECORDING
 	primaryCmdBuffer.endRecording();

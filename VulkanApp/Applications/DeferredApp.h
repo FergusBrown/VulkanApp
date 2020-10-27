@@ -18,13 +18,12 @@ private:
 	uint32_t mLightingAttachmentIndex{ 0 };
 	uint32_t mPositionAttachmentIndex{ 0 };
 	uint32_t mNormalAttachmentIndex{ 0 };
-	uint32_t mAlbedoSpecAttachmentIndex{ 0 };
+	uint32_t mAlbedoAttachmentIndex{ 0 };
+	uint32_t mSpecularAttachmentIndex{ 0 };
 	uint32_t mDepthAttachmentIndex{ 0 };
 
 	// Additional formats
 	VkFormat mPrecisionFormat{};
-	VkFormat mPackedColourFormat{};
-	VkFormat mNormalFormat{};
 
 	float lastTime{ 0.0f };
 	float sumTime{ 0.0f };
