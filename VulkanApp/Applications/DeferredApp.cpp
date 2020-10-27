@@ -54,16 +54,23 @@ void DeferredApp::createRenderTargetAndFrames()
 	VkFormat swapchainFormat = mSwapchain->format();
 	VkImageUsageFlags swapchainUsage = mSwapchain->usage();
 
-	// Get supported format for colour attachment
-	mColourFormat = chooseSupportedFormat(
-		{ VK_FORMAT_R8G8B8A8_UNORM },
+	// High precision not required - BUT - use 32 bit uint so that albedo and specular can be packed into RGB so that so alpha can also be stored
+	mPackedColourFormat = chooseSupportedFormat(
+		{ VK_FORMAT_R32G32B32A32_UINT },
 		VK_IMAGE_TILING_OPTIMAL,
 		VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
 	);
 
 	// Get supported format for position attachment - use higher precision floats
-	mColourFormat = chooseSupportedFormat(
-		{ VK_FORMAT_R16G16B16A16_UNORM },
+	mPrecisionFormat = chooseSupportedFormat(
+		{ VK_FORMAT_R32G32B32A32_SFLOAT },
+		VK_IMAGE_TILING_OPTIMAL,
+		VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
+	);	
+	
+	// High precision not required
+	mNormalFormat = chooseSupportedFormat(
+		{ VK_FORMAT_R8G8B8A8_UNORM },
 		VK_IMAGE_TILING_OPTIMAL,
 		VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
 	);
@@ -98,23 +105,26 @@ void DeferredApp::createRenderTargetAndFrames()
 
 		// SUBPASS 0 OUTPUT (GEOMETRY PASS)
 		// 2 - Position
+		mPositionAttachmentIndex = 2;
 		Image positionImage(*mDevice,
 			swapchainExtent,
-			mColourFormat,
+			mPrecisionFormat,
 			VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT,
 			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
 		// 3 - Normals
+		mNormalAttachmentIndex = 3;
 		Image normalImage(*mDevice,
 			swapchainExtent,
-			mColourFormat,
+			mNormalFormat,
 			VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT,
 			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
-		// 4 - Albedo (RGB) + Specular (A)
+		// 4 - Albedo (RGB) + Specular (ALPHA)
+		mAlbedoSpecAttachmentIndex = 4;
 		Image albedoSpecImage(*mDevice,
 			swapchainExtent,
-			mColourFormat,
+			mPackedColourFormat,
 			VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT,
 			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
@@ -147,14 +157,15 @@ void DeferredApp::createRenderPass()
 	// Attachment 1 = Lighting
 	// Attachment 2 = Position
 	// Attachment 3 = Normal
-	// Attachment 4 = Albedo + Spec
-	// Attachment 5 = Depth
+	// Attachment 4 = Albedo
+	// Attachment 5 = Specular
+	// Attachment 6 = Depth
 
 	// CREATE SUBPASS OBJECTS
 	uint32_t subpassCount = 3;
-	std::vector<std::unique_ptr<Subpass>> subpasses(subpassCount);
+	mSubpasses.resize(subpassCount);
 	mSubpasses[0] = std::make_unique<Subpass>("Shaders/DeferredApp/geometry_vert.spv", "Shaders/DeferredApp/geometry_frag.spv");
-	mSubpasses[1] = std::make_unique<Subpass>("Shaders/DeferredApp/lighting_vert.spv", "Shaders/DeferredApp/lighting_vert.spv");
+	mSubpasses[1] = std::make_unique<Subpass>("Shaders/DeferredApp/lighting_vert.spv", "Shaders/DeferredApp/lighting_frag.spv");
 	mSubpasses[2] = std::make_unique<Subpass>("Shaders/DeferredApp/post_vert.spv", "Shaders/DeferredApp/post_frag.spv");
 
 	// Set input and output attachments
@@ -188,6 +199,8 @@ void DeferredApp::createRenderPass()
 
 	// Swapchain load/store
 	loadStoreInfos.push_back({ VK_ATTACHMENT_LOAD_OP_CLEAR, VK_ATTACHMENT_STORE_OP_STORE });
+	// Lighting load/store
+	loadStoreInfos.push_back({ VK_ATTACHMENT_LOAD_OP_CLEAR, VK_ATTACHMENT_STORE_OP_DONT_CARE });
 	// Position load/store
 	loadStoreInfos.push_back({ VK_ATTACHMENT_LOAD_OP_CLEAR, VK_ATTACHMENT_STORE_OP_DONT_CARE });
 	// Normal load/store
@@ -222,23 +235,25 @@ void DeferredApp::createPerFrameDescriptorSetLayouts()
 	pipelineResources[0] = { vpBuffer };
 
 	// Pipeline 1
-	// UNIFORM BUFFERS
-	// Lights buffer
-	ShaderResource lightBuffer(0,
-		VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-		1,
-		VK_SHADER_STAGE_FRAGMENT_BIT);
-
 	// INPUT ATTACHMENTS
 	for (uint32_t i = 0; i < mSubpasses[1]->inputAttachments().size(); ++i)
 	{
-		ShaderResource attachment(i + 1,
+		ShaderResource attachment(i,
 			VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT,
 			1,
 			VK_SHADER_STAGE_FRAGMENT_BIT);
 
 		pipelineResources[1].push_back(std::move(attachment));
 	}
+
+	// UNIFORM BUFFERS
+	// Lights buffer
+	ShaderResource lightBuffer(pipelineResources[1].size(),
+		VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+		1,
+		VK_SHADER_STAGE_FRAGMENT_BIT);
+
+	pipelineResources[1].push_back(std::move(lightBuffer));
 
 	// Pipeline 2
 	// INPUT ATTACHMENTS
@@ -274,8 +289,6 @@ void DeferredApp::createPipelines()
 
 	// PIPELINE 0
 	// CREATE SHADER MODULES
-	
-
 	std::vector<char> vertexCode = readFile(mSubpasses[0]->vertexShaderSource());
 	shaderModules[0].emplace_back(*mDevice,
 		vertexCode,
@@ -325,8 +338,8 @@ void DeferredApp::createPipelines()
 		*mPipelineLayouts[1],
 		*mRenderPass,
 		1,
-		VK_TRUE,
-		VK_TRUE);
+		VK_FALSE,
+		VK_FALSE);
 
 
 	// PIPELINE 2
@@ -353,8 +366,8 @@ void DeferredApp::createPipelines()
 		*mPipelineLayouts[2],
 		*mRenderPass,
 		2,
-		VK_TRUE,
-		VK_TRUE);
+		VK_FALSE,
+		VK_FALSE);
 }
 
 void DeferredApp::createPerFrameResources()
@@ -400,12 +413,12 @@ void DeferredApp::createPerFrameDescriptorSets()
 
 		// PIPELINE 1
 		// - BINDING MAP TO PER FRAME BUFFERS
-		bufferIndices[0][0] = mLightBufferIndex;
+		imageIndices[0][0] = mPositionAttachmentIndex;
+		imageIndices[1][0] = mNormalAttachmentIndex;
+		imageIndices[2][0] = mAlbedoSpecAttachmentIndex;
+		imageIndices[3][0] = mDepthAttachmentIndex;
 
-		imageIndices[1][0] = mPositionAttachmentIndex;
-		imageIndices[2][0] = mNormalAttachmentIndex;
-		imageIndices[3][0] = mAlbedoSpecAttachmentIndex;
-		imageIndices[4][0] = mDepthAttachmentIndex;
+		bufferIndices[4][0] = mLightBufferIndex;
 
 		// - DESCRIPTOR SET
 		mFrames[i]->createDescriptorSet(1, imageIndices, bufferIndices);
@@ -435,8 +448,9 @@ void DeferredApp::updatePerFrameResources()
 	mLights.pointLights[2].position.x = -100 * sin(sumTime);
 
 	// - Flash light
-	glm::mat4 invView = glm::transpose(mCameraMatrices.V);
-	mLights.flashLight.position = invView * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);	// Flash light position is camera position
+	glm::mat4 invView = glm::transpose(mCameraMatrices.V);	// Get invView to transform from view to world space
+	mLights.flashLight.position = invView * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);		// Flash light position is camera position ((0, 0, 0) in view space)
+	mLights.flashLight.direction = invView * glm::vec4(0.0f, 0.0f, -1.0f, 0.0f);	// Flash light position is camera direction ((0, 0, -1) in view space)
 
 	// Update buffers
 	mFrames[activeFrameIndex]->updateBuffer(mVPBufferIndex, mCameraMatrices);
@@ -498,12 +512,18 @@ void DeferredApp::recordCommands(CommandBuffer& primaryCmdBuffer) // Current ima
 	// Set all clear values
 	std::vector<VkClearValue> clearValues;
 	clearValues.resize(frame->renderTarget().imageViews().size());
-	for (auto& clearValue : clearValues)
-	{
-		clearValue.color = { 0.0f, 0.0f, 0.0f, 1.0f };
-		clearValue.depthStencil.depth = 1.0f;
-	}
 
+	// All but the last render target are colour attachments
+	for (size_t i = 0; i < clearValues.size(); ++i)
+	{
+		clearValues[i].color = { 0.1f, 0.0f, 0.1f, 1.0f };
+		
+	}
+	// Final attachment is depth attachment
+	clearValues.back().depthStencil.depth = 1.0f;
+
+
+	//clearValue.depthStencil.depth = 1.0f;
 	// BEGIN RENDERPASS / SUBPASS 0
 	primaryCmdBuffer.beginRenderPass(frame->renderTarget(),
 		*mRenderPass,
@@ -593,7 +613,7 @@ void DeferredApp::recordCommands(CommandBuffer& primaryCmdBuffer) // Current ima
 
 	primaryCmdBuffer.bindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, *mPipelines[2]);
 
-	descriptorGroup = { frame->descriptorSet(1) };
+	descriptorGroup = { frame->descriptorSet(2) };
 
 	primaryCmdBuffer.bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, *mPipelineLayouts[2],
 		0, descriptorGroup);

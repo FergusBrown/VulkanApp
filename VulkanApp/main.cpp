@@ -3,6 +3,7 @@
 #include <iostream>
 
 #include "Applications/BasicApp.h"
+#include "Applications/DeferredApp.h"
 #include "Window.h"
 #include "Pawn.h"
 #include "InputHandlerMouse.h"
@@ -10,7 +11,8 @@
 int main()
 {
 	Window displayWindow("Vulkan Renderer", 1920, 1080);
-	BasicApp vulkanRenderer;
+	//BasicApp vulkanRenderer;
+	DeferredApp vulkanRenderer;
 
 	if (!displayWindow.createWindow())
 	{

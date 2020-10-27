@@ -189,31 +189,40 @@ GraphicsPipeline::GraphicsPipeline(Device& device,
 
 	// - BLENDING
 	// Blending decides how to blend a new colour being written to a fragment, with the old value
+	// In this case destination is Render target image, source is fragment shader output
 
 	// Blend Attachment State (how blending is handled)
 	VkPipelineColorBlendAttachmentState colourState = {};
 	colourState.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT	// Colours to apply blending too
 		| VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
-	colourState.blendEnable = VK_TRUE;													// Enable blending
+	colourState.blendEnable = VK_FALSE;													// Enable blending
 
 	// Blending uses equation: (srcColorBlendFactor * new colour) colorBlendOp (dstColorBlendFactor * old colour)
 	colourState.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
 	colourState.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
 	colourState.colorBlendOp = VK_BLEND_OP_ADD;
 
-	// Summarised: (VK_BLEND_FACTOR_SRC_ALPHA * new colour) + (VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA * old colour)
-	//			   (new colour alpha * new colour) + ((1 - new colour alpha) * old colour)
+	// Summarised: (Source A * Source RGB) + ( (1 - Source A) * Dst RGB)
+	//		    =  (fragment alpha * fragment colour) + ((1 - fragment alpha) * render target alpha)
 
 	colourState.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
 	colourState.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
+	//colourState.srcAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
+	//colourState.dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
 	colourState.alphaBlendOp = VK_BLEND_OP_ADD;
 	// Summarised: (1 * new alpha) + (0 * old alpha) = new alpha
+
+	// TODO : UPDATE
+	// For now, all attachments have the same blending state parameters
+	std::vector<VkPipelineColorBlendAttachmentState> colourStates(renderPass.colourAttachmentCount(subpassIndex));
+
+	std::fill(colourStates.begin(), colourStates.end(), colourState);
 
 	VkPipelineColorBlendStateCreateInfo colourBlendingCreateInfo = {};
 	colourBlendingCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
 	colourBlendingCreateInfo.logicOpEnable = VK_FALSE;				// Alternative to calculations is to use logical operations
-	colourBlendingCreateInfo.attachmentCount = 1;
-	colourBlendingCreateInfo.pAttachments = &colourState;
+	colourBlendingCreateInfo.attachmentCount = static_cast<uint32_t>(colourStates.size());
+	colourBlendingCreateInfo.pAttachments = colourStates.data();
 
 
 	// - DEPTH STENCIL TESTING

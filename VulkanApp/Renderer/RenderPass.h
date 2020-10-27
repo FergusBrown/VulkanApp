@@ -36,12 +36,21 @@ public:
 
 	uint32_t subpassCount() const;
 
+	uint32_t inputAttachmentCount(uint32_t subpassIndex) const;
+	uint32_t colourAttachmentCount(uint32_t subpassIndex) const;
+	uint32_t depthAttachmentCount(uint32_t subpassIndex) const;
+
 private:
 	Device& mDevice;
 
 	VkRenderPass mHandle{ VK_NULL_HANDLE };
 
 	uint32_t mSubpassCount{ 1 };
+
+	// Attachment counts for different type of attachments - use in pipeline creation
+	std::vector<uint32_t> mInputAttachmentCounts{};
+	std::vector<uint32_t> mColourAttachmentCounts{};
+	std::vector<uint32_t> mDepthAttachmentCounts{};
 
 	// - Support
 	void createAttachmentDescriptions(const std::vector<Attachment>& attachments, 

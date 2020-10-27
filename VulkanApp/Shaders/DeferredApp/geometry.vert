@@ -35,9 +35,6 @@ layout(push_constant) uniform PushModel
 mat3 calculateTBN(mat3 M);
 
 void main() {
-	// Shortcuts
-	mat4 MV = V * M;
-
 	// Vertex UV
 	vertexUV = UV;
 
@@ -50,9 +47,9 @@ void main() {
 	mat3 normalMatrix = transpose(inverse(mat3(M)));
 
 	// Calculate T and N for TBN matrix
-	vec3 tangent_worldSpace = normalize(normalMatrix * tangent);
-	vec3 normal_worldSpace = normalize(normalMatrix * normal);
+	tangent_worldSpace = normalize(normalMatrix * tangent);
+	normal_worldSpace = normalize(normalMatrix * normal);
 
 	// Vertex position (clip space)
-	gl_Position = matrices.P * vec4(vertexPos_viewSpace, 1.0); 
+	gl_Position = P * V * vec4(vertexPos_worldSpace, 1.0); 
 }

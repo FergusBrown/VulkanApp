@@ -6,5 +6,5 @@ layout(location = 0) out vec4 colour;
 
 void main()
 {
-	colour = subpassLoad(inputColour).rgba;
+	colour = subpassLoad(inputColour);
 }

@@ -22,7 +22,9 @@ private:
 	uint32_t mDepthAttachmentIndex{ 0 };
 
 	// Additional formats
-	VkFormat mPositionFormat{};
+	VkFormat mPrecisionFormat{};
+	VkFormat mPackedColourFormat{};
+	VkFormat mNormalFormat{};
 
 	float lastTime{ 0.0f };
 	float sumTime{ 0.0f };

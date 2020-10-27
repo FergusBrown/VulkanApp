@@ -34,13 +34,13 @@ RenderPass::RenderPass(Device& device,
 		// Create input attachment references
 		for (uint32_t inputAttachment : subpassInfo.inputAttachments)
 		{
-			//bool isDepth = isDepthStencilFormat(attachmentDescriptions[inputAttachment].format);
-			//VkImageLayout defaultLayout = isDepth ? VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL : VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 			VkImageLayout defaultLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 			VkImageLayout initialLayout = attachments[inputAttachment].initialLayout == VK_IMAGE_LAYOUT_UNDEFINED ? defaultLayout : attachments[inputAttachment].initialLayout;
 			inputAttachmentReferences[i].push_back({ inputAttachment, initialLayout });
 		}
 
+		// Store input attachment count for this subpass
+		mInputAttachmentCounts.push_back(inputAttachmentReferences[i].size());
 
 		// Create output colour/depth attachment references
 		for (uint32_t outputAttachment : subpassInfo.outputAttachments)
@@ -58,8 +58,12 @@ RenderPass::RenderPass(Device& device,
 			{
 				colourAttachmentReferences[i].push_back({ outputAttachment, initialLayout });
 			}
-			
 		}
+
+		// Store colour and depth attachment count for this subpass
+		mColourAttachmentCounts.push_back(colourAttachmentReferences[i].size());
+		mDepthAttachmentCounts.push_back(depthStencilAttachmentReferences[i].size());
+
 	}
 
 	// CREATE SUBPASS DESCRIPTIONS
@@ -173,6 +177,21 @@ VkRenderPass RenderPass::handle() const
 uint32_t RenderPass::subpassCount() const
 {
 	return mSubpassCount;
+}
+
+uint32_t RenderPass::inputAttachmentCount(uint32_t subpassIndex) const
+{
+	return mInputAttachmentCounts[subpassIndex];
+}
+
+uint32_t RenderPass::colourAttachmentCount(uint32_t subpassIndex) const
+{
+	return mColourAttachmentCounts[subpassIndex];
+}
+
+uint32_t RenderPass::depthAttachmentCount(uint32_t subpassIndex) const
+{
+	return mDepthAttachmentCounts[subpassIndex];
 }
 
 void RenderPass::createAttachmentDescriptions(const std::vector<Attachment>& attachments, 
