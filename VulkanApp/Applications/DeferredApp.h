@@ -30,7 +30,7 @@ private:
 	// Buffer compositions
 	struct uboLights {
 		PointLight pointLights[3];
-		SpotLight flashLight;
+		SpotLight flashLight;	// Note that flashlight contains view position which will be used for lighting calculations
 	} mLights;
 
 	// Functions

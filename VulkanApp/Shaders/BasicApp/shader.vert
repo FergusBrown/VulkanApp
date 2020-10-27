@@ -48,37 +48,37 @@ layout(set = 0, binding = 0) uniform viewProjection
 {
 	mat4 P;
 	mat4 V;
-} matrices;
+};
 
 // - Lights
-layout(set = 0, binding = 1) uniform Lights 
+layout(set = 0, binding = 1) uniform lights 
 {
 	PointLight pointLights[POINT_LIGHT_COUNT];
 	SpotLight flashLight;	
-} lights;
+};
 
 // Push constant data
 // - Model matrix
 layout(push_constant) uniform PushModel 
 {
 	mat4 M;
-} push;
+};
 
 // Function prototypes
 mat3 calculateInverseTBN(mat3 MV);
 
 void main() {
 	// Shortcuts
-	mat4 MV = matrices.V * push.M;
+	mat4 MV = V * M;
 
 	// Vertex UV
 	vertexUV = UV;
 
 	// Vertex position (world space)
-	vertexPos_worldSpace = (push.M * vec4(vertexPos, 1.0)).xyz;
+	vertexPos_worldSpace = (M * vec4(vertexPos, 1.0)).xyz;
 	
 	// Get positions in view space
-	vec3 vertexPos_viewSpace = (matrices.V * vec4(vertexPos_worldSpace, 1.0)).xyz;
+	vec3 vertexPos_viewSpace = (V * vec4(vertexPos_worldSpace, 1.0)).xyz;
 	vec3 viewPos_viewSpace = vec3(0.0, 0.0, 0.0);
 
 	// View direction in view space
@@ -94,12 +94,12 @@ void main() {
 
 	for (int i = 0; i < POINT_LIGHT_COUNT; ++i)
 	{
-		vec3 lightPos_viewSpace = (matrices.V * lights.pointLights[i].position).xyz;
+		vec3 lightPos_viewSpace = (V * pointLights[i].position).xyz;
 		lightPos_tangentSpace[i] = invTBN * lightPos_viewSpace;
 	}
 
 	// Vertex position (clip space)
-	gl_Position = matrices.P * vec4(vertexPos_viewSpace, 1.0); 
+	gl_Position = P * vec4(vertexPos_viewSpace, 1.0); 
 }
 
 // Use this matrix to transform from view space to tangent space

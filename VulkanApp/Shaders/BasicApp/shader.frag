@@ -40,11 +40,11 @@ struct SpotLight
 // - Descriptor set data
 
 // - Lights
-layout(set = 0, binding = 1) uniform Lights 
+layout(set = 0, binding = 1) uniform lights 
 {
 	PointLight pointLights[POINT_LIGHT_COUNT];
 	SpotLight flashLight;	
-} lights;
+};
 
 // - Descriptor set 1 ( texture samplers)
 layout(set = 1, binding = 0) uniform sampler2D diffuseSampler;
@@ -74,7 +74,7 @@ void main () {
 
 	for (int i = 0; i < POINT_LIGHT_COUNT; ++i)
 	{
-		colour += calcPointLight(lights.pointLights[i], 
+		colour += calcPointLight(pointLights[i], 
 								normal, 
 								fragToViewDir, 
 								fragPos_tangentSpace,
@@ -82,7 +82,7 @@ void main () {
 								diffuseSpecColour);
 	}
 
-	colour += calcSpotLight(lights.flashLight,
+	colour += calcSpotLight(flashLight,
 							normal,
 							fragToViewDir,
 							viewDir_tangentSpace,
