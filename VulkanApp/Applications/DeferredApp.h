@@ -15,7 +15,6 @@ private:
 
 	// RENDERPASS 0
 	// Subpass attachment indices
-	uint32_t mLightingAttachmentIndex{ 0 };
 	uint32_t mPositionAttachmentIndex{ 0 };
 	uint32_t mNormalAttachmentIndex{ 0 };
 	uint32_t mAlbedoAttachmentIndex{ 0 };

@@ -157,7 +157,6 @@ void DeferredApp::createRenderPass()
 	mSubpasses.resize(subpassCount);
 	mSubpasses[0] = std::make_unique<Subpass>("Shaders/DeferredApp/geometry_vert.spv", "Shaders/DeferredApp/geometry_frag.spv");
 	mSubpasses[1] = std::make_unique<Subpass>("Shaders/DeferredApp/lighting_vert.spv", "Shaders/DeferredApp/lighting_frag.spv");
-	//mSubpasses[2] = std::make_unique<Subpass>("Shaders/DeferredApp/post_vert.spv", "Shaders/DeferredApp/post_frag.spv");
 
 	// Set input and output attachments
 	std::vector<uint32_t> inputAttachments{};
@@ -169,9 +168,7 @@ void DeferredApp::createRenderPass()
 
 	// SUBPASS 1 (LIGHTING)
 	inputAttachments = outputAttachments;
-	outputAttachments = { mLightingAttachmentIndex };
 	mSubpasses[1]->setInputAttachments(inputAttachments);
-	mSubpasses[1]->setOutputAttachments(outputAttachments);
 
 	// CREATE SUBPASS INFOS
 	std::vector<SubpassInfo> subpassInfos(subpassCount);
@@ -385,7 +382,7 @@ void DeferredApp::updatePerFrameResources()
 	mLights.pointLights[2].position.x = -100 * sin(sumTime);
 
 	// - Flash light
-	glm::mat4 invView = glm::transpose(mCameraMatrices.V);	// Get invView to transform from view to world space
+	glm::mat4 invView = glm::inverse(mCameraMatrices.V);	// Get invView to transform from view to world space
 	mLights.flashLight.position = invView * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);		// Flash light position is camera position ((0, 0, 0) in view space)
 	mLights.flashLight.direction = invView * glm::vec4(0.0f, 0.0f, -1.0f, 0.0f);	// Flash light position is camera direction ((0, 0, -1) in view space)
 
@@ -543,6 +540,9 @@ void DeferredApp::recordCommands(CommandBuffer& primaryCmdBuffer) // Current ima
 		0, descriptorGroup);
 
 	primaryCmdBuffer.draw(3, 1, 0, 0);
+
+	// End Render Pass
+	primaryCmdBuffer.endRenderPass();
 
 	// STOP RECORDING
 	primaryCmdBuffer.endRecording();
