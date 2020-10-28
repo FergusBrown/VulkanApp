@@ -29,12 +29,14 @@ void main () {
 	// Calculate TBN matrix
 	vec3 T = normalize(tangent_worldSpace);
 	vec3 N = normalize(normal_worldSpace);
-	vec3 B = cross(T, N);
+	vec3 B = cross(N, T);
 
 	mat3 TBN = mat3(T, B, N);
 
-	// Normal map in worldspace
-	vec3 normal_worldSpace = TBN * normalize(texture(normalSampler, UV).rgb * 2 - 1);
+	// Normal map in worldspace - convert from range of [0,1] to [-1,1] when sampling
+	vec3 normal_worldSpace = TBN * (texture(normalSampler, UV).rgb * 2 - 1.0);
+	// Convert back to range of [0,1] as values will be clamped at 0 when stored in RGB texture
+	normal_worldSpace = normalize(normal_worldSpace) * 0.5 + 0.5;
 	gNormal = vec4(normal_worldSpace, 1.0);
 
 	
@@ -43,7 +45,7 @@ void main () {
 	gAlbedo = texture(albedoSampler, UV);
 
 	// Specular map
-	gSpecular = texture(specularSampler, UV);
+	gSpecular = texture(specularSampler, UV).rgba;
 
 	
 }

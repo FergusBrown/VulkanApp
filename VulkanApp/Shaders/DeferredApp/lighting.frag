@@ -47,17 +47,16 @@ void main()
 	// Get g-buffer data
 	vec3 fragPos_worldSpace = subpassLoad(inputPos).rgb;
 
-	vec3 fragNormal_worldSpace = subpassLoad(inputNormal).rgb;
+	vec3 fragNormal_worldSpace = normalize(subpassLoad(inputNormal).rgb * 2 - 1);
 
 	vec4 albedoSpec = vec4(subpassLoad(inputAlbedo).rgb, subpassLoad(inputSpecular).r);
 
 	// Calculate Lighting
-
 	// view direction towards camera
 	vec3 viewPos_worldSpace = flashLight.position.xyz;
 	vec3 fragToViewDir = normalize(viewPos_worldSpace - fragPos_worldSpace);
 
-	vec3 colour = vec3(0.1, 0.1, 0.1); // default colour is ambient light
+	vec3 colour = 0.1 * albedoSpec.rgb; // default colour is ambient light
 
 	for (int i = 0; i < POINT_LIGHT_COUNT; ++i)
 	{
@@ -75,6 +74,7 @@ void main()
 							albedoSpec);
 
 	outColour = vec4(colour, 1.0);
+	//outColour = vec4(fragNormal_worldSpace, 1.0);
 
 }
 
@@ -82,6 +82,9 @@ void main()
 vec3 calcPointLight(PointLight light, vec3 fragPos, vec3 normal, vec3 viewDir, vec4 albedoSpecColour)
 {
 	vec3 lightPos = light.position.xyz;
+
+	// Distance to light
+	float distance = length(lightPos - fragPos);
 
 	// Direction of the light (tangent space)
 	vec3 lightDir = normalize(lightPos - fragPos);
@@ -92,24 +95,19 @@ vec3 calcPointLight(PointLight light, vec3 fragPos, vec3 normal, vec3 viewDir, v
 	// Min is 0 since when theta >= 90 the light is either perpendicular to the surface or not incident
 	float diffuseFactor = max(dot(normal, lightDir), 0.0);
 
-	// Direction in which triangle reflects light
-	// Note that -l is the direction of the incident light on the triangle
-	vec3 reflectDir = reflect(-lightDir, normal);
-
 	// Half way vector for Blinn-Phong model of specular component
 	// This is the average between the lightDir and viewDir
 	vec3 halfwayDir = normalize(lightDir + viewDir);
 
 	// Use lambert to determine intensity of light directed towards the eye by the reflection
-	float specFactor = max(dot(viewDir, halfwayDir), 0.0);
+	float specFactor = pow(max(dot(viewDir, halfwayDir), 0.0),32);
 
 	// Colour calculations based on lambert cosines
 	vec3 colour =
 		albedoSpecColour.rgb * diffuseFactor +
-		vec3(albedoSpecColour.a) * pow(specFactor,32);
+		vec3(albedoSpecColour.a) * specFactor;
 	
-	// Distance to light (calculate in world space)
-	float distance = length(lightPos - fragPos);
+
 
 	// Calculate attenuation factor
 	float attenuation = calcAttenuation(light.intensityAndAttenuation, distance);
@@ -139,12 +137,11 @@ vec3 calcSpotLight(SpotLight light, vec3 fragPos, vec3 normal, vec3 viewDir, vec
 
 		// Standard light calculations
 		float diffuseFactor = max(dot(normal, fragToLightDir), 0.0);
-		vec3 reflectDir = reflect(-fragToLightDir, normal);
 		vec3 halfwayDir = normalize(fragToLightDir + viewDir);
-		float specFactor = max(dot(viewDir, halfwayDir), 0.0);
+		float specFactor = pow(max(dot(viewDir, halfwayDir), 0.0), 32);
 		vec3 colour =
 		albedoSpecColour.rgb * diffuseFactor +
-		vec3(albedoSpecColour.a) * pow(specFactor,32);
+		vec3(albedoSpecColour.a) * specFactor;
 	
 		// Distance to light (calculate in world space)
 		float distance = length(lightPos - fragPos);

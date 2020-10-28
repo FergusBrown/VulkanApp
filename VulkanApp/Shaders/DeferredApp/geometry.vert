@@ -47,8 +47,8 @@ void main() {
 	mat3 normalMatrix = transpose(inverse(mat3(M)));
 
 	// Calculate T and N for TBN matrix
-	tangent_worldSpace = normalize(normalMatrix * tangent);
-	normal_worldSpace = normalize(normalMatrix * normal);
+	tangent_worldSpace = normalMatrix * normalize(tangent);
+	normal_worldSpace = normalMatrix * normalize(normal);
 
 	// Vertex position (clip space)
 	gl_Position = P * V * vec4(vertexPos_worldSpace, 1.0); 
