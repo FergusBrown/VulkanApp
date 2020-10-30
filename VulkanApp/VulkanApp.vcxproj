@@ -183,6 +183,7 @@
     <ClCompile Include="Renderer\Texture.cpp" />
     <ClCompile Include="Renderer\VulkanRenderer.cpp" />
     <ClCompile Include="Renderer\ShaderModule.cpp" />
+    <ClCompile Include="Applications\SSAOApp.cpp" />
     <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -228,6 +229,7 @@
     <ClInclude Include="Renderer\Utilities.h" />
     <ClInclude Include="Renderer\VulkanRenderer.h" />
     <ClInclude Include="Renderer\ShaderModule.h" />
+    <ClInclude Include="Applications\SSAOApp.h" />
     <ClInclude Include="Window.h" />
   </ItemGroup>
   <ItemGroup>
@@ -239,8 +241,12 @@
     <None Include="Shaders\DeferredApp\geometry.vert" />
     <None Include="Shaders\DeferredApp\lighting.frag" />
     <None Include="Shaders\DeferredApp\lighting.vert" />
-    <None Include="Shaders\DeferredApp\post.frag" />
-    <None Include="Shaders\DeferredApp\post.vert" />
+    <None Include="Shaders\SSAOApp\blur.frag" />
+    <None Include="Shaders\Common\fullscreen.vert" />
+    <None Include="Shaders\SSAOApp\geometry.frag" />
+    <None Include="Shaders\SSAOApp\geometry.vert" />
+    <None Include="Shaders\SSAOApp\lighting.frag" />
+    <None Include="Shaders\SSAOApp\ssao.frag" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

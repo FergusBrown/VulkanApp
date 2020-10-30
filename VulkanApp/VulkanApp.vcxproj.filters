@@ -168,6 +168,9 @@
     <ClCompile Include="Applications\DeferredApp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Applications\SSAOApp.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Commands.h">
@@ -299,6 +302,9 @@
     <ClInclude Include="Applications\DeferredApp.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Applications\SSAOApp.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\BasicApp\second.frag" />
@@ -309,7 +315,11 @@
     <None Include="Shaders\DeferredApp\geometry.vert" />
     <None Include="Shaders\DeferredApp\lighting.frag" />
     <None Include="Shaders\DeferredApp\lighting.vert" />
-    <None Include="Shaders\DeferredApp\post.frag" />
-    <None Include="Shaders\DeferredApp\post.vert" />
+    <None Include="Shaders\SSAOApp\geometry.frag" />
+    <None Include="Shaders\SSAOApp\geometry.vert" />
+    <None Include="Shaders\SSAOApp\lighting.frag" />
+    <None Include="Shaders\SSAOApp\blur.frag" />
+    <None Include="Shaders\SSAOApp\ssao.frag" />
+    <None Include="Shaders\Common\fullscreen.vert" />
   </ItemGroup>
 </Project>

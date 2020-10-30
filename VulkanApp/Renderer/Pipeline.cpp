@@ -175,9 +175,16 @@ GraphicsPipeline::GraphicsPipeline(Device& device,
 	rasterizerCreateInfo.rasterizerDiscardEnable = VK_FALSE;			// Whether to discard data and skip rasterizer. Never creates fragments, only suitable for pipeline without framebuffer
 	rasterizerCreateInfo.polygonMode = VK_POLYGON_MODE_FILL;			// How to handle filling points between vertices ->anything other than fill requires a feature
 	rasterizerCreateInfo.lineWidth = 1.0f;								// How thick lines should be when drawn
-	rasterizerCreateInfo.cullMode = VK_CULL_MODE_BACK_BIT;				// Which face of a tri to cull
 	rasterizerCreateInfo.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;	// Winding to determine which side is front
+	rasterizerCreateInfo.cullMode = VK_CULL_MODE_BACK_BIT;				// Which face of a tri to cull
 	rasterizerCreateInfo.depthBiasEnable = VK_FALSE;					// Whether to add depth bias to fragments (good for stopping "shadow acne" in shadow mapping)
+
+	// If no vertex input then assume we are drawing a full screen triangle in the vertex shader using vertex indices
+	// In this case the vertices will be in clockwise order so we want to change the front face winding
+	if (vertexInput = VK_FALSE)
+	{
+		rasterizerCreateInfo.frontFace = VK_FRONT_FACE_CLOCKWISE;
+	}
 
 
 	// - MULTISAMPLING

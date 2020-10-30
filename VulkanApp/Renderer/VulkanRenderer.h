@@ -109,7 +109,7 @@ protected:
 	// -- Sets
 	std::vector<std::unique_ptr<DescriptorSet>> mPerMaterialDescriptorSets;		// Descriptor sets holding texture samplers
 
-	// Samplers
+	// Material Samplers
 	std::unique_ptr<Sampler> mDiffuseSampler;
 	std::unique_ptr<Sampler> mNormalSampler;
 	std::unique_ptr<Sampler> mSpecularSampler;
@@ -152,7 +152,7 @@ protected:
 
 	// CREATE DESCRIPTOR RESOURCES
 	virtual void createPerFrameResources()	= 0;
-	void createTextureSamplers();
+	void createMaterialSamplers();
 	
 	// CREATE DESCRIPTOR POOLS	
 	void createPerMaterialDescriptorPool();

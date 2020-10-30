@@ -79,6 +79,7 @@ void Frame::createDescriptorSetLayout(std::vector<ShaderResource>& shaderResourc
 
 // Create resource references based on the provided indices to create image and buffer infos
 // These can then be used to create the "Per Frame" descriptor set for the provided 
+// This method does not support creating a descriptor set with images which require sampling
 void Frame::createDescriptorSet(uint32_t pipelineIndex, const BindingMap<uint32_t>& imageIndices, const BindingMap<uint32_t>& bufferIndices)
 {
 	// Bind image and buffers to resource reference
@@ -86,7 +87,6 @@ void Frame::createDescriptorSet(uint32_t pipelineIndex, const BindingMap<uint32_
 	std::vector<uint32_t> bindingsToUpdate{};
 
 	// Bind images
-	
 	auto& targetImages = mRenderTarget->imageViews();
 	for (auto& binding : imageIndices)
 	{
@@ -144,15 +144,58 @@ void Frame::createDescriptorSet(uint32_t pipelineIndex, const BindingMap<uint32_
 	}
 }
 
-//void Frame::createDescriptorSet(uint32_t pipelineIndex, const BindingMap<VkDescriptorImageInfo>& imageInfos, const BindingMap<VkDescriptorBufferInfo>& bufferInfos)
-//{
-//	// Create descriptor set per thread
-//	for (size_t i = 0; i < mThreadCount; ++i)
-//	{
-//		auto& descriptorPool = *mThreadData[i].descriptorPools[pipelineIndex];
-//		mThreadData[i].descriptorSets[pipelineIndex] = std::make_unique<DescriptorSet>(mDevice, mDescriptorSetLayouts[pipelineIndex], descriptorPool, imageInfos, bufferInfos);
-//	}
-//}
+
+// Create descriptor sets created with descriptor set reference which can be used to generate image and buffer infos
+// Use this method if creating descriptor sets with external samplers or buffers
+void Frame::createDescriptorSet(uint32_t pipelineIndex, DescriptorResourceReference& resourceReference, const BindingMap<uint32_t>& bufferIndices)
+{
+	// Get bindings which will need updated
+	std::vector<uint32_t> bindingsToUpdate{};
+
+	for (auto& binding : resourceReference.resourceBindings())
+	{
+		uint32_t bindingIndex = binding.first;
+
+		bindingsToUpdate.push_back(bindingIndex);
+	}
+
+	// Bind buffers
+	for (auto& binding : bufferIndices)
+	{
+		uint32_t bindingIndex = binding.first;
+		auto& bindingContents = binding.second;
+
+		bindingsToUpdate.push_back(bindingIndex);
+
+		for (auto& descriptor : bindingContents)
+		{
+			uint32_t descriptorIndex = descriptor.first;
+			uint32_t bufferIndex = descriptor.second;
+
+			// Create descriptor resource reference and genereate an image info
+			auto& buffer = *mBuffers[bufferIndex];
+			resourceReference.bindBuffer(buffer,
+				0,
+				buffer.size(),
+				bindingIndex,
+				descriptorIndex);
+		}
+	}
+
+	// Generate image and buffer infos
+	BindingMap<VkDescriptorImageInfo> imageInfos;
+	BindingMap<VkDescriptorBufferInfo> bufferInfos;
+
+	resourceReference.generateDescriptorInfos(imageInfos, bufferInfos);
+
+	// Create descriptor set per thread
+	for (size_t i = 0; i < mThreadCount; ++i)
+	{
+		auto& descriptorPool = *mThreadData[i].descriptorPools[pipelineIndex];
+		mThreadData[i].descriptorSets[pipelineIndex] = std::make_unique<DescriptorSet>(mDevice, *mDescriptorSetLayouts[pipelineIndex], descriptorPool, imageInfos, bufferInfos);
+		mThreadData[i].descriptorSets[pipelineIndex]->update(bindingsToUpdate);
+	}
+}
 
 uint32_t Frame::createBuffer(VkDeviceSize bufferSize, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties)
 {

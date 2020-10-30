@@ -13,3 +13,9 @@ bool isDepthOnlyFormat(VkFormat format)
 	return	format == VK_FORMAT_D16_UNORM ||
 		format == VK_FORMAT_D32_SFLOAT;
 }
+
+// linearly interpolates between a and b by some fraction f
+float lerp(float a, float b, float f)
+{
+	return a + f * (b - a);
+}

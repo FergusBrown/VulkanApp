@@ -37,4 +37,6 @@ bool isDepthStencilFormat(VkFormat format);
 
 bool isDepthOnlyFormat(VkFormat format);
 
+float lerp(float a, float b, float f);
+
 

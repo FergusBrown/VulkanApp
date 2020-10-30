@@ -11,6 +11,7 @@ class Buffer;
 class CommandBuffer;
 class Device;
 class DescriptorPool;
+class DescriptorResourceReference;
 class DescriptorSet;
 class DescriptorSetLayout;
 class Queue;
@@ -41,12 +42,14 @@ public:
 	// - Descriptor Sets
 	void createDescriptorSetLayout(std::vector<ShaderResource>& shaderResources, uint32_t pipelineIndex, uint32_t setIndex = 0);
 	void createDescriptorSet(uint32_t pipelineIndex, const BindingMap<uint32_t>& imageIndices = {}, const BindingMap<uint32_t>& bufferIndices = {});
+	void createDescriptorSet(uint32_t pipelineIndex, DescriptorResourceReference& resourceReference, const BindingMap<uint32_t>& bufferIndices = {});
 
 	// - Buffers
 	uint32_t createBuffer(VkDeviceSize bufferSize,
 		VkBufferUsageFlags usage,
 		VkMemoryPropertyFlags properties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
+	// TODO : add function specialization, at the moment this doesn not work with vectors
 	template<typename T>
 	void updateBuffer(uint32_t bufferIndex, T& data)
 	{

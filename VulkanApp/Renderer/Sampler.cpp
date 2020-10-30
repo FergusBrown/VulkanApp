@@ -24,8 +24,8 @@ Sampler::Sampler(Device& device,
 	samplerCreateInfo.magFilter = magFilter;								// How to render when image is magnified on screen
 	samplerCreateInfo.minFilter = minFilter;								// How to render when image is minified on screen
 	samplerCreateInfo.addressModeU = addressModeU;							// How to handle texture wrap in U (x) direction
-	samplerCreateInfo.addressModeV = addressModeV;							// How to handle texturee wrap in V (y) direction
-	samplerCreateInfo.addressModeW = addressModeW;							// How to handle texturee wrap in W (z) direction
+	samplerCreateInfo.addressModeV = addressModeV;							// How to handle texture wrap in V (y) direction
+	samplerCreateInfo.addressModeW = addressModeW;							// How to handle texture wrap in W (z) direction
 	samplerCreateInfo.borderColor = borderColor;							// Border beyond texture (only works for border clamp)
 	samplerCreateInfo.unnormalizedCoordinates = unnormalisedCoordinates;	// Whether coords should be normalised between 0 and 1
 	samplerCreateInfo.mipmapMode = mipmapMode;								// Mipmap interpolation mode

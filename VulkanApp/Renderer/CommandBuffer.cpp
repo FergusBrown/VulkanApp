@@ -347,21 +347,3 @@ const RenderPassBinding& CommandBuffer::currentRenderPass() const
 {
 	return mRenderPassBinding;
 }
-
-// TODO: MOVE TO QUEUE CLASS\?
-// TODO : update to allow fences
-//void CommandBuffer::submit()
-//{
-//	// Queue submission information
-//	VkSubmitInfo submitInfo = {};
-//	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-//	submitInfo.commandBufferCount = 1;
-//	submitInfo.pCommandBuffers = &mHandle;
-//
-//	uint32_t queueFamilyIndex = mCommandPool.queueFamilyIndex();
-//
-//
-//	// Submit transfer command to transfer queue and wait until it finishes
-//	vkQueueSubmit(queue, 1, &submitInfo, VK_NULL_HANDLE);
-//	//vkQueueWaitIdle(queue);			// Avoid submitting many command buffer
-//}

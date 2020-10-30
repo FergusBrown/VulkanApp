@@ -25,7 +25,7 @@ int VulkanRenderer::init(GLFWwindow* newWindow)
 		createPipelines();
 		createFramebuffers();
 
-		createTextureSamplers();
+		createMaterialSamplers();
 		createPerFrameResources();
 
 		createPerMaterialDescriptorPool();
@@ -205,7 +205,7 @@ void VulkanRenderer::createFramebuffers()
 	}
 }
 
-void VulkanRenderer::createTextureSamplers()
+void VulkanRenderer::createMaterialSamplers()
 {
 	float maxAnisotropy = mDevice->physicalDevice().properties().limits.maxSamplerAnisotropy;
 

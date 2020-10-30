@@ -7,7 +7,7 @@ class RenderTarget;
 class Subpass
 {
 public:
-	Subpass(std::string vertexShaderSource, std::string fragmentShaderSource);
+	Subpass(std::string vertexShaderSource = {}, std::string fragmentShaderSource = {});
 	~Subpass() = default;
 
 	Subpass(const Subpass&) = delete;
