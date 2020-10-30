@@ -25,7 +25,7 @@ layout(set = 0, binding = 3) uniform viewProjection
 #define SAMPLE_COUNT 64
 layout(set = 0, binding = 4) uniform uboSSAO 
 {
-	vec3 ssaoKernel[SAMPLE_COUNT];		// Positions to sample
+	vec4 ssaoKernel[SAMPLE_COUNT];		// Positions to sample
 };
 
 // PARAMETERS
@@ -46,7 +46,7 @@ void main () {
 	vec3 randomRotationVector = texture(noiseSampler, UV * noiseScale).xyz;
 
 	// Create TBN: Tangent -> View space
-	vec3 N = normalize(normal * 2 - 1);
+	vec3 N = normal;
 	// Use Gramm-Schmidt to create orthogonal basis with normal and rotation vector
 	vec3 T = randomRotationVector;
 	T = normalize(T - N * dot(N,T));
@@ -58,7 +58,7 @@ void main () {
 	for(int i = 0; i < SAMPLE_COUNT; ++i)
 	{
 		// Get sample position in View space
-		vec3 samplePos = TBN * ssaoKernel[i];
+		vec3 samplePos = TBN * ssaoKernel[i].xyz;
 		// Multiply by radius to increase/decrease sample radius of ssaoKernel
 		// Add frag position
 		samplePos = samplePos * radius + fragPos;
@@ -67,7 +67,7 @@ void main () {
 		vec4 offset = vec4(samplePos, 1.0);
 		offset = P * offset;	// Transform to clip space
 		offset.xyz /= offset.w;			// perspective divide
-		offset.xyz = offset.xyz;		// transform to range [0,1] to sample texture correctly
+		offset.xyz = offset.xyz * 0.5 + 0.5;		// transform to range [0,1] to sample texture correctly
 
 		// Get sample depth
 		float sampleDepth = texture(positionSampler, offset.xy).z;

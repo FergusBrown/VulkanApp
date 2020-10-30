@@ -39,6 +39,7 @@ private:
 
 	// Additional formats
 	VkFormat mPrecisionFormat{};
+	VkFormat mSSAOFormat{};
 
 	// Time parameters
 	float lastTime{ 0.0f };
@@ -52,7 +53,7 @@ private:
 
 #define SAMPLE_COUNT 64
 	struct uboSSAO {
-		glm::vec3 ssaoKernel[SAMPLE_COUNT];
+		glm::vec4 ssaoKernel[SAMPLE_COUNT];
 	};
 
 	// Functions

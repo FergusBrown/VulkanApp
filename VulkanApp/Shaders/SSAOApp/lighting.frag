@@ -1,5 +1,9 @@
 #version 450
 
+// INPUTS
+// - UV
+layout(location = 0) in vec2 UV;
+
 // INPUT ATTACHMENTS
 layout(input_attachment_index = 0, binding = 0) uniform subpassInput inputPos;			// Position output from subpass 0
 layout(input_attachment_index = 1, binding = 1) uniform subpassInput inputNormal;		// Normal output from subpass 0
@@ -30,7 +34,7 @@ struct SpotLight
 
 // - Lights ubo
 #define POINT_LIGHT_COUNT 3
-layout(set = 0, binding = 5) uniform lights 
+layout(set = 0, binding = 6) uniform lights 
 {
 	PointLight pointLights[POINT_LIGHT_COUNT];
 	SpotLight flashLight;	

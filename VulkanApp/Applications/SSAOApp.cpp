@@ -40,7 +40,6 @@ void SSAOApp::draw()
 
 	recordCommands(primaryCmdBuffer);		// Only record commands once the image at imageIndex is available (not being used by the queue)
 
-
 	queue.submit(imageAcquired, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, renderFinished,
 		primaryCmdBuffer, drawFence);
 
@@ -56,18 +55,10 @@ void SSAOApp::createRenderTargetAndFrames()
 	VkImageUsageFlags swapchainUsage = mSwapchain->usage();
 
 	// Get supported format for position attachment - use higher precision floats
-	mPrecisionFormat = chooseSupportedFormat(
-		{ VK_FORMAT_R32G32B32A32_SFLOAT },
-		VK_IMAGE_TILING_OPTIMAL,
-		VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
-	);
+	mPrecisionFormat = VK_FORMAT_R32G32B32A32_SFLOAT;
 
 	// High precision not required
-	mColourFormat = chooseSupportedFormat(
-		{ VK_FORMAT_R8G8B8A8_UNORM },
-		VK_IMAGE_TILING_OPTIMAL,
-		VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
-	);
+	mColourFormat = VK_FORMAT_R8G8B8A8_UNORM;
 
 	// Get supported format for depth buffer
 	mDepthFormat = chooseSupportedFormat(
@@ -75,6 +66,13 @@ void SSAOApp::createRenderTargetAndFrames()
 		VK_IMAGE_TILING_OPTIMAL,
 		VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
 
+	// Requires to store a single float
+	mSSAOFormat = VK_FORMAT_R8_UNORM;
+
+	// NOTE ON IMAGE USAGE:
+	// VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT - always use if image will be stored and sampled/loaded in a future subpass
+	// VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT - use if attachment will be referenced as input in a shader e.g. if subpassLoad will be used
+	// VK_IMAGE_USAGE_SAMPLED_BIT - use if image will be sampled
 
 	for (auto& image : mSwapchain->images())
 	{
@@ -93,7 +91,7 @@ void SSAOApp::createRenderTargetAndFrames()
 		mBlurAttachmentIndex = 1;
 		Image blurImage(*mDevice,
 			swapchainExtent,
-			mColourFormat,
+			mSSAOFormat,
 			VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT,
 			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
@@ -102,8 +100,8 @@ void SSAOApp::createRenderTargetAndFrames()
 		mSSAOAttachmentIndex = 2;
 		Image ssaoImage(*mDevice,
 			swapchainExtent,
-			mColourFormat,
-			VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT,
+			mSSAOFormat,
+			VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT |VK_IMAGE_USAGE_SAMPLED_BIT,
 			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
 		// SUBPASS 0 OUTPUT (GEOMETRY PASS)
@@ -112,7 +110,7 @@ void SSAOApp::createRenderTargetAndFrames()
 		Image positionImage(*mDevice,
 			swapchainExtent,
 			mPrecisionFormat,
-			VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT,
+			VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
 			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
 		// 4 - Normals
@@ -120,7 +118,7 @@ void SSAOApp::createRenderTargetAndFrames()
 		Image normalImage(*mDevice,
 			swapchainExtent,
 			mColourFormat,
-			VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT,
+			VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
 			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
 		// 5 - Albedo 
@@ -144,7 +142,7 @@ void SSAOApp::createRenderTargetAndFrames()
 		Image depthImage(*mDevice,
 			swapchainExtent,
 			mDepthFormat,
-			VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT,
+			VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
 			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
 
@@ -192,16 +190,16 @@ void SSAOApp::createRenderPass()
 	mSubpasses[0]->setOutputAttachments(outputAttachments);
 
 	// SUBPASS 1 (SSAO)
-	inputAttachments = { mPositionAttachmentIndex, mNormalAttachmentIndex };;
+	inputAttachments = { mPositionAttachmentIndex, mNormalAttachmentIndex };
 	outputAttachments = { mSSAOAttachmentIndex };
 	mSubpasses[1]->setInputAttachments(inputAttachments);
-	mSubpasses[1]->setInputAttachments(outputAttachments);
+	mSubpasses[1]->setOutputAttachments(outputAttachments);
 
 	// SUBPASS 2 (BLUR)
 	inputAttachments = outputAttachments;
 	outputAttachments = { mBlurAttachmentIndex };
 	mSubpasses[2]->setInputAttachments(inputAttachments);
-	mSubpasses[2]->setInputAttachments(outputAttachments);
+	mSubpasses[2]->setOutputAttachments(outputAttachments);
 
 	// SUBPASS 3 (LIGHTING)
 	inputAttachments = { mPositionAttachmentIndex, mNormalAttachmentIndex, mAlbedoAttachmentIndex, mSpecularAttachmentIndex, mDepthAttachmentIndex, mBlurAttachmentIndex };
@@ -216,6 +214,8 @@ void SSAOApp::createRenderPass()
 	}
 
 	// CREATE LOAD/STORE INFOS FOR ATTACHMENTS
+	// LOAD_OP - what to do with the image at the start of the renderpass
+	// STORE_OP - what to do with the image at the end of the renderpass
 	std::vector<LoadStoreInfo> loadStoreInfos = {};
 
 	// Swapchain load/store
@@ -299,7 +299,7 @@ void SSAOApp::createPerFrameDescriptorSetLayouts()
 	// Pipeline 3
 	// BIND INPUT ATTACHMENTS
 	// For each pipeline define input attachment shader resources
-	for (uint32_t i = 0; i < mSubpasses[1]->inputAttachments().size(); ++i)
+	for (uint32_t i = 0; i < mSubpasses[3]->inputAttachments().size(); ++i)
 	{
 		ShaderResource attachment(i,
 			VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT,
@@ -314,7 +314,7 @@ void SSAOApp::createPerFrameDescriptorSetLayouts()
 		VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
 		1,
 		VK_SHADER_STAGE_FRAGMENT_BIT);
-	pipelineResources[1].push_back(std::move(lightBuffer));
+	pipelineResources[3].push_back(std::move(lightBuffer));
 
 	// Create set layouts in frame objects for each pipeline
 	for (auto& frame : mFrames)
@@ -464,7 +464,7 @@ void SSAOApp::createPerFrameDescriptorSets()
 		// PIPELINE 2
 		// - RESOURCE REFERENCES
 		// Input attachments
-		descriptorSetResourceReference.bindImage(targetImages[mSSAOAttachmentIndex], *mSSAOSampler, 1, 0);
+		descriptorSetResourceReference.bindImage(targetImages[mSSAOAttachmentIndex], *mSSAOSampler, 0, 0);
 
 		// - DESCRIPTOR SET
 		mFrames[i]->createDescriptorSet(2, descriptorSetResourceReference, bufferIndices);
@@ -481,7 +481,7 @@ void SSAOApp::createPerFrameDescriptorSets()
 		descriptorSetResourceReference.bindInputImage(targetImages[mDepthAttachmentIndex], 4, 0);
 		descriptorSetResourceReference.bindInputImage(targetImages[mBlurAttachmentIndex], 5, 0);
 
-		bufferIndices[5][0] = mLightBufferIndex;
+		bufferIndices[6][0] = mLightBufferIndex;
 
 		// - DESCRIPTOR SET
 		mFrames[i]->createDescriptorSet(3, descriptorSetResourceReference, bufferIndices);
@@ -501,10 +501,11 @@ void SSAOApp::createSSAOResources()
 	{
 		// x and y in rnage of [-1,1]
 		// z in range of [0,1] creating a hemisphere of samples rather than sphere
-		glm::vec3 sample(
+		glm::vec4 sample(
 			distribution(generator) * 2.0f - 1,
 			distribution(generator) * 2.0f - 1,
-			distribution(generator));
+			distribution(generator),
+			0.0);	// 4th element obsolete but needed for padding the UBO struct
 
 		sample = glm::normalize(sample);
 		sample *= distribution(generator);
@@ -531,21 +532,24 @@ void SSAOApp::createSSAOResources()
 	// NOISE TEXTURE
 	// Create 4x4 noise texture values - this will hold a series of random rotation vectors around the z axis
 	// vector will hold the 16 values in sequence
-	std::vector<glm::vec3> ssaoNoise;
+	std::vector<glm::vec4> ssaoNoise;		
 	uint32_t width = 4;
 	uint32_t height = 4;
 	for (uint32_t i = 0; i < width * height; ++i)
 	{
 		// Z axis left as 0 as rotation is around this axis
-		glm::vec3 noise(
+		glm::vec4 noise(
 			distribution(generator) * 2.0f - 1,
 			distribution(generator) * 2.0f - 1,
+			0.0f,
 			0.0f);
+
+		ssaoNoise.push_back(std::move(noise));
 	}
 
 	// Create the texture - must be stored as float
-	VkDeviceSize textureSize = ssaoNoise.size() * sizeof(glm::vec3);
-	VkFormat noiseFormat = VK_FORMAT_R32G32B32A32_SFLOAT;
+	VkDeviceSize textureSize = ssaoNoise.size() * sizeof(glm::vec4);
+	VkFormat noiseFormat = VK_FORMAT_R32G32B32A32_SFLOAT;	// Note that vector type must match image format - e.g. this format is stored as vec4
 	mNoiseTexture = std::make_unique<Texture>(*mDevice, ssaoNoise.data(), width, height, textureSize, noiseFormat);
 	
 	// NOISE TEXTURE SAMPLER
@@ -687,12 +691,11 @@ void SSAOApp::recordCommands(CommandBuffer& primaryCmdBuffer) // Current image i
 	// All but the last render target are colour attachments
 	for (size_t i = 0; i < clearValues.size(); ++i)
 	{
-		clearValues[i].color = { 0.1f, 0.0f, 0.1f, 1.0f };
+		clearValues[i].color = { 1.0f, 0.0f, 0.5f, 1.0f };
 
 	}
 	// Final attachment is depth attachment
 	clearValues.back().depthStencil.depth = 1.0f;
-
 
 	//clearValue.depthStencil.depth = 1.0f;
 	// BEGIN RENDERPASS / SUBPASS 0
@@ -765,19 +768,22 @@ void SSAOApp::recordCommands(CommandBuffer& primaryCmdBuffer) // Current image i
 	// Submit the secondary command buffers to the primary command buffer.
 	primaryCmdBuffer.executeCommands(secondaryCommandBufferPtrs);
 
-	// START SUBPASS 1
-	// (Draw single triangle and render lighting)
-	primaryCmdBuffer.nextSubpass(VK_SUBPASS_CONTENTS_INLINE);
+	// Record remaining subpasses on primary comman buffers
+	// All remaining subpass perform fragment shader operations rendered to a full screen triangle
+	for (uint32_t i = 1; i < mSubpasses.size(); ++i)
+	{
+		primaryCmdBuffer.nextSubpass(VK_SUBPASS_CONTENTS_INLINE);
 
-	primaryCmdBuffer.bindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, *mPipelines[1]);
+		primaryCmdBuffer.bindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, *mPipelines[i]);
 
-	std::vector<std::reference_wrapper<const DescriptorSet>> descriptorGroup{ frame->descriptorSet(1) };
+		std::vector<std::reference_wrapper<const DescriptorSet>> descriptorGroup{ frame->descriptorSet(i) };
 
-	primaryCmdBuffer.bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, *mPipelineLayouts[1],
-		0, descriptorGroup);
+		primaryCmdBuffer.bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, *mPipelineLayouts[i],
+			0, descriptorGroup);
 
-	primaryCmdBuffer.draw(3, 1, 0, 0);
-
+		primaryCmdBuffer.drawFullscreen();
+	}
+	
 	// End Render Pass
 	primaryCmdBuffer.endRenderPass();
 

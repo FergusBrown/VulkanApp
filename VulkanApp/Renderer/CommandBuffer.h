@@ -69,6 +69,7 @@ public:
 
 
 	void draw(uint32_t vertexCount, uint32_t instanceCount, uint32_t firstIndex, uint32_t firstInstance);
+	void drawFullscreen();
 	void drawIndexed(uint32_t indexCount, uint32_t instanceCount, uint32_t firstIndex, int32_t vertexOffset, uint32_t firstInstance);
 
 	void executeCommands(const std::vector<CommandBuffer*>& commandBuffers);

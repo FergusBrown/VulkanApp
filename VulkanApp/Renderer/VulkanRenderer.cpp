@@ -26,6 +26,7 @@ int VulkanRenderer::init(GLFWwindow* newWindow)
 		createFramebuffers();
 
 		createMaterialSamplers();
+		createTexture("default_black.png"); // Default texture (if no texture present)
 		createPerFrameResources();
 
 		createPerMaterialDescriptorPool();
@@ -33,7 +34,7 @@ int VulkanRenderer::init(GLFWwindow* newWindow)
 		createPerFrameDescriptorSets();
 		createCamera(90.0f);
 
-		createTexture("default_black.png");
+		
 
 	}
 	catch (const std::runtime_error& e) {

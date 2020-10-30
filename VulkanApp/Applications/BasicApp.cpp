@@ -116,7 +116,7 @@ void BasicApp::createRenderPass()
 
 	// CREATE SUBPASS OBJECTS
 	std::unique_ptr<Subpass> firstPass = std::make_unique<Subpass>("Shaders/BasicApp/vert.spv", "Shaders/BasicApp/frag.spv");
-	std::unique_ptr<Subpass> secondPass = std::make_unique<Subpass>("Shaders/BasicApp/second_vert.spv", "Shaders/BasicApp/second_frag.spv");
+	std::unique_ptr<Subpass> secondPass = std::make_unique<Subpass>("Shaders/Common/fullscreen_vert.spv", "Shaders/BasicApp/second_frag.spv");
 
 	std::vector<uint32_t> outputAttachments = { 1, 2 };
 

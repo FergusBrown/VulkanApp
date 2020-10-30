@@ -181,7 +181,7 @@ GraphicsPipeline::GraphicsPipeline(Device& device,
 
 	// If no vertex input then assume we are drawing a full screen triangle in the vertex shader using vertex indices
 	// In this case the vertices will be in clockwise order so we want to change the front face winding
-	if (vertexInput = VK_FALSE)
+	if (!vertexInput)
 	{
 		rasterizerCreateInfo.frontFace = VK_FRONT_FACE_CLOCKWISE;
 	}

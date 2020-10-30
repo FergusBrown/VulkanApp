@@ -4,6 +4,7 @@
 
 #include "Applications/BasicApp.h"
 #include "Applications/DeferredApp.h"
+#include "Applications/SSAOApp.h"
 #include "Window.h"
 #include "Pawn.h"
 #include "InputHandlerMouse.h"

@@ -156,7 +156,7 @@ void DeferredApp::createRenderPass()
 	uint32_t subpassCount = 2;
 	mSubpasses.resize(subpassCount);
 	mSubpasses[0] = std::make_unique<Subpass>("Shaders/DeferredApp/geometry_vert.spv", "Shaders/DeferredApp/geometry_frag.spv");
-	mSubpasses[1] = std::make_unique<Subpass>("Shaders/DeferredApp/lighting_vert.spv", "Shaders/DeferredApp/lighting_frag.spv");
+	mSubpasses[1] = std::make_unique<Subpass>("Shaders/Common/fullscreen_vert.spv", "Shaders/DeferredApp/lighting_frag.spv");
 
 	// Set input and output attachments
 	std::vector<uint32_t> inputAttachments{};
