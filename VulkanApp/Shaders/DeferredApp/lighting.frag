@@ -1,5 +1,7 @@
 #version 450
 
+layout(location = 0) in vec2 UV;
+
 // INPUT ATTACHMENTS
 layout(input_attachment_index = 0, binding = 0) uniform subpassInput inputPos;			// Position output from subpass 0
 layout(input_attachment_index = 1, binding = 1) uniform subpassInput inputNormal;		// Normal output from subpass 0

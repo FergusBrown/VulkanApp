@@ -214,8 +214,6 @@ GraphicsPipeline::GraphicsPipeline(Device& device,
 
 	colourState.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
 	colourState.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
-	//colourState.srcAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
-	//colourState.dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
 	colourState.alphaBlendOp = VK_BLEND_OP_ADD;
 	// Summarised: (1 * new alpha) + (0 * old alpha) = new alpha
 
