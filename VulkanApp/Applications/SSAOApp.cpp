@@ -71,7 +71,7 @@ void SSAOApp::createRenderTargetAndFrames()
 
 	// NOTE ON IMAGE USAGE:
 	// VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT - always use if image will be stored and sampled/loaded in a future subpass
-	// VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT - use if attachment will be referenced as input in a shader e.g. if subpassLoad will be used
+	// VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT - use if attachment will be referenced as a subpass input in renderpass creation
 	// VK_IMAGE_USAGE_SAMPLED_BIT - use if image will be sampled
 
 	for (auto& image : mSwapchain->images())
@@ -91,7 +91,8 @@ void SSAOApp::createRenderTargetAndFrames()
 		mBlurAttachmentIndex = 1;
 		Image blurImage(*mDevice,
 			swapchainExtent,
-			mSSAOFormat,
+			//mSSAOFormat,
+			mColourFormat,
 			VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT,
 			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
@@ -100,8 +101,9 @@ void SSAOApp::createRenderTargetAndFrames()
 		mSSAOAttachmentIndex = 2;
 		Image ssaoImage(*mDevice,
 			swapchainExtent,
-			mSSAOFormat,
-			VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT |VK_IMAGE_USAGE_SAMPLED_BIT,
+			//mSSAOFormat,
+			mColourFormat,
+			VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
 			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
 		// SUBPASS 0 OUTPUT (GEOMETRY PASS)
@@ -182,6 +184,9 @@ void SSAOApp::createRenderPass()
 	mSubpasses[3] = std::make_unique<Subpass>("Shaders/Common/fullscreen_vert.spv", "Shaders/SSAOApp/lighting_frag.spv");
 
 	// Set input and output attachments
+	// Note that these inputs and outputs are not used to define when an attachment will be used for a subpass load
+	// They are used to inform the renderpass creation of what layout each attachment image should have at each subpass so that the necessary image transitions can take place
+	// Therefore, even if an image is sampled rather than subpass loaded it should be listed as an input
 	std::vector<uint32_t> inputAttachments{};
 	std::vector<uint32_t> outputAttachments{};
 
@@ -618,7 +623,15 @@ void SSAOApp::updatePerFrameResources()
 	// Set light values
 	// - Point lights
 	mLights.pointLights[0].position.x = 100 * sin(sumTime);
+	mLights.pointLights[1].position.x = 0;
 	mLights.pointLights[2].position.x = -100 * sin(sumTime);
+
+	// set yz values
+	for (auto& light : mLights.pointLights)
+	{
+		light.position.y = 30.0f;
+		light.position.z = 0.0f;
+	}
 
 	// Convert positions to view space
 	// Note that flashlight pos and dir are already in view space so no conversion is necessary
@@ -691,7 +704,7 @@ void SSAOApp::recordCommands(CommandBuffer& primaryCmdBuffer) // Current image i
 	// All but the last render target are colour attachments
 	for (size_t i = 0; i < clearValues.size(); ++i)
 	{
-		clearValues[i].color = { 1.0f, 0.0f, 0.5f, 1.0f };
+		clearValues[i].color = { 0.0f, 0.0f, 0.5f, 1.0f };
 
 	}
 	// Final attachment is depth attachment

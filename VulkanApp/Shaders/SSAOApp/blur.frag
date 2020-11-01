@@ -5,7 +5,7 @@
 layout(location = 0) in vec2 UV;
 
 // OUTPUTS
-layout(location = 0) out float blurOut;
+layout(location = 0) out vec4 blurOut;
 
 // - Descriptor set 1 (texture samplers)
 layout(set = 0, binding = 0) uniform sampler2D ssaoSampler;
@@ -25,5 +25,5 @@ void main () {
 		}
 	}
 	// Normalize and output result
-	blurOut = result / (4. * 4.);
+	blurOut = vec4(vec3(result / (4. * 4.)), 1.0);
 }

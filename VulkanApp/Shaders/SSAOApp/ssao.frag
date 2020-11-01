@@ -9,7 +9,8 @@ layout(location = 0) in vec2 UV;
 //layout(input_attachment_index = 1, binding = 1) uniform subpassInput inputNoise;
 
 // OUTPUTS
-layout(location = 0) out float occlusionOut;
+//layout(location = 0) out float occlusionOut;
+layout(location = 0) out vec4 occlusionOut;
 
 // - Descriptor set 1 (texture samplers)
 layout(set = 0, binding = 0) uniform sampler2D positionSampler;
@@ -79,5 +80,5 @@ void main () {
 	}
 
 	// Take 1 - normalized occlusion factor to find contribution to ambient lighting
-	occlusionOut = 1. - (occlusionFactor / SAMPLE_COUNT);	
+	occlusionOut = vec4(vec3(1. - (occlusionFactor / SAMPLE_COUNT)), 1.0);	
 }
