@@ -13,8 +13,8 @@ int main()
 {
 	Window displayWindow("Vulkan Renderer", 1920, 1080);
 	//BasicApp vulkanRenderer;
-	DeferredApp vulkanRenderer;
-	//SSAOApp vulkanRenderer;
+	//DeferredApp vulkanRenderer;
+	SSAOApp vulkanRenderer;
 
 	if (!displayWindow.createWindow())
 	{

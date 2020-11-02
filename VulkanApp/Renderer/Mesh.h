@@ -18,7 +18,8 @@ class Mesh
 public:
 	Mesh() = delete;
 	Mesh(Device& device, std::vector<Vertex>* vertices, std::vector<uint32_t>* indices,
-		uint32_t materialID = 0);
+		uint32_t materialID = 0,
+		bool opaque = true);
 	~Mesh() = default;
 	
 
@@ -33,11 +34,16 @@ public:
 	uint32_t indexCount() const;
 	Buffer& indexBuffer();
 
+	bool opaque() const;	// Indicates whether the associated materials are opaque
+
 private:
 	glm::mat4 mModel;
 
 	// Texture IDs
 	uint32_t mMaterialID;
+
+	// Material info
+	bool mOpaque;
 
 	// Vertex and index buffers
 	uint32_t mVertexCount;

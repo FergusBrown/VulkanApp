@@ -345,7 +345,8 @@ int VulkanRenderer::createModel(std::string modelFile)
 	std::map<uint32_t, std::string> diffuseNames;
 	std::map<uint32_t, std::string> normalNames;
 	std::map<uint32_t, std::string> specularNames;
-	LoadMaterials(scene, diffuseNames, normalNames, specularNames);
+	std::map<uint32_t, bool> isMaterialOpaque;
+	LoadMaterials(scene, diffuseNames, normalNames, specularNames, isMaterialOpaque);
 
 	uint32_t materialCount = scene->mNumMaterials;
 
@@ -397,7 +398,7 @@ int VulkanRenderer::createModel(std::string modelFile)
 	}
 
 	// Load in all our meshes
-	std::vector<std::unique_ptr<Mesh>> modelMeshes = LoadNode(*mDevice, scene->mRootNode, scene, materialIDs);
+	std::vector<std::unique_ptr<Mesh>> modelMeshes = LoadNode(*mDevice, scene->mRootNode, scene, materialIDs, isMaterialOpaque);
 
 	mModelList.emplace_back(modelMeshes);
 

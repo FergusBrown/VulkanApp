@@ -91,7 +91,8 @@ void main () {
 							diffuseSpecColour);
 
 	// Set alpha channel to 1 default for all opaque
-	outColour = vec4(colour, 1.0);
+	//outColour = vec4(colour, 1.0);
+	outColour = vec4(diffuseSpecColour.rgb, 1.0);
 }
 
 // Calculate a point light's contribution to fragment colour

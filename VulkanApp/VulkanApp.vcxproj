@@ -240,7 +240,6 @@
     <None Include="Shaders\DeferredApp\geometry.frag" />
     <None Include="Shaders\DeferredApp\geometry.vert" />
     <None Include="Shaders\DeferredApp\lighting.frag" />
-    <None Include="Shaders\DeferredApp\lighting.vert" />
     <None Include="Shaders\SSAOApp\blur.frag" />
     <None Include="Shaders\Common\fullscreen.vert" />
     <None Include="Shaders\SSAOApp\geometry.frag" />

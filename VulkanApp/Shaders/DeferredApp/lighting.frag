@@ -7,7 +7,6 @@ layout(input_attachment_index = 0, binding = 0) uniform subpassInput inputPos;		
 layout(input_attachment_index = 1, binding = 1) uniform subpassInput inputNormal;		// Normal output from subpass 0
 layout(input_attachment_index = 2, binding = 2) uniform subpassInput inputAlbedo;	
 layout(input_attachment_index = 3, binding = 3) uniform subpassInput inputSpecular;	
-layout(input_attachment_index = 4, binding = 4) uniform subpassInput inputDepth;		// Depth output from subpass 0
 
 // UNIFORM DATA
 // - PointLight struct
@@ -31,7 +30,7 @@ struct SpotLight
 
 // - Lights ubo
 #define POINT_LIGHT_COUNT 3
-layout(set = 0, binding = 5) uniform lights 
+layout(set = 0, binding = 4) uniform lights 
 {
 	PointLight pointLights[POINT_LIGHT_COUNT];
 	SpotLight flashLight;	
@@ -75,8 +74,8 @@ void main()
 							fragToViewDir, 
 							albedoSpec);
 
-	outColour = vec4(colour, 1.0);
-	//outColour = vec4(fragNormal_worldSpace, 1.0);
+	//outColour = vec4(colour, 1.0);
+	outColour = vec4(albedoSpec.rgb, 1.0);
 
 }
 

@@ -219,7 +219,7 @@ void DeferredApp::createPerFrameDescriptorSetLayouts()
 
 	// Pipeline 1
 	// INPUT ATTACHMENTS
-	for (uint32_t i = 0; i < mSubpasses[1]->inputAttachments().size(); ++i)
+	for (uint32_t i = 0; i < mSubpasses[1]->inputAttachments().size() - 1; ++i)
 	{
 		ShaderResource attachment(i,
 			VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT,
@@ -357,9 +357,8 @@ void DeferredApp::createPerFrameDescriptorSets()
 		imageIndices[1][0] = mNormalAttachmentIndex;
 		imageIndices[2][0] = mAlbedoAttachmentIndex;
 		imageIndices[3][0] = mSpecularAttachmentIndex;
-		imageIndices[4][0] = mDepthAttachmentIndex;
 
-		bufferIndices[5][0] = mLightBufferIndex;
+		bufferIndices[4][0] = mLightBufferIndex;
 
 		// - DESCRIPTOR SET
 		mFrames[i]->createDescriptorSet(1, imageIndices, bufferIndices);
@@ -450,7 +449,7 @@ void DeferredApp::recordCommands(CommandBuffer& primaryCmdBuffer) // Current ima
 	// All but the last render target are colour attachments
 	for (size_t i = 0; i < clearValues.size(); ++i)
 	{
-		clearValues[i].color = { 0.1f, 0.0f, 0.1f, 1.0f };
+		clearValues[i].color = { 0.0f, 0.0f, 0.0f, 0.0f };
 		
 	}
 	// Final attachment is depth attachment

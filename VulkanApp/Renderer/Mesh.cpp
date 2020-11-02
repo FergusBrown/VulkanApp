@@ -5,14 +5,15 @@
 
 Mesh::Mesh(Device& device,
 	std::vector<Vertex>* vertices, std::vector<uint32_t> * indices,
-	uint32_t materialID) :
+	uint32_t materialID,
+	bool opaque) :
 	mVertexCount(vertices->size()), mIndexCount(indices->size()),
 	mMaterialID(materialID),
-	mModel(glm::mat4(1.0f))
+	mModel(glm::mat4(1.0f)),
+	mOpaque(opaque)
 {
 	createVertexBuffer(device, vertices);
 	createIndexBuffer(device, indices);
-
 }
 
 void Mesh::setModel(glm::mat4 newModel)
@@ -51,6 +52,11 @@ Buffer& Mesh::indexBuffer()
 {
 	//std::lock_guard<std::mutex> lock(mIndexMutex);
 	return *mIndexBuffer;
+}
+
+bool Mesh::opaque() const
+{
+	return mOpaque;
 }
 
 // TODO : could abstract this and the vertex buffer creation to a template function

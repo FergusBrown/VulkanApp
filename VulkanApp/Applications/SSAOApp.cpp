@@ -704,7 +704,7 @@ void SSAOApp::recordCommands(CommandBuffer& primaryCmdBuffer) // Current image i
 	// All but the last render target are colour attachments
 	for (size_t i = 0; i < clearValues.size(); ++i)
 	{
-		clearValues[i].color = { 0.0f, 0.0f, 0.5f, 1.0f };
+		clearValues[i].color = { 0.0f, 0.0f, 0.0f, 1.0f };
 
 	}
 	// Final attachment is depth attachment
@@ -721,11 +721,21 @@ void SSAOApp::recordCommands(CommandBuffer& primaryCmdBuffer) // Current image i
 	// Split meshes to draw equally between threads
 	// Create vector of references to meshes
 	std::vector<std::reference_wrapper<Mesh>> meshList;
+	//std::vector<std::reference_wrapper<Mesh>> transparentList;
 	for (auto& model : mModelList)
 	{
 		for (size_t i = 0; i < model.meshCount(); ++i)
 		{
-			meshList.push_back(model.mesh(i));
+			auto& mesh = model.mesh(i);
+			//if (mesh.opaque())
+			//{
+				meshList.push_back(mesh);
+			//} 
+			//else
+			//{
+			//	transparentList.push_back(mesh);
+			//}
+			
 		}
 	}
 

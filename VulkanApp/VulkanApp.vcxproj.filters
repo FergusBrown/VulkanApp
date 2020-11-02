@@ -314,7 +314,6 @@
     <None Include="Shaders\DeferredApp\geometry.frag" />
     <None Include="Shaders\DeferredApp\geometry.vert" />
     <None Include="Shaders\DeferredApp\lighting.frag" />
-    <None Include="Shaders\DeferredApp\lighting.vert" />
     <None Include="Shaders\SSAOApp\geometry.frag" />
     <None Include="Shaders\SSAOApp\geometry.vert" />
     <None Include="Shaders\SSAOApp\lighting.frag" />

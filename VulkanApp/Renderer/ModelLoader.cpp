@@ -2,7 +2,7 @@
 
 #include "Mesh.h"
 
-void LoadMaterials(const aiScene* scene, std::map<uint32_t, std::string>& diffuseList, std::map<uint32_t, std::string>& normalList, std::map<uint32_t, std::string>& specularList)
+void LoadMaterials(const aiScene* scene, std::map<uint32_t, std::string>& diffuseList, std::map<uint32_t, std::string>& normalList, std::map<uint32_t, std::string>& specularList, std::map<uint32_t, bool>& isMaterialOpaque)
 {
 	// Got through each material and copy its texture file name (if it exists)
 	for (size_t i = 0; i < scene->mNumMaterials; ++i)
@@ -10,6 +10,18 @@ void LoadMaterials(const aiScene* scene, std::map<uint32_t, std::string>& diffus
 		// Get the material
 		aiMaterial* material = scene->mMaterials[i];
 
+		// Check material opacity
+		float opacity;
+		material->Get(AI_MATKEY_OPACITY, opacity);
+		if (opacity == 1.0f)
+		{
+			isMaterialOpaque[i] = true;
+		}
+		else
+		{
+			isMaterialOpaque[i] = false;
+		}
+		
 		// Check for a Diffuse Texture (standard detail texture)
 		if (material->GetTextureCount(aiTextureType_DIFFUSE))
 		{
@@ -56,14 +68,14 @@ void LoadMaterials(const aiScene* scene, std::map<uint32_t, std::string>& diffus
 	}
 }
 
-std::vector<std::unique_ptr<Mesh>> LoadNode(Device& device, aiNode* node, const aiScene* scene, std::vector<uint32_t> materialIDs)
+std::vector<std::unique_ptr<Mesh>> LoadNode(Device& device, aiNode* node, const aiScene* scene, std::vector<uint32_t>& materialIDs, std::map<uint32_t, bool>& isMaterialOpaque)
 {
 	std::vector<std::unique_ptr<Mesh>> meshList;
 
 	// Go through mesh at this node and create it, then add it to out meshList;
 	for (size_t i = 0; i < node->mNumMeshes; ++i)
 	{
-		std::unique_ptr<Mesh> meshPtr = LoadMesh(device, scene->mMeshes[node->mMeshes[i]], scene, materialIDs);
+		std::unique_ptr<Mesh> meshPtr = LoadMesh(device, scene->mMeshes[node->mMeshes[i]], scene, materialIDs, isMaterialOpaque);
 
 		meshList.push_back(std::move(meshPtr));
 	}
@@ -71,7 +83,7 @@ std::vector<std::unique_ptr<Mesh>> LoadNode(Device& device, aiNode* node, const 
 	// Go through each node attached to this node and load it, then append their meshes to this node's mesh list
 	for (size_t i = 0; i < node->mNumChildren; ++i)
 	{
-		std::vector<std::unique_ptr<Mesh>> newList = LoadNode(device, node->mChildren[i], scene, materialIDs);
+		std::vector<std::unique_ptr<Mesh>> newList = LoadNode(device, node->mChildren[i], scene, materialIDs, isMaterialOpaque);
 
 		for (auto& meshPtr : newList)
 		{
@@ -82,7 +94,7 @@ std::vector<std::unique_ptr<Mesh>> LoadNode(Device& device, aiNode* node, const 
 	return meshList;
 }
 
-std::unique_ptr<Mesh> LoadMesh(Device& device, aiMesh* mesh, const aiScene* scene, std::vector<uint32_t> materialIDs)
+std::unique_ptr<Mesh> LoadMesh(Device& device, aiMesh* mesh, const aiScene* scene, std::vector<uint32_t> materialIDs, std::map<uint32_t, bool>& isMaterialOpaque)
 {
 	std::vector<Vertex> vertices;
 	std::vector<uint32_t> indices;
@@ -134,7 +146,7 @@ std::unique_ptr<Mesh> LoadMesh(Device& device, aiMesh* mesh, const aiScene* scen
 	}
 
 	// Create new mesh with details and return it
-	std::unique_ptr<Mesh> newMesh = std::make_unique<Mesh>(device, &vertices, &indices, materialIDs[mesh->mMaterialIndex]);
+	std::unique_ptr<Mesh> newMesh = std::make_unique<Mesh>(device, &vertices, &indices, materialIDs[mesh->mMaterialIndex], isMaterialOpaque[mesh->mMaterialIndex]);
 
 	return newMesh;
 }
