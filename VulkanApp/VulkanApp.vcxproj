@@ -237,6 +237,7 @@
     <None Include="Shaders\BasicApp\second.vert" />
     <None Include="Shaders\BasicApp\shader.frag" />
     <None Include="Shaders\BasicApp\shader.vert" />
+    <None Include="Shaders\Common\fullscreen_viewRay.vert" />
     <None Include="Shaders\DeferredApp\geometry.frag" />
     <None Include="Shaders\DeferredApp\geometry.vert" />
     <None Include="Shaders\DeferredApp\lighting.frag" />

@@ -13,7 +13,7 @@ private:
 	// SSAO Resources
 	// SUBPASS 1
 	std::unique_ptr<Texture> mNoiseTexture;
-	std::unique_ptr<Sampler> mPositionSampler;
+	std::unique_ptr<Sampler> mDepthSampler;
 	std::unique_ptr<Sampler> mNormalSampler;
 	std::unique_ptr<Sampler> mNoiseSampler;
 
@@ -31,15 +31,10 @@ private:
 	// SUBPASS 1
 	uint32_t mSSAOAttachmentIndex{ 0 };
 	// SUBPASS 0
-	uint32_t mPositionAttachmentIndex{ 0 };
 	uint32_t mNormalAttachmentIndex{ 0 };
 	uint32_t mAlbedoAttachmentIndex{ 0 };
 	uint32_t mSpecularAttachmentIndex{ 0 };
 	uint32_t mDepthAttachmentIndex{ 0 };
-
-	// Additional formats
-	VkFormat mPrecisionFormat{};
-	VkFormat mSSAOFormat{};
 
 	// Time parameters
 	float lastTime{ 0.0f };
@@ -54,6 +49,8 @@ private:
 #define SAMPLE_COUNT 64
 	struct uboSSAO {
 		glm::vec4 ssaoKernel[SAMPLE_COUNT];
+		float radius;
+		float bias;
 	};
 
 	// Functions
@@ -66,7 +63,6 @@ private:
 	virtual void createPerFrameDescriptorSets();
 
 	// -- Support
-	
 	virtual void updatePerFrameResources();
 	virtual void getRequiredExtenstionAndFeatures(std::vector<const char*>& requiredExtensions,
 		VkPhysicalDeviceFeatures& requiredFeatures);

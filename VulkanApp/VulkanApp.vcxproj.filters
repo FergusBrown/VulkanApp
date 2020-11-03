@@ -320,5 +320,6 @@
     <None Include="Shaders\SSAOApp\blur.frag" />
     <None Include="Shaders\SSAOApp\ssao.frag" />
     <None Include="Shaders\Common\fullscreen.vert" />
+    <None Include="Shaders\Common\fullscreen_viewRay.vert" />
   </ItemGroup>
 </Project>

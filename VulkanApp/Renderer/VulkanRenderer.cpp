@@ -42,7 +42,6 @@ int VulkanRenderer::init(GLFWwindow* newWindow)
 		return EXIT_FAILURE;
 	}
 
-
 	return EXIT_SUCCESS;
 }
 
@@ -57,7 +56,7 @@ void VulkanRenderer::createCamera(float FoVinDegrees)
 {
 	const VkExtent2D& extent = mSwapchain->extent();
 
-	mCameraMatrices.P = glm::perspective(glm::radians(FoVinDegrees), (float)extent.width / (float)extent.height, 0.1f, 1000.0f);
+	mCameraMatrices.P = glm::perspective(glm::radians(FoVinDegrees), (float)extent.width / (float)extent.height, 0.1f, 300.0f);
 	mCameraMatrices.V = glm::lookAt(glm::vec3(0.0f, 0.0f, 20.0f), glm::vec3(0.0f, 0.0f, -2.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
 	mCameraMatrices.P[1][1] *= -1;

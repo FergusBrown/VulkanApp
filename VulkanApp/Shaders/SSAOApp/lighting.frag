@@ -3,13 +3,13 @@
 // INPUTS
 // - UV
 layout(location = 0) in vec2 UV;
+layout(location = 1) in vec4 viewRay;
 
 // INPUT ATTACHMENTS
-layout(input_attachment_index = 0, binding = 0) uniform subpassInput inputPos;			// Position output from subpass 0
-layout(input_attachment_index = 1, binding = 1) uniform subpassInput inputNormal;		// Normal output from subpass 0
-layout(input_attachment_index = 2, binding = 2) uniform subpassInput inputAlbedo;	
-layout(input_attachment_index = 3, binding = 3) uniform subpassInput inputSpecular;	
-layout(input_attachment_index = 4, binding = 4) uniform subpassInput inputDepth;		// Depth output from subpass 0
+layout(input_attachment_index = 0, binding = 1) uniform subpassInput inputDepth;	
+layout(input_attachment_index = 1, binding = 2) uniform subpassInput inputNormal;		
+layout(input_attachment_index = 2, binding = 3) uniform subpassInput inputAlbedo;	
+layout(input_attachment_index = 3, binding = 4) uniform subpassInput inputSpecular;	
 layout(input_attachment_index = 5, binding = 5) uniform subpassInput inputBlur;	
 
 // UNIFORM DATA
@@ -47,10 +47,20 @@ vec3 calcPointLight(PointLight light, vec3 fragPos, vec3 normal, vec3 viewDir, v
 vec3 calcSpotLight(SpotLight light, vec3 fragPos, vec3 normal, vec3 viewDir, vec4 albedoSpecColour);
 float calcAttenuation(vec4 intensityAndAttenuation, float distance);
 
+float lineariseDepth(float depth);
+
+// Clip plain near and far distance (view space)
+const float zNear = 0.1;
+const float zFar = 300.;
+
 void main()
 {
 	// Get g-buffer data
-	vec3 fragPos_viewSpace = subpassLoad(inputPos).rgb;
+	// Get position from depth buffer using viewray
+	float depth = subpassLoad(inputDepth).x;
+	float linearDepth = lineariseDepth(depth);
+
+	vec3 fragPos_viewSpace = viewRay.xyz * linearDepth;
 
 	vec3 fragNormal_viewSpace = normalize(subpassLoad(inputNormal).rgb * 2 - 1);
 
@@ -63,7 +73,7 @@ void main()
 	// view direction towards camera
 	vec3 fragToViewDir = normalize(-fragPos_viewSpace); // viewPos is 0,0,0 in viewSpace
 
-	vec3 colour = 0.1 * albedoSpec.rgb * ambientOcclusion; // default colour is ambient light * AO factor
+	vec3 colour = 0.2 * albedoSpec.rgb * ambientOcclusion; // default colour is ambient light * AO factor
 
 	for (int i = 0; i < POINT_LIGHT_COUNT; ++i)
 	{
@@ -81,8 +91,6 @@ void main()
 							albedoSpec);
 
 	outColour = vec4(colour, 1.0);
-	//outColour = vec4(fragNormal_worldSpace, 1.0);
-
 }
 
 // Calculate a point light's contribution to fragment colour
@@ -171,4 +179,14 @@ float calcAttenuation(vec4 intensityAndAttenuation, float distance)
 	float denominator = intensityAndAttenuation.w + intensityAndAttenuation.z * distance + intensityAndAttenuation.y * distance * distance;
 
 	return intensityAndAttenuation.x / denominator;
+}
+
+float lineariseDepth(float depth)
+{
+	// Convert depth to NDC
+	float z = depth * 2. - 1.;
+
+	float linearDepth = (2. * zNear * zFar) / (zFar + zNear - z * (zFar - zNear));
+
+	return linearDepth;
 }
