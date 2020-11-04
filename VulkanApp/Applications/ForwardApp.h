@@ -6,11 +6,11 @@
 // - Depth buffer
 // - Multiple subpasses
 // - Multithreaded command buffer submission
-class BasicApp : public VulkanRenderer
+class ForwardApp : public VulkanRenderer
 {
 public:
-	BasicApp() = default;
-	~BasicApp();
+	ForwardApp() = default;
+	~ForwardApp();
 
 	virtual void draw();
 private:

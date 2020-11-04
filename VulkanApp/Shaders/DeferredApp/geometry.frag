@@ -46,6 +46,4 @@ void main () {
 
 	// Specular map
 	gSpecular = texture(specularSampler, UV).rgba;
-
-	
 }

@@ -153,11 +153,10 @@ void SSAOApp::createRenderPass()
 	// Attachment 0 = Swapchain
 	// Attachment 1 = Blur
 	// Attachment 2 = SSAO
-	// Attachment 3 = Position
-	// Attachment 4 = Normal
-	// Attachment 5 = Albedo
-	// Attachment 6 = Specular
-	// Attachment 7 = Depth
+	// Attachment 3 = Normal
+	// Attachment 4 = Albedo
+	// Attachment 5 = Specular
+	// Attachment 6 = Depth
 
 	// CREATE SUBPASS OBJECTS
 	uint32_t subpassCount = 4;
@@ -497,8 +496,9 @@ void SSAOApp::createSSAOResources()
 
 	uboSSAO ssaoBuffer;
 	// Radius and Bias
-	ssaoBuffer.radius = 1.0;
+	ssaoBuffer.radius = 2.;
 	ssaoBuffer.bias = 0.025;
+	ssaoBuffer.power = 8.0;
 
 	// KERNEL
 	auto& kernel = ssaoBuffer.ssaoKernel;
@@ -566,14 +566,16 @@ void SSAOApp::createSSAOResources()
 
 void SSAOApp::createAttachmentSamplers()
 {
+	float maxAnisotropy = mDevice->physicalDevice().properties().limits.maxSamplerAnisotropy;
+
 	// Position , normal and SSAO samplers
 	// This attachment requires clamp to edge to ensure that position/depth valuesa are not oversampled outside of default texture coords
 	mDepthSampler = std::make_unique<Sampler>(
 		*mDevice,
-		VK_FALSE,
+		VK_TRUE,
+		maxAnisotropy,
 		0.0f,
-		0.0f,
-		0.0f,
+		MAX_LOD,
 		0.0f,
 		VK_FILTER_LINEAR,
 		VK_FILTER_LINEAR,
@@ -584,10 +586,10 @@ void SSAOApp::createAttachmentSamplers()
 
 	mNormalSampler = std::make_unique<Sampler>(
 		*mDevice,
-		VK_FALSE,
+		VK_TRUE,
+		maxAnisotropy,
 		0.0f,
-		0.0f,
-		0.0f,
+		MAX_LOD,
 		0.0f,
 		VK_FILTER_LINEAR,
 		VK_FILTER_LINEAR,
@@ -598,10 +600,10 @@ void SSAOApp::createAttachmentSamplers()
 
 	mSSAOSampler = std::make_unique<Sampler>(
 		*mDevice,
-		VK_FALSE,
+		VK_TRUE,
+		maxAnisotropy,
 		0.0f,
-		0.0f,
-		0.0f,
+		MAX_LOD,
 		0.0f,
 		VK_FILTER_LINEAR,
 		VK_FILTER_LINEAR,
@@ -722,21 +724,12 @@ void SSAOApp::recordCommands(CommandBuffer& primaryCmdBuffer) // Current image i
 	// Split meshes to draw equally between threads
 	// Create vector of references to meshes
 	std::vector<std::reference_wrapper<Mesh>> meshList;
-	//std::vector<std::reference_wrapper<Mesh>> transparentList;
 	for (auto& model : mModelList)
 	{
 		for (size_t i = 0; i < model.meshCount(); ++i)
 		{
 			auto& mesh = model.mesh(i);
-			//if (mesh.opaque())
-			//{
-				meshList.push_back(mesh);
-			//} 
-			//else
-			//{
-			//	transparentList.push_back(mesh);
-			//}
-			
+			meshList.push_back(mesh);
 		}
 	}
 

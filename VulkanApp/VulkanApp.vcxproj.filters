@@ -159,9 +159,6 @@
     <ClCompile Include="Renderer\ShaderModule.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Applications\BasicApp.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Renderer\VulkanRenderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -169,6 +166,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Applications\SSAOApp.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Applications\ForwardApp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -293,9 +293,6 @@
     <ClInclude Include="Renderer\ShaderModule.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Applications\BasicApp.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Renderer\Light.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -305,12 +302,12 @@
     <ClInclude Include="Applications\SSAOApp.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Applications\ForwardApp.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Shaders\BasicApp\second.frag" />
     <None Include="Shaders\BasicApp\second.vert" />
-    <None Include="Shaders\BasicApp\shader.frag" />
-    <None Include="Shaders\BasicApp\shader.vert" />
     <None Include="Shaders\DeferredApp\geometry.frag" />
     <None Include="Shaders\DeferredApp\geometry.vert" />
     <None Include="Shaders\DeferredApp\lighting.frag" />
@@ -321,5 +318,8 @@
     <None Include="Shaders\SSAOApp\ssao.frag" />
     <None Include="Shaders\Common\fullscreen.vert" />
     <None Include="Shaders\Common\fullscreen_viewRay.vert" />
+    <None Include="Shaders\ForwardApp\second.frag" />
+    <None Include="Shaders\ForwardApp\shader.frag" />
+    <None Include="Shaders\ForwardApp\shader.vert" />
   </ItemGroup>
 </Project>

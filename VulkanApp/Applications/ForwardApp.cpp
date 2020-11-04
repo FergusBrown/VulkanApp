@@ -1,6 +1,6 @@
-#include "BasicApp.h"
+#include "ForwardApp.h"
 
-BasicApp::~BasicApp()
+ForwardApp::~ForwardApp()
 {
 	if (mDevice)
 	{
@@ -8,7 +8,7 @@ BasicApp::~BasicApp()
 	}
 }
 
-void BasicApp::draw()
+void ForwardApp::draw()
 {
 	auto& previousFrame = mFrames[activeFrameIndex];
 
@@ -49,7 +49,7 @@ void BasicApp::draw()
 }
 
 // Prepare rendertargets and frames
-void BasicApp::createRenderTargetAndFrames()
+void ForwardApp::createRenderTargetAndFrames()
 {
 	//auto& device = mSwapchain->device();
 	auto& swapchainExtent = mSwapchain->extent();
@@ -108,15 +108,15 @@ void BasicApp::createRenderTargetAndFrames()
 	}
 }
 
-void BasicApp::createRenderPass()
+void ForwardApp::createRenderPass()
 {
 	// Attachment 0 = Swapchain
 	// Attachment 1 = Colour
 	// Attachment 2 = Depth
 
 	// CREATE SUBPASS OBJECTS
-	std::unique_ptr<Subpass> firstPass = std::make_unique<Subpass>("Shaders/BasicApp/vert.spv", "Shaders/BasicApp/frag.spv");
-	std::unique_ptr<Subpass> secondPass = std::make_unique<Subpass>("Shaders/Common/fullscreen_vert.spv", "Shaders/BasicApp/second_frag.spv");
+	std::unique_ptr<Subpass> firstPass = std::make_unique<Subpass>("Shaders/ForwardApp/vert.spv", "Shaders/ForwardApp/frag.spv");
+	std::unique_ptr<Subpass> secondPass = std::make_unique<Subpass>("Shaders/Common/fullscreen_vert.spv", "Shaders/ForwardApp/second_frag.spv");
 
 	std::vector<uint32_t> outputAttachments = { 1, 2 };
 
@@ -157,7 +157,7 @@ void BasicApp::createRenderPass()
 
 // Create layouts which will be updated at most once per frame
 // A layout must be created for each pipeline
-void BasicApp::createPerFrameDescriptorSetLayouts()
+void ForwardApp::createPerFrameDescriptorSetLayouts()
 {
 
 	// Pipeline 1 
@@ -205,7 +205,7 @@ void BasicApp::createPerFrameDescriptorSetLayouts()
 	}
 }
 
-void BasicApp::createPipelines()
+void ForwardApp::createPipelines()
 {
 	// PIPELINE 1
 	// CREATE SHADER MODULES
@@ -276,7 +276,7 @@ void BasicApp::createPipelines()
 	mPipelines.push_back(std::move(secondPipeline));
 }
 
-void BasicApp::createPerFrameResources()
+void ForwardApp::createPerFrameResources()
 {
 	// CREATE UNIFORM BUFFERS
 
@@ -299,7 +299,7 @@ void BasicApp::createPerFrameResources()
 	createLights();
 }
 
-void BasicApp::createPerFrameDescriptorSets()
+void ForwardApp::createPerFrameDescriptorSets()
 {
 
 	for (size_t i = 0; i < static_cast<size_t>(mSwapchain->imageCount()); ++i)
@@ -324,7 +324,7 @@ void BasicApp::createPerFrameDescriptorSets()
 	}
 }
 
-void BasicApp::updatePerFrameResources()
+void ForwardApp::updatePerFrameResources()
 {
 	// Update time variables
 	float now = glfwGetTime();
@@ -346,7 +346,7 @@ void BasicApp::updatePerFrameResources()
 }
 
 // Set required extensions + features
-void BasicApp::getRequiredExtenstionAndFeatures(std::vector<const char*>& requiredExtensions, VkPhysicalDeviceFeatures& requiredFeatures)
+void ForwardApp::getRequiredExtenstionAndFeatures(std::vector<const char*>& requiredExtensions, VkPhysicalDeviceFeatures& requiredFeatures)
 {
 	requiredExtensions = {
 	VK_KHR_SWAPCHAIN_EXTENSION_NAME
@@ -356,7 +356,7 @@ void BasicApp::getRequiredExtenstionAndFeatures(std::vector<const char*>& requir
 	requiredFeatures.samplerAnisotropy = VK_TRUE;
 }
 
-void BasicApp::createLights()
+void ForwardApp::createLights()
 {
 	// Point Light identical starting positions + intensity
 	for (auto& pointLight : mLights.pointLights)
@@ -390,7 +390,7 @@ void BasicApp::createLights()
 
 }
 
-void BasicApp::recordCommands(CommandBuffer& primaryCmdBuffer) // Current image is swapchain index
+void ForwardApp::recordCommands(CommandBuffer& primaryCmdBuffer) // Current image is swapchain index
 {
 	auto& frame = mFrames[activeFrameIndex];
 	auto& framebuffer = mFramebuffers[activeFrameIndex];
@@ -494,7 +494,7 @@ void BasicApp::recordCommands(CommandBuffer& primaryCmdBuffer) // Current image 
 }
 
 
-CommandBuffer* BasicApp::recordSecondaryCommandBuffers(CommandBuffer* primaryCommandBuffer, std::vector<std::reference_wrapper<Mesh>> meshList, uint32_t meshStart, uint32_t meshEnd, size_t threadIndex)
+CommandBuffer* ForwardApp::recordSecondaryCommandBuffers(CommandBuffer* primaryCommandBuffer, std::vector<std::reference_wrapper<Mesh>> meshList, uint32_t meshStart, uint32_t meshEnd, size_t threadIndex)
 {
 	auto& frame = mFrames[activeFrameIndex];
 

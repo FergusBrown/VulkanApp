@@ -74,9 +74,7 @@ void main()
 							fragToViewDir, 
 							albedoSpec);
 
-	//outColour = vec4(colour, 1.0);
-	outColour = vec4(albedoSpec.rgb, 1.0);
-
+	outColour = vec4(colour, 1.0);
 }
 
 // Calculate a point light's contribution to fragment colour
@@ -101,7 +99,7 @@ vec3 calcPointLight(PointLight light, vec3 fragPos, vec3 normal, vec3 viewDir, v
 	vec3 halfwayDir = normalize(lightDir + viewDir);
 
 	// Use lambert to determine intensity of light directed towards the eye by the reflection
-	float specFactor = pow(max(dot(viewDir, halfwayDir), 0.0),32);
+	float specFactor = pow(max(dot(normal, halfwayDir), 0.0),32);
 
 	// Colour calculations based on lambert cosines
 	vec3 colour =
@@ -139,7 +137,7 @@ vec3 calcSpotLight(SpotLight light, vec3 fragPos, vec3 normal, vec3 viewDir, vec
 		// Standard light calculations
 		float diffuseFactor = max(dot(normal, fragToLightDir), 0.0);
 		vec3 halfwayDir = normalize(fragToLightDir + viewDir);
-		float specFactor = pow(max(dot(viewDir, halfwayDir), 0.0), 32);
+		float specFactor = pow(max(dot(normal, halfwayDir), 0.0), 32);
 		vec3 colour =
 		albedoSpecColour.rgb * diffuseFactor +
 		vec3(albedoSpecColour.a) * specFactor;

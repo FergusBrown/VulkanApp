@@ -26,6 +26,7 @@ layout(set = 0, binding = 4) uniform uboSSAO
 	vec4 ssaoKernel[SAMPLE_COUNT];		// Positions to sample
 	float radius;						// Affects radius sampled for SSAO
 	float bias;							// Bias introduced to reduce shadow acne
+	float power;						// Raise the occlusion factor by this power
 };
 
 // FUNCTION PROTOTYPES
@@ -83,7 +84,9 @@ void main () {
 	}
 
 	// Take 1 - normalized occlusion factor to find contribution to ambient lighting
-	occlusionOut = vec4(vec3(1. - (occlusionFactor / SAMPLE_COUNT)), 1.0);	
+	float occlusion = 1 - (occlusionFactor / SAMPLE_COUNT);
+	occlusion = pow(occlusion, power);
+	occlusionOut = vec4(vec3(occlusion), 1.0);	
 }
 
 float lineariseDepth(float depth)

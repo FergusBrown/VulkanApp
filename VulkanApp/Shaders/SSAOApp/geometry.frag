@@ -10,10 +10,9 @@ layout(location = 2) in vec3 normal_viewSpace;
 layout(location = 3) in vec3 tangent_viewSpace;
 
 // OUTPUTS
-layout(location = 0) out vec4 gPosition;
-layout(location = 1) out vec4 gNormal; 
-layout(location = 2) out vec4 gAlbedo; 
-layout(location = 3) out vec4 gSpecular; 
+layout(location = 0) out vec4 gNormal; 
+layout(location = 1) out vec4 gAlbedo; 
+layout(location = 2) out vec4 gSpecular; 
 
 
 // - Descriptor set 1 (texture samplers)
@@ -23,9 +22,6 @@ layout(set = 1, binding = 2) uniform sampler2D specularSampler;
 
 
 void main () {
-	// Position map
-	gPosition = vec4(fragPos_viewSpace, 1.0);
-
 	// Albedo map
 	gAlbedo = texture(albedoSampler, UV);
 

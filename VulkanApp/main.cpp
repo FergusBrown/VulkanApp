@@ -2,7 +2,7 @@
 #include <vector>
 #include <iostream>
 
-#include "Applications/BasicApp.h"
+#include "Applications/ForwardApp.h"
 #include "Applications/DeferredApp.h"
 #include "Applications/SSAOApp.h"
 #include "Window.h"
@@ -12,7 +12,7 @@
 int main()
 {
 	Window displayWindow("Vulkan Renderer", 1920, 1080);
-	//BasicApp vulkanRenderer;
+	//ForwardApp vulkanRenderer;
 	//DeferredApp vulkanRenderer;
 	SSAOApp vulkanRenderer;
 

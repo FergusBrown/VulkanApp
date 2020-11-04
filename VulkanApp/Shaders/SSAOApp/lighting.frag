@@ -43,8 +43,8 @@ layout(set = 0, binding = 6) uniform lights
 layout(location = 0) out vec4 outColour;
 
 // Function prototypes
-vec3 calcPointLight(PointLight light, vec3 fragPos, vec3 normal, vec3 viewDir, vec4 albedoSpecColour);
-vec3 calcSpotLight(SpotLight light, vec3 fragPos, vec3 normal, vec3 viewDir, vec4 albedoSpecColour);
+vec3 calcPointLight(PointLight light, vec3 fragPos, vec3 normal, vec4 albedoSpecColour);
+vec3 calcSpotLight(SpotLight light, vec3 fragPos, vec3 normal, vec4 albedoSpecColour);
 float calcAttenuation(vec4 intensityAndAttenuation, float distance);
 
 float lineariseDepth(float depth);
@@ -70,38 +70,34 @@ void main()
 	float ambientOcclusion = subpassLoad(inputBlur).r;
 
 	// Calculate Lighting
-	// view direction towards camera
-	vec3 fragToViewDir = normalize(-fragPos_viewSpace); // viewPos is 0,0,0 in viewSpace
-
-	vec3 colour = 0.2 * albedoSpec.rgb * ambientOcclusion; // default colour is ambient light * AO factor
+	vec3 colour = 0.3 * albedoSpec.rgb * ambientOcclusion; // default colour is ambient light * AO factor
 
 	for (int i = 0; i < POINT_LIGHT_COUNT; ++i)
 	{
 		colour += calcPointLight(pointLights[i], 
 								fragPos_viewSpace,
 								fragNormal_viewSpace, 
-								fragToViewDir, 
 								albedoSpec);
 	}
 
 	colour += calcSpotLight(flashLight,
 							fragPos_viewSpace,
 							fragNormal_viewSpace, 
-							fragToViewDir, 
 							albedoSpec);
 
 	outColour = vec4(colour, 1.0);
 }
 
 // Calculate a point light's contribution to fragment colour
-vec3 calcPointLight(PointLight light, vec3 fragPos, vec3 normal, vec3 viewDir, vec4 albedoSpecColour)
+vec3 calcPointLight(PointLight light, vec3 fragPos, vec3 normal, vec4 albedoSpecColour)
 {
 	vec3 lightPos = light.position.xyz;
+	vec3 viewDir = normalize(-fragPos);
 
 	// Distance to light
 	float distance = length(lightPos - fragPos);
 
-	// Direction of the light (tangent space)
+	// Direction of the light (view space)
 	vec3 lightDir = normalize(lightPos - fragPos);
 
 	// Lambert cosine - Light intensity directly proportional to n.l
@@ -115,7 +111,7 @@ vec3 calcPointLight(PointLight light, vec3 fragPos, vec3 normal, vec3 viewDir, v
 	vec3 halfwayDir = normalize(lightDir + viewDir);
 
 	// Use lambert to determine intensity of light directed towards the eye by the reflection
-	float specFactor = pow(max(dot(viewDir, halfwayDir), 0.0),32);
+	float specFactor = pow(max(dot(normal, halfwayDir), 0.0),32);
 
 	// Colour calculations based on lambert cosines
 	vec3 colour =
@@ -132,10 +128,11 @@ vec3 calcPointLight(PointLight light, vec3 fragPos, vec3 normal, vec3 viewDir, v
 
 }
 
-vec3 calcSpotLight(SpotLight light, vec3 fragPos, vec3 normal, vec3 viewDir, vec4 albedoSpecColour)
+vec3 calcSpotLight(SpotLight light, vec3 fragPos, vec3 normal, vec4 albedoSpecColour)
 {
 	vec3 lightPos = light.position.xyz;
 	vec3 lightDir = light.direction.xyz;
+	vec3 viewDir = normalize(-fragPos);
 
 	// Direction of the light (tangent space)
 	vec3 fragToLightDir = normalize(lightPos - fragPos);
@@ -153,7 +150,7 @@ vec3 calcSpotLight(SpotLight light, vec3 fragPos, vec3 normal, vec3 viewDir, vec
 		// Standard light calculations
 		float diffuseFactor = max(dot(normal, fragToLightDir), 0.0);
 		vec3 halfwayDir = normalize(fragToLightDir + viewDir);
-		float specFactor = pow(max(dot(viewDir, halfwayDir), 0.0), 32);
+		float specFactor = pow(max(dot(normal, halfwayDir), 0.0), 32);
 		vec3 colour =
 		albedoSpecColour.rgb * diffuseFactor +
 		vec3(albedoSpecColour.a) * specFactor;

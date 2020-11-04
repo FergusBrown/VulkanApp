@@ -91,8 +91,7 @@ void main () {
 							diffuseSpecColour);
 
 	// Set alpha channel to 1 default for all opaque
-	//outColour = vec4(colour, 1.0);
-	outColour = vec4(diffuseSpecColour.rgb, 1.0);
+	outColour = vec4(colour, 1.0);
 }
 
 // Calculate a point light's contribution to fragment colour
@@ -116,7 +115,7 @@ vec3 calcPointLight(PointLight light, vec3 normal, vec3 viewDir, vec3 fragPos_ta
 	vec3 halfwayDir = normalize(lightDir + viewDir);
 
 	// Use lambert to determine intensity of light directed towards the eye by the reflection
-	float specFactor = max(dot(viewDir, halfwayDir), 0.0);
+	float specFactor = max(dot(normal, halfwayDir), 0.0);
 
 	// Colour calculations based on lambert cosines
 	vec3 colour =
@@ -153,7 +152,7 @@ vec3 calcSpotLight(SpotLight light, vec3 normal, vec3 viewDir, vec3 lightDir_tan
 		float diffuseFactor = max(dot(normal, fragToLightDir), 0.0);
 		vec3 reflectDir = reflect(-fragToLightDir, normal);
 		vec3 halfwayDir = normalize(fragToLightDir + viewDir);
-		float specFactor = max(dot(viewDir, halfwayDir), 0.0);
+		float specFactor = max(dot(normal, halfwayDir), 0.0);
 		vec3 colour =
 		diffuseSpecColour.rgb * diffuseFactor +
 		vec3(diffuseSpecColour.a) * pow(specFactor,32);

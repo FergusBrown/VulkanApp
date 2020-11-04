@@ -51,6 +51,7 @@ private:
 		glm::vec4 ssaoKernel[SAMPLE_COUNT];
 		float radius;
 		float bias;
+		float power;
 	};
 
 	// Functions
