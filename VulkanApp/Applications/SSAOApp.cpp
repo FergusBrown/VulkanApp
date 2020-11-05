@@ -566,16 +566,15 @@ void SSAOApp::createSSAOResources()
 
 void SSAOApp::createAttachmentSamplers()
 {
-	float maxAnisotropy = mDevice->physicalDevice().properties().limits.maxSamplerAnisotropy;
 
 	// Position , normal and SSAO samplers
 	// This attachment requires clamp to edge to ensure that position/depth valuesa are not oversampled outside of default texture coords
 	mDepthSampler = std::make_unique<Sampler>(
 		*mDevice,
-		VK_TRUE,
-		maxAnisotropy,
+		VK_FALSE,
 		0.0f,
-		MAX_LOD,
+		0.0f,
+		0.0f,
 		0.0f,
 		VK_FILTER_LINEAR,
 		VK_FILTER_LINEAR,
@@ -586,10 +585,10 @@ void SSAOApp::createAttachmentSamplers()
 
 	mNormalSampler = std::make_unique<Sampler>(
 		*mDevice,
-		VK_TRUE,
-		maxAnisotropy,
+		VK_FALSE,
 		0.0f,
-		MAX_LOD,
+		0.0f,
+		0.0f,
 		0.0f,
 		VK_FILTER_LINEAR,
 		VK_FILTER_LINEAR,
@@ -600,10 +599,10 @@ void SSAOApp::createAttachmentSamplers()
 
 	mSSAOSampler = std::make_unique<Sampler>(
 		*mDevice,
-		VK_TRUE,
-		maxAnisotropy,
+		VK_FALSE,
 		0.0f,
-		MAX_LOD,
+		0.0f,
+		0.0f,
 		0.0f,
 		VK_FILTER_LINEAR,
 		VK_FILTER_LINEAR,
