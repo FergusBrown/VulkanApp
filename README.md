@@ -17,7 +17,7 @@ This is a project I'm using to explore the Vulkan API and graphics theory. The c
     - [Application Creation](#application-creation)
     - [Model Loading](#model-loading)
     - [Mipmap Generation](#mipmap-generation)
-## **Features**
+## **Core Features**
 
 The core of this project is the [VulkanRenderer](https://github.com/FergusBrown/VulkanApp/blob/master/VulkanApp/Renderer/VulkanRenderer.cpp) abstract class which can be inherited to create applications. This class handles the setup of most of the fundamental Vulkan objects when creating an application such as Instance, Device . Furthermore, most Vulkan objects are abstracted to a class to simplify object creation. In many information is inferred from other abstracted classes during object creation. This greatly cuts down on the code that needs to be written for an application as most Vulkan CreateInfo structures are automatically handle by class constructors. 
 
@@ -25,7 +25,7 @@ Object destruction is also simplified since vkDestroy functions are called in th
 
 The sections below detail some features in the VulkanRenderer abstract class which are common across applications.
 
-### Application Creation
+### Structure OR Initialisation
 
 What is handled by the VulkanRenderer class and what abstract functions must be implemented by applications is summaried below:
 
@@ -47,15 +47,19 @@ A comparison of a scene with and without mipmaps is shown below.
 
 ![alt text](https://github.com/FergusBrown/VulkanApp/blob/master/Images/mipmap_compare.png "Mipmap Comparison")
 
+
+
+
+
+## **Additional Features and Techniques**
+
+This section discusses additional features and techniques which are not part of the core VulkanRenderer class but which are used in each of the example applications.
+
 ### First Person Controls
 
+The [InputHandler](https://github.com/FergusBrown/VulkanApp/blob/master/VulkanApp/InputHandler.h) is an abstract class used to create classes to handle input from different types of input using the command design pattern. The [InputHandlerMouse](https://github.com/FergusBrown/VulkanApp/blob/master/VulkanApp/InputHandlerMouse.h) and  implements first person camera controls such that the mouse can be used to control camera rotation and the keyboard can be used to control camera position. 
 
 
-## **Draw Function Methodology**
-
-This section discusses the structure of the draw() function which is called every frame. A similar setup is used in each application. An overview of the draw procedure is summaried below:
-
-list 
 
 ### Multithreaded Command Recording
 
@@ -70,19 +74,19 @@ Crytek's Sponza sample scene is used and has 3 point lights (each in different p
 ![alt text](https://github.com/FergusBrown/VulkanApp/blob/master/Images/SSAO_scene_360p.gif "Example Scene")
 
 
-### Forward Rendering
+### **Forward Rendering**
 
 <img src="https://github.com/FergusBrown/VulkanApp/blob/master/Images/Forward.PNG" width="250">
 
 This application uses the setup shown above with a single subpass for shading geometry and calculating lighting. Lighting is calculated in tangent space using information from diffuse, specular and normal textures.
 
-### Deferred Rendering
+### **Deferred Rendering**
 
 <img src="https://github.com/FergusBrown/VulkanApp/blob/master/Images/Deferred.png" width="500">
 
 The deferred rendering application first writes diffuse, specular, normal and position data to textures. This data is loaded in subpass 1's fragment shader with the appropriate fragment data being loaded with the subpassLoad function. In this application the lighting was calculated in world space.
 
-#### Performance Comparison
+#### **Performance Comparison**
 
 Compared to forward rendering, the deferred approach should remove obsolete fragment shader runs as lighting per fragment should only be calculated once. Running the application with RenderDoc showed that the forward app hovered around a frame time of 1ms while the deferred app was around 1.25ms. Using RenderDoc's event browser draw call durations can be compared for captures of the applications. Note: the timings seem to vary greatly each capture so these numbers may be a bit innaccurate.
 
@@ -93,7 +97,7 @@ Compared to forward rendering, the deferred approach should remove obsolete frag
 
 While the duration for lighting calculations is very short in the deferred setup, the first subpass which writes out to textures takes longer than the entirety of the forward app's single subpass. This indicates that for this particular scene the deferred app's performance is limited by the first subpass writing to textures. Perhaps if there were many more lights in the scene or lighting calculations were more complex then the deferred app might have a slight edge.
 
-### SSAO
+### **SSAO**
 
 <img src="https://github.com/FergusBrown/VulkanApp/blob/master/Images/SSAO.PNG" width="1000">
 
@@ -105,20 +109,20 @@ A comparison of the scene with and without SSAO is shown below.
 
 This effect works by generating a sample kernel in a hemishpere. For each fragment the hemisphere is normal oriented and the position is taken for each sample. For each sample the depth buffer is sampled using the corresponding screens space coordinate. If the sample position is behind the sampled depth then that sample is occluded and contributes to an occlusion factor which is used to control the amount of ambient light contributing to a fragment's colour. This process is summarised below.
 
-#### Setup
+#### **Setup**
 
 The resources required for the SSAO is created in the createSSAOResources() function. This randomly generates N sample positions within a hemishpere. Additionally, a 4 by 4 noise texture is generated to hold random rotation vectors. These rotation vectors are used to rotate the sample kernel, effectively increasing sample count and minimising banding artefacts.
 
-#### Subpass 1 SSAO Fragment Shader
+#### **Subpass 1 SSAO Fragment Shader**
 
 The shader used to generate the SSAO can be found [here](https://github.com/FergusBrown/VulkanApp/blob/master/VulkanApp/Shaders/SSAOApp/ssao.frag). In this shader the noise texture is sampled and an orthogonal basis is created between the rotation vector and the fragment normal. Then, for each sample the sample position is transformed to clip space, perspective divide is performed and the resulting xy coordinates are used to sample the depth buffer. The sampled depth is then compared to the sample position. If the depth sample is less than sample position then the sample is occluded. If occluded a 0 is output and otherwise a 1 is output. This is averaged for all the samples to create the occlusion factor meacing the factor will be larger if more samples are occluded. 
 
 The occlusion value is also modified by a range check which lessens the contribution to the occlusion factor if the sample exists outside a defined radius. The final occlusion factor is subtracted from 1 and written to texture. This results in a darker fragment the higher the occlusion factor.
 
-#### Subpass 2 Blur Fragment Shader
+#### **Subpass 2 Blur Fragment Shader**
 
 The blur fragment shader can be found [here](https://github.com/FergusBrown/VulkanApp/blob/master/VulkanApp/Shaders/SSAOApp/blur.frag). This shader uses a simple box blur kernel to mask the noise created by the SSAO pass. 
 
-#### Subpass 3 Lighting
+#### **Subpass 3 Lighting**
 
 The SSAO effect is applied in the lighting fragment shader by simply multiplying the ambient light value by the value sampled from the blur texture.
