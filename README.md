@@ -65,18 +65,18 @@ This is not implemented in the VulkanRenderer class but the methodology used for
 
 ![alt text](https://github.com/FergusBrown/VulkanApp/blob/master/Images/SSAO_scene_360p.gif "Example Scene")
 
-The following sections detail applications which each shade the above scene using different techniques. Crytek's Sponza sample scene is used and has 3 point lights and a spotlight acting as a flashlight.
+The following sections detail applications which each shade a scene using different techniques. Crytek's Sponza sample scene is used and has 3 point lights and a spotlight acting as a flashlight. The first person camera can be used to navigate the scene as shown in the GIF above.
 
 ### Forward Rendering
 
-![alt text](https://github.com/FergusBrown/VulkanApp/blob/master/Images/mipmap_compare.png "Forward Rendering Setup")
+![alt text](https://github.com/FergusBrown/VulkanApp/blob/master/Images/Forward.PNG "Forward Rendering Setup")
 (Note: the application actually also has a second subpass for post processing using depth buffer data which is not shown here)
 
 This application uses the setup shown above with a single pass for shading geometry and calculating lighting. In this application lighting for fragments is recalculated after each new mesh is drawm, resulting in many obsolete calculations. This is compared to deferred rendering in the next section.
 
 ### Deferred Rendering
 
-![alt text](https://github.com/FergusBrown/VulkanApp/blob/master/Images/mipmap_compare.png "Deferred Rendering Setup")
+![alt text](https://github.com/FergusBrown/VulkanApp/blob/master/Images/Deferred.png "Deferred Rendering Setup")
 
 #### Performance Comparison
 
@@ -84,6 +84,6 @@ This application uses the setup shown above with a single pass for shading geome
 
 ### SSAO
 
-![alt text](https://github.com/FergusBrown/VulkanApp/blob/master/Images/mipmap_compare.png "SSAO Setup")
+![alt text](https://github.com/FergusBrown/VulkanApp/blob/master/Images/SSAO.PNG "SSAO Setup")
 
 ![alt text](https://github.com/FergusBrown/VulkanApp/blob/master/Images/SSAO_compare.png "SSAO Comparison")
