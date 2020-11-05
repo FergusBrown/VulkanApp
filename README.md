@@ -6,7 +6,7 @@ This is a project I'm using to explore the Vulkan API and graphics theory. The c
 
 ## **Contents**
 
-- [Features](#features)
+- [Core Features](#core-features)
     - [Structure](#structure)
     - [Model Loading](#model-loading)
     - [Mipmap Generation](#mipmap-generation)
@@ -17,9 +17,10 @@ This is a project I'm using to explore the Vulkan API and graphics theory. The c
     - [Forward Rendering](#forward-rendering)
     - [Deferred Rendering](#deferred-rendering)
     - [SSAO](#ssao)
+    
 ## **Core Features**
 
-The core of this project is the [VulkanRenderer](https://github.com/FergusBrown/VulkanApp/blob/master/VulkanApp/Renderer/VulkanRenderer.cpp) abstract class which can be inherited to create applications. This class handles the setup of most of the fundamental Vulkan objects when creating an application such as Instance, Device and Swapchain. Furthermore, most Vulkan objects are abstracted to a class to simplify object creation. In many information is inferred from other abstracted classes during object creation. This greatly cuts down on the code that needs to be written for an application as most Vulkan CreateInfo structures are automatically handle by class constructors. Object destruction is also simplified since vkDestroy functions are called in the destructors of the associated classes. This means that object destruction order is automatically handled in the correct order reducing the chance of errors.
+The core of this project is the [VulkanRenderer](https://github.com/FergusBrown/VulkanApp/blob/master/VulkanApp/Renderer/VulkanRenderer.cpp) abstract class which can be inherited to create applications. This class handles the setup of most of the fundamental Vulkan objects when creating an application such as Instance, Device and Swapchain. Furthermore, most Vulkan objects are abstracted to a class to simplify object creation. For example, with many of these objects information is inferred from other abstracted classes during object creation. Object destruction is also simplified since vkDestroy functions are called in the destructors of the abstracted classes. This means that object destruction order is automatically handled and reducing the chance of errors. Overall, this greatly cuts down on the code that needs to be written for an application.
 
 The sections below detail some features in the VulkanRenderer abstract class which are common across applications.
 
@@ -46,17 +47,17 @@ This section discusses additional features and techniques which are not part of 
 
 ### **First Person Controls**
 
-First person controls are implemented by the [InputHandlerMouse](https://github.com/FergusBrown/VulkanApp/blob/master/VulkanApp/InputHandlerMouse.h) and [Pawn](https://github.com/FergusBrown/VulkanApp/blob/master/VulkanApp/Pawn.h) classes. The pawn class stores position, direction, euler angles and other camera related parameters. A pawn can controlled through functions such as moveForwardBy(float) and rotate(vec3). The InputHandlerMouse class captures mouse and keyboard input and uses the command desgin pattern create a list of commands which can be executed to update the camera parameters stored in a Pawn object. This system is setup so that the mouse can be used to rotate the Pawn and the keyboard can be used to move the Pawn's position.
+First person controls are implemented by the [InputHandlerMouse](https://github.com/FergusBrown/VulkanApp/blob/master/VulkanApp/InputHandlerMouse.h) and [Pawn](https://github.com/FergusBrown/VulkanApp/blob/master/VulkanApp/Pawn.h) classes. The pawn class stores position, direction, euler angles and other camera related parameters. A pawn can be controlled through functions such as moveForwardBy(float) and rotate(vec3). The InputHandlerMouse class captures mouse and keyboard input and uses the command desgin pattern to create a list of commands which can be executed to update the camera parameters stored in a Pawn object. This system is setup so that the mouse can be used to rotate the Pawn and the keyboard can be used to move the Pawn's position.
 
 ### **Multithreaded Command Recording**
 
 Vulkan allows multithreading of command recording through the use of Secondary Command Buffers. These can be recorded in parallel then executed using a primary command buffer. An example of how this can be used can be found in any of the application classes such as [DeferredApp](https://github.com/FergusBrown/VulkanApp/blob/master/VulkanApp/Applications/DeferredApp.h). All meshes which need to be rendered are divided equally between threads. Then, for each thread, draw commands for each of the meshes assigned to a thread can be recorded to a secondary command buffer in parallel. In the example applications the recordSecondaryCommandBuffers() function is submitted to a threadpool for execution allowing for multithreaded command recording.
 
-This has the limitation that it can only be used for recording draw commands for opaque objects. Transparent objects need to be drawn in the correct order from furthest to closest. Splitting meshes between threads and recording draw commands in parallel does not ensure this so transparent objects should be recorded in serial.
+This method has the limitation that it can only be used for recording draw commands for opaque objects. Transparent objects need to be drawn in the correct order from furthest to closest. Splitting meshes between threads and recording draw commands in parallel does not ensure this so draw commands for transparent objects should be recorded in serial.
 
 ## **Applications**
 
-The following sections detail the renderpass setup and functionality applications which each shade a scene using different techniques. The associated files for each application can be found in the [Applications](https://github.com/FergusBrown/VulkanApp/tree/master/VulkanApp/Applications) and [Shaders](https://github.com/FergusBrown/VulkanApp/tree/master/VulkanApp/Shaders) directories.
+The following sections details the renderpass setup and functionality applications which each shade a scene using different techniques. The associated files for each application can be found in the [Applications](https://github.com/FergusBrown/VulkanApp/tree/master/VulkanApp/Applications) and [Shaders](https://github.com/FergusBrown/VulkanApp/tree/master/VulkanApp/Shaders) directories.
 
 Crytek's Sponza sample scene is used and has 3 point lights (each in different positions and of different colours) and a spotlight acting as a flashlight. The first person camera can be used to navigate the scene as shown in the GIF below.
 
@@ -65,19 +66,19 @@ Crytek's Sponza sample scene is used and has 3 point lights (each in different p
 
 ### **Forward Rendering**
 
-This application uses the setup shown above with a single subpass for shading geometry and calculating lighting. Lighting is calculated in tangent space using information from diffuse, specular and normal textures.
+This application uses the setup shown below with a single subpass for shading geometry and calculating lighting. Lighting is calculated in tangent space using information from diffuse, specular and normal textures.
 
 <img src="https://github.com/FergusBrown/VulkanApp/blob/master/Images/Forward.PNG" width="250">
 
 ### **Deferred Rendering**
 
-The deferred rendering application first writes diffuse, specular, normal and position data to textures. This data is loaded in subpass 1's fragment shader with the appropriate fragment data being loaded with the subpassLoad function. In this application the lighting was calculated in world space.
+The deferred rendering application first writes diffuse, specular, normal and position data to textures. This data is loaded in subpass 1's fragment shader using  the subpassLoad function and is used to calculate lighting as shown below. In this application the lighting was calculated in world space.
 
 <img src="https://github.com/FergusBrown/VulkanApp/blob/master/Images/Deferred.png" width="500">
 
 #### **Performance Comparison**
 
-Compared to forward rendering, the deferred approach should remove obsolete fragment shader runs as lighting per fragment should only be calculated once. Running the application with RenderDoc showed that the forward app hovered around a frame time of 1ms while the deferred app was around 1.25ms. Using RenderDoc's event browser draw call durations can be compared for captures of the applications. Note: the timings seem to vary greatly each capture so these numbers may be a bit innaccurate.
+Compared to forward rendering, the deferred approach should remove obsolete fragment shader runs as lighting per fragment should only be calculated once. Running the application with RenderDoc showed that the forward app hovered around a frame time of 1ms while the deferred app was around 1.25ms. Using RenderDoc's event browser, draw call durations can be compared with captures from the applications. Note: the timings seem to vary greatly each capture so these numbers may be a bit innaccurate.
 
 | Subpass        | Forward  (μs)         | Deferred (μs)  |
 | ------------- |-------------| -----|
