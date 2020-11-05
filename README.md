@@ -1,45 +1,37 @@
 # **VulkanApp**
 
-This is a project I'm using to explore the Vulkan API and graphics theory. The core renderer is based on various Vulkan tutorials, samples and articles. 
+This is a project I'm using to explore the Vulkan API and graphics theory. The core renderer is based on various tutorials, samples and articles. 
 
 ![alt text](https://github.com/FergusBrown/VulkanApp/blob/master/Images/Title.png "Title Image")
 
 ## **Contents**
 
 - [Features](#features)
-    - [Application Creation](#application-creation)
+    - [Structure](#structure)
     - [Model Loading](#model-loading)
     - [Mipmap Generation](#mipmap-generation)
+- [Additional Features and Techniques](#additional-features-and-techniques)
     - [First Person Controls](#first-person-controls)
-- [Draw Function Methodology](#draw-function-methodology)
     - [Multithreaded Command Recording](#multithreaded-command-recording)
 - [Applications](#applications)
-    - [Application Creation](#application-creation)
-    - [Model Loading](#model-loading)
-    - [Mipmap Generation](#mipmap-generation)
+    - [Forward Rendering](#forward-rendering)
+    - [Deferred Rendering](#deferred-rendering)
+    - [SSAO](#ssao)
 ## **Core Features**
 
-The core of this project is the [VulkanRenderer](https://github.com/FergusBrown/VulkanApp/blob/master/VulkanApp/Renderer/VulkanRenderer.cpp) abstract class which can be inherited to create applications. This class handles the setup of most of the fundamental Vulkan objects when creating an application such as Instance, Device . Furthermore, most Vulkan objects are abstracted to a class to simplify object creation. In many information is inferred from other abstracted classes during object creation. This greatly cuts down on the code that needs to be written for an application as most Vulkan CreateInfo structures are automatically handle by class constructors. 
-
-Object destruction is also simplified since vkDestroy functions are called in the destructors of the associated classes. This means that object destruction order is automatically handled in the correct order reducing the chance of errors.
+The core of this project is the [VulkanRenderer](https://github.com/FergusBrown/VulkanApp/blob/master/VulkanApp/Renderer/VulkanRenderer.cpp) abstract class which can be inherited to create applications. This class handles the setup of most of the fundamental Vulkan objects when creating an application such as Instance, Device and Swapchain. Furthermore, most Vulkan objects are abstracted to a class to simplify object creation. In many information is inferred from other abstracted classes during object creation. This greatly cuts down on the code that needs to be written for an application as most Vulkan CreateInfo structures are automatically handle by class constructors. Object destruction is also simplified since vkDestroy functions are called in the destructors of the associated classes. This means that object destruction order is automatically handled in the correct order reducing the chance of errors.
 
 The sections below detail some features in the VulkanRenderer abstract class which are common across applications.
 
-### Structure OR Initialisation
+### **Structure**
 
-What is handled by the VulkanRenderer class and what abstract functions must be implemented by applications is summaried below:
+TODO maybe
 
-#### Initialisation
-
-
-
-#### Per Frame
-
-### Model Loading
+### **Model Loading**
 
 Assimp is used to import meshes and materials, the implementation can be found in [ModelLoader.cpp](https://github.com/FergusBrown/VulkanApp/blob/master/VulkanApp/Renderer/ModelLoader.cpp). The VulkanRenderer class is setup to import meshes and the associated diffuse, normal and specular textures if they exist. Upon being imported, a descriptor with samplers for the material textures associated with each mesh is created. If a texture for a particular texture property does not exist a default black texture is bound in its place.
 
-### Mipmap Generation
+### **Mipmap Generation**
 
 When a [Texture](https://github.com/FergusBrown/VulkanApp/blob/master/VulkanApp/Renderer/Texture.cpp) object is created, mipmaps are automatically created by blitting the texture image to smaller dimensions. 
 
@@ -48,22 +40,19 @@ A comparison of a scene with and without mipmaps is shown below.
 ![alt text](https://github.com/FergusBrown/VulkanApp/blob/master/Images/mipmap_compare.png "Mipmap Comparison")
 
 
-
-
-
 ## **Additional Features and Techniques**
 
 This section discusses additional features and techniques which are not part of the core VulkanRenderer class but which are used in each of the example applications.
 
-### First Person Controls
+### **First Person Controls**
 
-The [InputHandler](https://github.com/FergusBrown/VulkanApp/blob/master/VulkanApp/InputHandler.h) is an abstract class used to create classes to handle input from different types of input using the command design pattern. The [InputHandlerMouse](https://github.com/FergusBrown/VulkanApp/blob/master/VulkanApp/InputHandlerMouse.h) and  implements first person camera controls such that the mouse can be used to control camera rotation and the keyboard can be used to control camera position. 
+First person controls are implemented by the [InputHandlerMouse](https://github.com/FergusBrown/VulkanApp/blob/master/VulkanApp/InputHandlerMouse.h) and [Pawn](https://github.com/FergusBrown/VulkanApp/blob/master/VulkanApp/Pawn.h) classes. The pawn class stores position, direction, euler angles and other camera related parameters. A pawn can controlled through functions such as moveForwardBy(float) and rotate(vec3). The InputHandlerMouse class captures mouse and keyboard input and uses the command desgin pattern create a list of commands which can be executed to update the camera parameters stored in a Pawn object. This system is setup so that the mouse can be used to rotate the Pawn and the keyboard can be used to move the Pawn's position.
 
+### **Multithreaded Command Recording**
 
+Vulkan allows multithreading of command recording through the use of Secondary Command Buffers. These can be recorded in parallel then executed using a primary command buffer. An example of how this can be used can be found in any of the application classes such as [DeferredApp](https://github.com/FergusBrown/VulkanApp/blob/master/VulkanApp/Applications/DeferredApp.h). All meshes which need to be rendered are divided equally between threads. Then, for each thread, draw commands for each of the meshes assigned to a thread can be recorded to a secondary command buffer in parallel. In the example applications the recordSecondaryCommandBuffers() function is submitted to a threadpool for execution allowing for multithreaded command recording.
 
-### Multithreaded Command Recording
-
-This is not implemented in the VulkanRenderer class but the methodology used for recording commands is common across applications. TODO
+This has the limitation that it can only be used for recording draw commands for opaque objects. Transparent objects need to be drawn in the correct order from furthest to closest. Splitting meshes between threads and recording draw commands in parallel does not ensure this so transparent objects should be recorded in serial.
 
 ## **Applications**
 
@@ -76,15 +65,15 @@ Crytek's Sponza sample scene is used and has 3 point lights (each in different p
 
 ### **Forward Rendering**
 
-<img src="https://github.com/FergusBrown/VulkanApp/blob/master/Images/Forward.PNG" width="250">
-
 This application uses the setup shown above with a single subpass for shading geometry and calculating lighting. Lighting is calculated in tangent space using information from diffuse, specular and normal textures.
+
+<img src="https://github.com/FergusBrown/VulkanApp/blob/master/Images/Forward.PNG" width="250">
 
 ### **Deferred Rendering**
 
-<img src="https://github.com/FergusBrown/VulkanApp/blob/master/Images/Deferred.png" width="500">
-
 The deferred rendering application first writes diffuse, specular, normal and position data to textures. This data is loaded in subpass 1's fragment shader with the appropriate fragment data being loaded with the subpassLoad function. In this application the lighting was calculated in world space.
+
+<img src="https://github.com/FergusBrown/VulkanApp/blob/master/Images/Deferred.png" width="500">
 
 #### **Performance Comparison**
 
@@ -99,9 +88,9 @@ While the duration for lighting calculations is very short in the deferred setup
 
 ### **SSAO**
 
-<img src="https://github.com/FergusBrown/VulkanApp/blob/master/Images/SSAO.PNG" width="1000">
-
 The SSAO app has a similar approach to the deferred rendering setup but with 2 extra subpasses to implement screen space ambient occlusion. This was done with the guidance of [this](http://john-chapman-graphics.blogspot.com/2013/01/ssao-tutorial.html) tutorial by John Chapman. Additionally, in this application, rather than writing position to a texture, which requires the high precision VK\_FORMAT\_R32G32B32A32_SFLOAT format, position is instead reconstructed using depth buffer data. This was based on [this](https://therealmjp.github.io/posts/position-from-depth-3/) tutorial. This should retain the same precision as writing position to texture while saving memory. Also, fragment shader calculations were all performed in view space in this application which should provide some small performance benefits over the deferred app which used world space.
+
+<img src="https://github.com/FergusBrown/VulkanApp/blob/master/Images/SSAO.PNG" width="1000">
 
 A comparison of the scene with and without SSAO is shown below.
 
