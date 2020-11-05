@@ -69,14 +69,14 @@ The following sections detail applications which each shade a scene using differ
 
 ### Forward Rendering
 
-![alt text](https://github.com/FergusBrown/VulkanApp/blob/master/Images/Forward.PNG "Forward Rendering Setup")
+<img src="https://github.com/FergusBrown/VulkanApp/blob/master/Images/Forward.PNG" width="250">
 (Note: the application actually also has a second subpass for post processing using depth buffer data which is not shown here)
 
 This application uses the setup shown above with a single pass for shading geometry and calculating lighting. In this application lighting for fragments is recalculated after each new mesh is drawm, resulting in many obsolete calculations. This is compared to deferred rendering in the next section.
 
 ### Deferred Rendering
 
-![alt text](https://github.com/FergusBrown/VulkanApp/blob/master/Images/Deferred.png "Deferred Rendering Setup")
+<img src="https://github.com/FergusBrown/VulkanApp/blob/master/Images/Deferred.png" width="500">
 
 #### Performance Comparison
 
@@ -84,6 +84,6 @@ This application uses the setup shown above with a single pass for shading geome
 
 ### SSAO
 
-![alt text](https://github.com/FergusBrown/VulkanApp/blob/master/Images/SSAO.PNG "SSAO Setup")
+<img src="https://github.com/FergusBrown/VulkanApp/blob/master/Images/SSAO.PNG" width="1000">
 
 ![alt text](https://github.com/FergusBrown/VulkanApp/blob/master/Images/SSAO_compare.png "SSAO Comparison")
