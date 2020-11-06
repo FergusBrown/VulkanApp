@@ -6,10 +6,10 @@ This is a project I'm using to explore the Vulkan API and graphics theory. The c
 
 ## **Summary**
 
-This is a project I have used to familiarise myself with the Vulkan API and explore different graphical techniques. I created an abstract class to implement core renderer features, such as model loading, which can be inherited to create applications. Application creation is simplified as many Vulkan objects are abstracted to classes which handle their creation and lifetime.
+This is a project I have used to familiarise myself with the Vulkan API and explore different graphical techniques. I have created an abstract class to implement core renderer features, such as model loading, mipmap generation and anisotropic filtering, which can be inherited to create applications. Application creation is simplified as many Vulkan objects are abstracted to classes which handle their creation and lifetime. Details on the core renderer can be found in the [Core Features](https://github.com/FergusBrown/VulkanApp#core-features) section.
 
 
-To demo the project I created several applications which shade a scene using Phong lighting and can be traversed with a first person camera. The applications compare forward and deferred rendering approaches, implement screen space ambient occlusion and explore the use of multithreaded rendering. RenderDoc was used to debug the applications by inspecting the SPIR-V disassembly for shaders.
+To demo the project I have created several applications which shade a scene using Phong lighting and can be traversed with a first person camera. An example of one of these appplications is shown in the gif above. The applications compare forward and deferred rendering approaches, implement screen space ambient occlusion and explore the use of multithreaded rendering. More details on the implementations can be found in the [Core Features](https://github.com/FergusBrown/VulkanApp#applications).
 
 ## **Contents**
 
@@ -22,7 +22,7 @@ To demo the project I created several applications which shade a scene using Pho
 - [Applications](#applications)
     - [Forward Rendering](#forward-rendering)
     - [Deferred Rendering](#deferred-rendering)
-    - [Screen Space Ambient Occlusion](#ssao)
+    - [Screen Space Ambient Occlusion](#screen-space-ambient-occlusion)
     
 ## **Core Features**
 
@@ -89,9 +89,9 @@ Compared to forward rendering, the deferred approach should remove obsolete frag
 
 While the duration for lighting calculations is very short in the deferred setup, the first subpass which writes out to textures takes longer than the entirety of the forward app's single subpass. This indicates that for this particular scene the deferred app's performance is limited by the first subpass writing to textures. Perhaps if there were many more lights in the scene or lighting calculations were more complex then the deferred app might have a slight edge.
 
-### **SSAO**
+### **Screen Space Ambient Occlusion**
 
-The SSAO app has a similar approach to the deferred rendering setup but with 2 extra subpasses to implement screen space ambient occlusion. This was done with the guidance of [this](http://john-chapman-graphics.blogspot.com/2013/01/ssao-tutorial.html) tutorial by John Chapman. Additionally, in this application, rather than writing position to a texture, which requires the high precision VK\_FORMAT\_R32G32B32A32_SFLOAT format, position is instead reconstructed using depth buffer data. This was based on [this](https://therealmjp.github.io/posts/position-from-depth-3/) tutorial. This should retain the same precision as writing position to texture while saving memory. Also, fragment shader calculations were all performed in view space in this application which should provide some small performance benefits over the deferred app which used world space.
+The Screen Space Ambient Occlusion (SSAO) app has a similar approach to the deferred rendering setup but with 2 extra subpasses to implement SSAO. This was done with the guidance of [this](http://john-chapman-graphics.blogspot.com/2013/01/ssao-tutorial.html) tutorial by John Chapman. Additionally, in this application, rather than writing position to a texture, which requires the high precision VK\_FORMAT\_R32G32B32A32_SFLOAT format, position is instead reconstructed using depth buffer data. This was based on [this](https://therealmjp.github.io/posts/position-from-depth-3/) tutorial. This should retain the same precision as writing position to texture while saving memory. Also, fragment shader calculations were all performed in view space in this application which should provide some small performance benefits over the deferred app which used world space.
 
 <img src="https://github.com/FergusBrown/VulkanApp/blob/master/Images/SSAO.PNG" width="1000">
 
