@@ -16,17 +16,13 @@ This is a project I'm using to explore the Vulkan API and graphics theory. The c
 - [Applications](#applications)
     - [Forward Rendering](#forward-rendering)
     - [Deferred Rendering](#deferred-rendering)
-    - [SSAO](#ssao)
+    - [Screen Space Ambient Occlusion](#ssao)
     
 ## **Core Features**
 
 The core of this project is the [VulkanRenderer](https://github.com/FergusBrown/VulkanApp/blob/master/VulkanApp/Renderer/VulkanRenderer.cpp) abstract class which can be inherited to create applications. This class handles the setup of most of the fundamental Vulkan objects when creating an application such as Instance, Device and Swapchain. Furthermore, most Vulkan objects are abstracted to a class to simplify object creation. For example, with many of these objects information is inferred from other abstracted classes during object creation. Object destruction is also simplified since vkDestroy functions are called in the destructors of the abstracted classes. This means that object destruction order is automatically handled and reducing the chance of errors. Overall, this greatly cuts down on the code that needs to be written for an application.
 
 The sections below detail some features in the VulkanRenderer abstract class which are common across applications.
-
-### **Structure**
-
-TODO maybe
 
 ### **Model Loading**
 
