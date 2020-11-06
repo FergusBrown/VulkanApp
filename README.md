@@ -7,7 +7,6 @@ This is a project I'm using to explore the Vulkan API and graphics theory. The c
 ## **Contents**
 
 - [Core Features](#core-features)
-    - [Structure](#structure)
     - [Model Loading](#model-loading)
     - [Mipmap Generation](#mipmap-generation)
 - [Additional Features and Techniques](#additional-features-and-techniques)
