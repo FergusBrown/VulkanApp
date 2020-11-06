@@ -2,7 +2,14 @@
 
 This is a project I'm using to explore the Vulkan API and graphics theory. The core renderer is based on various tutorials, samples and articles. 
 
-![alt text](https://github.com/FergusBrown/VulkanApp/blob/master/Images/Title.png "Title Image")
+![alt text](https://github.com/FergusBrown/VulkanApp/blob/master/Images/SSAO_scene_360p.gif "Title Image")
+
+## **Summary**
+
+This is a project I have used to familiarise myself with the Vulkan API and explore different graphical techniques. I created an abstract class to implement core renderer features, such as model loading, which can be inherited to create applications. Application creation is simplified as many Vulkan objects are abstracted to classes which handle their creation and lifetime.
+
+
+To demo the project I created several applications which shade a scene using Phong lighting and can be traversed with a first person camera. The applications compare forward and deferred rendering approaches, implement screen space ambient occlusion and explore the use of multithreaded rendering. RenderDoc was used to debug the applications by inspecting the SPIR-V disassembly for shaders.
 
 ## **Contents**
 
