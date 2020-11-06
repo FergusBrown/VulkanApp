@@ -9,7 +9,7 @@ This is a project I'm using to explore the Vulkan API and graphics theory. The c
 This is a project I have used to familiarise myself with the Vulkan API and explore different graphical techniques. I have created an abstract class to implement core renderer features, such as model loading, mipmap generation and anisotropic filtering, which can be inherited to create applications. Application creation is simplified as many Vulkan objects are abstracted to classes which handle their creation and lifetime. Details on the core renderer can be found in the [Core Features](https://github.com/FergusBrown/VulkanApp#core-features) section.
 
 
-To demo the project I have created several applications which shade a scene using Phong lighting and can be traversed with a first person camera. An example of one of these appplications is shown in the gif above. The applications compare forward and deferred rendering approaches, implement screen space ambient occlusion and explore the use of multithreaded rendering. More details on the implementations can be found in the [Core Features](https://github.com/FergusBrown/VulkanApp#applications).
+To demo the project I have created several applications which shade a scene using Phong lighting and can be traversed with a first person camera. An example of one of these appplications is shown in the gif above. The applications compare forward and deferred rendering approaches, implement screen space ambient occlusion and explore the use of multithreaded rendering. More details on the implementations can be found in the [Applications](https://github.com/FergusBrown/VulkanApp#applications).
 
 ## **Contents**
 
