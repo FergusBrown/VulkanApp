@@ -6,7 +6,7 @@ This is a project I'm using to explore the Vulkan API and graphics theory. The c
 
 ## **Summary**
 
-This is a project I have used to familiarise myself with the Vulkan API and explore different graphical techniques. I have created an abstract class to implement core renderer features, such as model loading, mipmap generation and anisotropic filtering, which can be inherited to create applications. Application creation is simplified as many Vulkan objects are abstracted to classes which handle their creation and lifetime. Details on the core renderer can be found in the [Core Features](https://github.com/FergusBrown/VulkanApp#core-features) section.
+The purpose of this project was to familiarise myself with the Vulkan API and explore differentgraphical techniques. I have created an abstract class to implement core renderer features, such as model loading, mipmap generation and anisotropic filtering, which can be inherited to create applications. Application creation is simplified as many Vulkan objects are abstracted to classes which handle their creation and lifetime. Details on the core renderer can be found in the [Core Features](https://github.com/FergusBrown/VulkanApp#core-features) section.
 
 
 To demo the project I have created several applications which shade a scene using Phong shading and can be traversed with a first person camera. An example of one of these appplications is shown in the gif above. The applications compare forward and deferred rendering approaches, implement screen space ambient occlusion and explore the use of multithreaded rendering. More details on the implementations can be found in the [Applications](https://github.com/FergusBrown/VulkanApp#applications).
@@ -86,8 +86,17 @@ Compared to forward rendering, the deferred approach should remove obsolete frag
 | ------------- |-------------| -----|
 | 0      | 1016 | 1312 |
 | 1      | -      |   180 |
+| Total      | 1016      |   1492 |
 
-While the duration for lighting calculations is very short in the deferred setup, the first subpass which writes out to textures takes longer than the entirety of the forward app's single subpass. This indicates that for this particular scene the deferred app's performance is limited by the first subpass writing to textures. Perhaps if there were many more lights in the scene or lighting calculations were more complex then the deferred app might have a slight edge.
+While the duration for lighting calculations is very short in the deferred setup, the first subpass which writes out to textures takes longer than the entirety of the forward app's single subpass. This results in the deferred app being 32% slower than the forward app. This indicates that for this particular scene the deferred app's performance is limited by the first subpass writing to textures. Deferred rendering setups typically show their worth with many lights in a scene so to explore this the below table shows the results from the same scene but with the number of point lights increased to 600.
+
+| Subpass        | Forward  (μs)         | Deferred (μs)  |
+| ------------- |-------------| -----|
+| 0      | 3258 | 1232 |
+| 1      | -      |   1551 |
+| Total      | 3258      |   2783 |
+
+Here, the deferred app's subpass 0 is roughly the same duration as the previous results. However, overall the deferred app is 17% faster than the forward app. This indicates that the number of light calculations in discarded fragment shader runs is beginning to greatly limit performance of the forward app. 
 
 ### **Screen Space Ambient Occlusion**
 
